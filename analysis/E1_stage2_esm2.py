@@ -572,6 +572,49 @@ def audit_and_compare():
     })
     esm2_geom.to_csv(OUT / "E1_esm2_geometry.csv", index=False)
 
+    compare_against_scfms(esm2_geom)
+
+
+def verify_shipped():
+    """Recompute the scFM comparison from the SHIPPED ESM-2 geometry.
+
+    The geometry table is shipped because regenerating it needs the ESM-2
+    checkpoint and several GPU-hours, and the 97 MB embedding array is not
+    committed. This path verifies the shipped file against
+    data/CHECKSUMS.json and then recomputes everything downstream of it, so
+    the comparison and verdict are genuinely regenerated rather than assumed.
+    """
+    import hashlib
+
+    geom_path = OUT / "E1_esm2_geometry.csv"
+    if not geom_path.exists():
+        raise FileNotFoundError(
+            f"{geom_path} not found. Either restore the shipped file or run "
+            f"--all to regenerate it from the ESM-2 checkpoint.")
+
+    checks = REPO / "data" / "CHECKSUMS.json"
+    if checks.exists():
+        expected = json.load(open(checks)).get(
+            "outputs/E1_esm2_geometry.csv", {}).get("sha256_16")
+        actual = hashlib.sha256(geom_path.read_bytes()).hexdigest()[:16]
+        if expected and actual != expected:
+            raise RuntimeError(
+                f"Checksum mismatch for {geom_path.name}: expected "
+                f"{expected}, got {actual}. The shipped geometry has been "
+                f"modified; regenerate with --all or restore the committed "
+                f"file.")
+        print(f"  Shipped ESM-2 geometry verified: sha256[:16]={actual}")
+    else:
+        print("  WARNING: data/CHECKSUMS.json absent; cannot verify.")
+
+    esm2_geom = pd.read_csv(geom_path)
+    print(f"  Loaded {len(esm2_geom)} rows from shipped geometry")
+    compare_against_scfms(esm2_geom)
+
+
+def compare_against_scfms(esm2_geom):
+    """Everything downstream of the ESM-2 geometry table."""
+    gene_order = esm2_geom["gene"].tolist()
     esm2_outliers = set(esm2_geom.loc[esm2_geom["is_outlier"], "gene"])
     print(f"  ESM-2 outliers: {len(esm2_outliers)}")
 
@@ -784,15 +827,23 @@ if __name__ == "__main__":
     parser.add_argument("--audit", action="store_true",
                         help="Step 3: geometric audit + comparison")
     parser.add_argument("--all", action="store_true",
-                        help="Run all steps")
+                        help="Run all steps (needs ESM-2 checkpoint + GPU)")
+    parser.add_argument("--verify-shipped", action="store_true",
+                        help="Verify the shipped ESM-2 geometry against "
+                             "data/CHECKSUMS.json and recompute the scFM "
+                             "comparison and verdict from it. No checkpoint "
+                             "or GPU required.")
     args = parser.parse_args()
 
     if args.all or args.fetch_sequences:
         fetch_sequences()
     if args.all or args.run_esm2:
         run_esm2()
+    if args.verify_shipped:
+        verify_shipped()
     if args.all or args.audit:
         audit_and_compare()
 
-    if not any([args.fetch_sequences, args.run_esm2, args.audit, args.all]):
+    if not any([args.fetch_sequences, args.run_esm2, args.audit, args.all,
+                args.verify_shipped]):
         parser.print_help()
