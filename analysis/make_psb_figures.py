@@ -34,6 +34,11 @@ BASE = REPO  # legacy alias
 
 
 
+# Deterministic PDF output: matplotlib stamps a CreationDate into every PDF,
+# so otherwise-identical figures differ byte-for-byte on each run and any
+# reproducibility check comparing committed artefacts fails spuriously.
+DETERMINISTIC_PDF = {"CreationDate": None}
+
 plt.rcParams.update({
     "font.size": 8,
     "axes.titlesize": 8.5,
@@ -89,7 +94,7 @@ def fig2_stability():
         ax.set_title(f"{m}\n$\\rho$ = {rho:.3f}", fontsize=7.5)
     axes[0].set_ylabel("containment of\noriginal outliers")
     fig.tight_layout(pad=0.3)
-    fig.savefig(REPO / "figures" / "F2_stability.pdf")
+    fig.savefig(REPO / "figures" / "F2_stability.pdf", metadata=DETERMINISTIC_PDF)
     plt.close(fig)
     print("  F2_stability.pdf")
 
@@ -118,7 +123,7 @@ def fig3_esm2():
     ax.set_xlabel("fraction of Geneformer outliers that are NOT ESM-2 outliers")
     ax.axvline(1.0, color="black", lw=0.5, ls=":")
     fig.tight_layout(pad=0.3)
-    fig.savefig(REPO / "figures" / "F3_esm2.pdf")
+    fig.savefig(REPO / "figures" / "F3_esm2.pdf", metadata=DETERMINISTIC_PDF)
     plt.close(fig)
     print("  F3_esm2.pdf")
 
@@ -173,7 +178,7 @@ def fig4_nullband(dataset="pbmc3k"):
         ax.set_xlabel("$\\Delta$ macro-$F_1$ vs baseline")
     axes[0].set_ylabel(f"matched control sets\n(n = {len(res['control_results_full'])})")
     fig.tight_layout(pad=0.35)
-    fig.savefig(REPO / "figures" / f"F4_nullband_{dataset}.pdf")
+    fig.savefig(REPO / "figures" / f"F4_nullband_{dataset}.pdf", metadata=DETERMINISTIC_PDF)
     plt.close(fig)
     print(f"  F4_nullband_{dataset}.pdf")
 
@@ -237,7 +242,7 @@ def fig1_workflow():
     ax.text(3.53, 0.385, "claim fails this stage", fontsize=6.4,
             color="0.3", va="center")
     fig.tight_layout(pad=0.2)
-    fig.savefig(REPO / "figures" / "F1_workflow.pdf")
+    fig.savefig(REPO / "figures" / "F1_workflow.pdf", metadata=DETERMINISTIC_PDF)
     plt.close(fig)
     print("  F1_workflow.pdf")
 
