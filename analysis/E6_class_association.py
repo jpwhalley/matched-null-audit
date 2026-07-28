@@ -232,8 +232,15 @@ def main():
     df.to_csv(OUT / "E6_class_association.csv", index=False)
 
     # ---- Why the schemes disagree ----------------------------------------
-    n_clinvar = len(DISEASE)
-    n_both = len(DISEASE & CONSTRAINED)
+    # Counted over the same complete-case universe the manuscript reports, not
+    # over the full Table_S1, so the figure quoted in the paper is the figure
+    # this script prints.
+    # NB: CONSTRAINED/DISEASE are upper-cased, so this must be too.
+    _cc = set(table_s1.loc[table_s1["gene_length_bp"].notna(),
+                           "gene_symbol"].astype(str).str.upper())
+    n_universe = len(_cc)
+    n_clinvar = len(DISEASE & _cc)
+    n_both = len(DISEASE & CONSTRAINED & _cc)
     pct = 100.0 * n_both / n_clinvar
 
     def pick(gene_set, cls, scheme, model="Geneformer"):
@@ -243,9 +250,15 @@ def main():
             m = m[m.model == model]
         return None if m.empty else m.iloc[0]
 
-    dis_over = pick("all_GF_outliers", "disease", "overlapping")
-    dis_excl = pick("all_GF_outliers", "disease", "mutually_exclusive")
-    con_excl = pick("all_GF_outliers", "constrained", "mutually_exclusive")
+    # Headline numbers use the complete-case universe (source=table_s1,
+    # model=cross_model) so they match the manuscript. The geometry-CSV rows
+    # (20,271 genes / 410 outliers) are retained below for reconciliation.
+    dis_over = pick("all_GF_outliers", "disease", "overlapping", "cross_model")
+    dis_excl = pick("all_GF_outliers", "disease", "mutually_exclusive",
+                    "cross_model")
+    con_excl = pick("all_GF_outliers", "constrained", "mutually_exclusive",
+                    "cross_model")
+    geo_over = pick("all_GF_outliers", "disease", "overlapping", "Geneformer")
     shared_dis = pick("shared_GF_scGPT", "disease", "overlapping", "cross_model")
     shared_con = pick("shared_GF_scGPT", "constrained", "overlapping",
                       "cross_model")
@@ -257,17 +270,20 @@ def main():
           f"{n_both}/{n_clinvar} ({pct:.0f}%)")
     print(f"  Constrained is assigned BEFORE disease, and constrained is")
     print(f"  enriched among outliers (OR {con_excl['OR']:.2f}), so the")
-    print(f"  residual disease class is depleted by construction.")
+    print(f"  mutually-exclusive class asks a DIFFERENT question: the")
+    print(f"  association among ClinVar genes that are not also constrained,")
+    print(f"  ribosomal or mitochondrial.")
     print()
     print(f"  disease, overlapping        OR {dis_over['OR']:.3f}  "
-          f"p {dis_over['p']:.2e}   <- the honest test")
+          f"p {dis_over['p']:.2e}   <- direct membership")
     print(f"  disease, mutually exclusive OR {dis_excl['OR']:.3f}  "
           f"p {dis_excl['p']:.2e}   <- different estimand")
 
-    # Two sources use slightly different gene universes: the geometry CSV has
-    # 20,271 genes / 410 outliers; Table_S1 has 18,915 / 388. Both give the
-    # same qualitative answer for disease (ns). Documented so the small OR
-    # difference (1.182 vs 1.161) is not mistaken for an inconsistency.
+    # Two sources use different gene universes: the geometry CSV covers the
+    # full model vocabulary (20,271 genes / 410 outliers); the Table_S1 route
+    # is restricted to annotated complete cases and is what the manuscript
+    # reports. Both give the same qualitative answer (ns). Documented so the
+    # small OR difference is not mistaken for an inconsistency.
     summary = {
         "headline": (
             "Geneformer geometric outliers are enriched for LoF-constrained "
@@ -302,11 +318,14 @@ def main():
             "all_GF_disease_p": float(dis_over["p"]),
             "interpretation": (
                 "The preprint figure reproduces, but it is confined to the "
-                "small cross-model intersection and is confounded with "
-                "constraint (constrained OR is far higher in the same set). "
-                "Across ALL Geneformer outliers there is no disease "
-                "association. Report the contrast, not the intersection "
-                "alone."),
+                "small cross-model intersection, and that intersection is "
+                "itself strongly constraint-enriched (constrained OR is far "
+                "higher in the same set). The association attenuates under "
+                "simultaneous covariate adjustment in E8; no nested models "
+                "were fitted, so the attenuation is NOT attributed to "
+                "constraint specifically. Across ALL Geneformer outliers "
+                "there is no disease association. Report the contrast, not "
+                "the intersection alone."),
         },
         "scheme_flip_demonstration": {
             "gene_set": "shared_GF_scGPT",
@@ -317,15 +336,29 @@ def main():
                 "THE SAME GENE SET yields disease OR 3.60 (significant "
                 "enrichment) under overlapping membership and OR 0.385 "
                 "(significant depletion) under mutually-exclusive precedence. "
-                "Opposite conclusions from identical data, driven purely by "
-                "class-scheme choice. This is the clearest available "
-                "demonstration that the scheme must be stated."),
+                "These are DIFFERENT ESTIMANDS, not opposite answers to one "
+                "question: the mutually-exclusive figure is the association "
+                "among ClinVar genes that are not also constrained, ribosomal "
+                "or mitochondrial. Both are correctly computed. The failure "
+                "mode is reporting either one without naming the scheme, "
+                "because a reader will take it for the other."),
         },
         "gene_universes": {
-            "geometry_csv": {"n_genes": 20271, "n_outliers": 410,
-                             "disease_overlapping_OR": 1.182, "p": 0.104},
-            "table_s1": {"n_genes": 18915, "n_outliers": 388,
-                         "disease_overlapping_OR": 1.161, "p": 0.148},
+            "geometry_csv": {
+                "n_genes": int(len(load_geneformer())),
+                "n_outliers": (None if geo_over is None
+                               else int(geo_over["n_set"])),
+                "disease_overlapping_OR": (None if geo_over is None
+                                           else float(geo_over["OR"])),
+                "p": None if geo_over is None else float(geo_over["p"]),
+                "note": "full model vocabulary"},
+            "table_s1": {
+                "n_genes": int(n_universe),
+                "n_outliers": int(dis_over["n_set"]),
+                "disease_overlapping_OR": float(dis_over["OR"]),
+                "p": float(dis_over["p"]),
+                "note": "annotated complete cases; this is what the "
+                        "manuscript reports"},
             "note": "Different universes; same qualitative answer (ns).",
         },
         "reporting_rule": (
