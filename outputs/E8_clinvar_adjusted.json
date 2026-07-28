@@ -1,0 +1,46 @@
+{
+  "primary": {
+    "specification": "Firth penalised logistic, full-coverage table, all genes, profile-likelihood CI",
+    "gene_set": "all Geneformer geometric outliers",
+    "n_outliers": 388,
+    "n_universe": 18911,
+    "unadjusted_OR": 1.160379619073898,
+    "unadjusted_p": 0.14815047775495715,
+    "adjusted_OR": 1.0533026244287012,
+    "adjusted_CI": [
+      0.8225696675638681,
+      1.3474359549424844
+    ],
+    "adjusted_p": 0.6795067716808258
+  },
+  "sensitivity_non_mito": {
+    "adjusted_OR": 1.0530389652482377,
+    "adjusted_CI": [
+      0.8225933069231349,
+      1.3480428943420717
+    ],
+    "adjusted_p": 0.6817046986504112,
+    "n_universe": 18898
+  },
+  "exploratory_shared_set": {
+    "note": "Cross-model subset selected post hoc as the set showing an apparent signal. Small (n=72). NOT a second headline test; report as exploratory only.",
+    "adjusted_OR": 1.4513397629479012,
+    "adjusted_CI": [
+      0.8020939609833788,
+      2.710645943742815
+    ],
+    "adjusted_p": 0.2218636584044063
+  },
+  "specification_dependence": {
+    "note": "The shared-set conclusion is specification-dependent. Report the full grid in E8_clinvar_adjusted.csv rather than a single number.",
+    "stale_table_nonmito_OR": 1.95,
+    "full_table_nonmito_OR": 1.47,
+    "full_table_allgene_unpenalised_OR": 2.28
+  },
+  "not_pre_specified": "This hierarchy was fixed after exploratory results were seen. The manuscript must not describe it as pre-specified; the defence is completeness of reporting, not blindness of choice.",
+  "provenance": {
+    "table": "notebooks/data/Table_S1.csv",
+    "sha256_16": "57443b7225229e0b",
+    "gene_length_coverage": 0.9998
+  }
+}

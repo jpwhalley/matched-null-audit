@@ -1,0 +1,17 @@
+model,source,gene_set,cls,scheme,n_set,n_in_class,OR,p
+Geneformer,geometry_csv,all_GF_outliers,mitochondrial,mutually_exclusive,410,10,165.48333333333332,2.784740383219069e-15
+Geneformer,geometry_csv,all_GF_outliers,mitochondrial,overlapping,410,10,165.48333333333332,2.784740383219069e-15
+Geneformer,geometry_csv,all_GF_outliers,ribosomal,mutually_exclusive,410,68,36.70743837787615,1.194727414965744e-69
+Geneformer,geometry_csv,all_GF_outliers,ribosomal,overlapping,410,68,36.70743837787615,1.194727414965744e-69
+Geneformer,geometry_csv,all_GF_outliers,constrained,mutually_exclusive,410,88,1.5938738577047906,0.00024056582117224076
+Geneformer,geometry_csv,all_GF_outliers,constrained,overlapping,410,139,2.984169450345379,7.327270796312551e-22
+Geneformer,geometry_csv,all_GF_outliers,disease,mutually_exclusive,410,83,0.537570031541198,1.737047289787438e-07
+Geneformer,geometry_csv,all_GF_outliers,disease,overlapping,410,184,1.1821391893368294,0.10427135233173318
+cross_model,table_s1,all_GF_outliers,constrained,mutually_exclusive,388,88,1.5761495241371402,0.00041593540964689055
+cross_model,table_s1,all_GF_outliers,constrained,overlapping,388,139,2.992189837275639,1.5153955669839966e-21
+cross_model,table_s1,all_GF_outliers,disease,mutually_exclusive,388,83,0.5193561005738991,3.817485582833509e-08
+cross_model,table_s1,all_GF_outliers,disease,overlapping,388,184,1.1610796417332365,0.1480291955298356
+cross_model,table_s1,shared_GF_scGPT,constrained,mutually_exclusive,72,31,4.050631973931075,3.553638497399857e-08
+cross_model,table_s1,shared_GF_scGPT,constrained,overlapping,72,42,7.364186046511628,4.312402847315061e-16
+cross_model,table_s1,shared_GF_scGPT,disease,mutually_exclusive,72,12,0.38509548206800187,0.0016310995217626253
+cross_model,table_s1,shared_GF_scGPT,disease,overlapping,72,53,3.596391050521456,4.964883443284181e-07

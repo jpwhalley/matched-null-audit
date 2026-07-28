@@ -1,0 +1,46 @@
+[project]
+name = "scfm-embedding-audit"
+version = "1.0.0"
+description = "Matched-null auditing of gene-embedding outliers in single-cell foundation models"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Justin P. Whalley", email = "justin.whalley@rosalindfranklin.edu" }]
+
+dependencies = [
+    # core
+    "numpy>=1.26,<2",
+    "pandas>=2.0",
+    "scipy>=1.11",
+    "scikit-learn>=1.3",
+    "statsmodels>=0.14",
+    "firthlogist>=0.5",        # Firth penalised logistic, profile-likelihood CIs (E8)
+    # single-cell
+    "anndata>=0.10",
+    "scanpy>=1.10",
+    # models
+    "torch>=2.2",
+    "transformers>=4.40",
+    "fair-esm>=2.0",           # ESM-2 protein embeddings (E1)
+    # annotation
+    "mygene>=3.2",             # gene ID mapping (E1 stage 1)
+    # figures / notebooks
+    "matplotlib>=3.8",
+    "jupyter>=1.0",
+    "nbconvert>=7.0",
+]
+
+[project.optional-dependencies]
+# Only needed to re-download Tabula Sapiens; not required for the reported results
+census = ["cellxgene-census>=1.15"]
+
+[tool.uv]
+# Geneformer is NOT vendored here. Obtain the checkpoint via
+# notebooks/D01_model_acquisition.ipynb and see DATA_MANIFEST.md.
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["analysis"]

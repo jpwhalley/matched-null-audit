@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software or its results, please cite the preprint below."
+title: "A matched-null framework for auditing gene-embedding outliers in single-cell foundation models"
+authors:
+  - family-names: Whalley
+    given-names: Justin P.
+    affiliation: "Rosalind Franklin University of Medicine and Science"
+    email: justin.whalley@rosalindfranklin.edu
+repository-code: "https://github.com/USERNAME/REPO"
+license: MIT
+type: software
+preferred-citation:
+  type: article
+  title: "A matched-null framework for auditing gene-embedding outliers in single-cell foundation models"
+  authors:
+    - family-names: Whalley
+      given-names: Justin P.
+  year: 2026
+  doi: 10.64898/2026.06.22.733850
+  notes: "bioRxiv preprint. A revised version is under consideration at Pacific Symposium on Biocomputing 2027; update this entry on acceptance."

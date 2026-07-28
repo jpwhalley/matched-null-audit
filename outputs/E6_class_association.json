@@ -1,0 +1,55 @@
+{
+  "headline": "Geneformer geometric outliers are enriched for LoF-constrained genes but show NO significant association with ClinVar disease status when membership is tested directly.",
+  "clinvar_overlapping": {
+    "OR": 1.1821391893368294,
+    "p": 0.10427135233173318,
+    "reading": "no significant association"
+  },
+  "clinvar_mutually_exclusive": {
+    "OR": 0.537570031541198,
+    "p": 1.737047289787438e-07,
+    "reading": "ARTIFACT of class precedence - do not report as disease-gene depletion"
+  },
+  "constrained_mutually_exclusive": {
+    "OR": 1.5938738577047906,
+    "p": 0.00024056582117224076,
+    "reading": "genuine enrichment"
+  },
+  "clinvar_constrained_overlap": {
+    "n_clinvar": 8284,
+    "n_also_constrained": 1782,
+    "pct": 21.5,
+    "note": "this overlap is the mechanism of the artifact"
+  },
+  "preprint_reconciliation": {
+    "claim": "preprint reports disease enrichment OR 3.7 for shared Geneformer-scGPT outliers",
+    "shared_set_disease_OR": 3.596391050521456,
+    "shared_set_disease_p": 4.964883443284181e-07,
+    "shared_set_constrained_OR": 7.364186046511628,
+    "all_GF_disease_OR": 1.1821391893368294,
+    "all_GF_disease_p": 0.10427135233173318,
+    "interpretation": "The preprint figure reproduces, but it is confined to the small cross-model intersection and is confounded with constraint (constrained OR is far higher in the same set). Across ALL Geneformer outliers there is no disease association. Report the contrast, not the intersection alone."
+  },
+  "scheme_flip_demonstration": {
+    "gene_set": "shared_GF_scGPT",
+    "disease_overlapping_OR": 3.596391050521456,
+    "disease_mutually_exclusive_OR": 0.385,
+    "note": "THE SAME GENE SET yields disease OR 3.60 (significant enrichment) under overlapping membership and OR 0.385 (significant depletion) under mutually-exclusive precedence. Opposite conclusions from identical data, driven purely by class-scheme choice. This is the clearest available demonstration that the scheme must be stated."
+  },
+  "gene_universes": {
+    "geometry_csv": {
+      "n_genes": 20271,
+      "n_outliers": 410,
+      "disease_overlapping_OR": 1.182,
+      "p": 0.104
+    },
+    "table_s1": {
+      "n_genes": 18915,
+      "n_outliers": 388,
+      "disease_overlapping_OR": 1.161,
+      "p": 0.148
+    },
+    "note": "Different universes; same qualitative answer (ns)."
+  },
+  "reporting_rule": "Always state whether a class scheme is mutually exclusive or overlapping. The two give materially different answers here and the difference is not cosmetic."
+}

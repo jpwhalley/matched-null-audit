@@ -1,0 +1,14 @@
+{
+  "data/Table_S1.csv": {
+    "sha256_16": "57443b7225229e0b",
+    "bytes": 5908419
+  },
+  "data/gene_embedding_geometry.csv": {
+    "sha256_16": "94d814094f5a519c",
+    "bytes": 4382747
+  },
+  "outputs/E1_esm2_geometry.csv": {
+    "sha256_16": "cc3741ad4a65bde4",
+    "bytes": 2690890
+  }
+}

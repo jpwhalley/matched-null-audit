@@ -1,0 +1,5 @@
+cls,n_scfm_outliers,n_also_esm2,n_scfm_only,n_shared_genes
+ribosomal,68,21,47,19017
+mitochondrial,10,8,2,19017
+constrained,87,1,86,19017
+disease,82,3,79,19017

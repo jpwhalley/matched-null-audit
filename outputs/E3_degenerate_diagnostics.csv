@@ -1,0 +1,13 @@
+model,metric,minority_n,minority_pct,total_n
+Geneformer,norm,6475,31.942183414730405,20271
+Geneformer,dist_from_centroid,4905,24.19712890335948,20271
+Geneformer,cos_to_centroid,5658,27.911795175373687,20271
+Geneformer,isolation_score,6041,29.801193823689015,20271
+scGPT,norm,21041,34.66734767851847,60694
+scGPT,dist_from_centroid,21069,34.713480739447064,60694
+scGPT,cos_to_centroid,27523,45.34715128348766,60694
+scGPT,isolation_score,23118,38.08943223382872,60694
+scFoundation,norm,9129,47.38891196013289,19264
+scFoundation,dist_from_centroid,9156,47.52906976744186,19264
+scFoundation,cos_to_centroid,9473,49.17462624584718,19264
+scFoundation,isolation_score,7584,39.3687707641196,19264

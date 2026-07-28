@@ -1,0 +1,23 @@
+# Environments
+.venv/
+__pycache__/
+*.pyc
+
+# Large regenerable intermediates
+cache/
+outputs/E2_baseline_embs_*.npy
+outputs/E1_esm2_embeddings.npy
+
+# Model checkpoints are not redistributed (see DATA_MANIFEST.md)
+Geneformer/
+models/
+*.pt
+*.bin
+*.safetensors
+
+# Single-cell data downloaded by the D-series
+*.h5ad
+
+# OS / editor
+.DS_Store
+.ipynb_checkpoints/
