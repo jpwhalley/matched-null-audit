@@ -9,10 +9,13 @@ other. Under that scheme Geneformer's residual `disease` class shows OR 0.54
 (significant, two-sided Fisher), which was briefly written up as "ClinVar
 disease genes are depleted among geometric outliers".
 
-That reading is FALSE. Constrained genes are removed from the pool before the
-disease class is formed; constrained genes are enriched among outliers; and
-~22% of ClinVar genes are also constrained. The residual disease class is
-therefore depleted by construction.
+That reading does not mean what it appears to. Constrained genes are removed
+from the pool before the disease class is formed; constrained genes are enriched
+among outliers; and ~22% of ClinVar genes are also constrained. So the residual
+`disease` class is depleted by construction. The number is not wrong -- it
+correctly estimates the association among ClinVar genes that are NOT constrained,
+ribosomal or mitochondrial. It is a DIFFERENT ESTIMAND from direct membership,
+and the error is reporting it as though it answered the direct question.
 
 This script tests every class BOTH ways -- mutually exclusive and overlapping
 (direct membership) -- so the difference is explicit and reproducible rather
@@ -115,8 +118,15 @@ def load_geneformer():
 
 
 def load_from_table_s1():
-    """outlier_class encodes the cross-model membership used in the preprint."""
-    t = table_s1[["gene_symbol", "outlier_class"]].copy()
+    """outlier_class encodes the cross-model membership used in the preprint.
+
+    Restricted to complete cases (gene length present), so this reproduces the
+    same 18,911-gene universe the manuscript's Table 2 and the covariate-adjusted
+    analysis in E8 use. On the full 18,915 rows the odds ratios agree to every
+    digit reported, but the universes should match exactly, not coincidentally.
+    """
+    t = table_s1.loc[table_s1["gene_length_bp"].notna(),
+                     ["gene_symbol", "outlier_class"]].copy()
     t = t.rename(columns={"gene_symbol": "gene"})
     t["gf"] = t["outlier_class"].isin(
         ["GF-only", "GF∩scGPT", "GF∩SF", "All three"])
@@ -184,7 +194,7 @@ def main():
 
     # ---- Per-class scFM-only breakdown vs ESM-2 (E1 reconciliation) ------
     # The "86 of 87 constrained outliers are scFM-specific" figure requires TWO
-    # restrictions and is wrong without either. Emit it as an artifact so the
+    # restrictions and is misleading without either. Emit it flagged so the
     # number in the manuscript is reproducible rather than recalled.
     esm_path = OUT / "E1_esm2_geometry.csv"
     scfm_only_rows = []
@@ -252,7 +262,7 @@ def main():
     print(f"  disease, overlapping        OR {dis_over['OR']:.3f}  "
           f"p {dis_over['p']:.2e}   <- the honest test")
     print(f"  disease, mutually exclusive OR {dis_excl['OR']:.3f}  "
-          f"p {dis_excl['p']:.2e}   <- artifact")
+          f"p {dis_excl['p']:.2e}   <- different estimand")
 
     # Two sources use slightly different gene universes: the geometry CSV has
     # 20,271 genes / 410 outliers; Table_S1 has 18,915 / 388. Both give the
@@ -269,7 +279,8 @@ def main():
             "reading": "no significant association"},
         "clinvar_mutually_exclusive": {
             "OR": float(dis_excl["OR"]), "p": float(dis_excl["p"]),
-            "reading": "ARTIFACT of class precedence - do not report as "
+            "reading": "DIFFERENT ESTIMAND under class precedence - "
+                       "do not report as "
                        "disease-gene depletion"},
         "constrained_mutually_exclusive": {
             "OR": float(con_excl["OR"]), "p": float(con_excl["p"]),
@@ -277,7 +288,7 @@ def main():
         "clinvar_constrained_overlap": {
             "n_clinvar": n_clinvar, "n_also_constrained": n_both,
             "pct": round(pct, 1),
-            "note": "this overlap is the mechanism of the artifact"},
+            "note": "this overlap is why the two schemes diverge"},
         "preprint_reconciliation": {
             "claim": "preprint reports disease enrichment OR 3.7 for shared "
                      "Geneformer-scGPT outliers",
