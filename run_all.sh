@@ -2,7 +2,10 @@
 # Reproduce the analyses reported in the manuscript.
 #
 # Fails loudly on any missing script or non-zero exit. Does NOT silently skip.
-# Data acquisition (notebooks/D01-D04) must be run first; see DATA_MANIFEST.md.
+#
+# The default path needs only the SHIPPED inputs -- no model checkpoints, no
+# GPU, no network. Data acquisition (notebooks/D01-D04) is required only for
+# full regeneration: REGENERATE_ESM2=1 and the E2 ablation. See DATA_MANIFEST.md.
 
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -27,9 +30,9 @@ if [[ "${REGENERATE_ESM2:-0}" == "1" ]]; then
   run E1_stage1_mapping.py --all
   run E1_stage2_esm2.py --all
 else
-  echo "  Using shipped outputs/E1_esm2_geometry.csv."
-  echo "  Set REGENERATE_ESM2=1 to recompute from the ESM-2 checkpoint."
-  [[ -f outputs/E1_esm2_geometry.csv ]] || { echo "MISSING: outputs/E1_esm2_geometry.csv" >&2; exit 1; }
+  # Verifies the shipped geometry against data/CHECKSUMS.json, then recomputes
+  # the scFM comparison and verdict from it. ~1.5 s.
+  run E1_stage2_esm2.py --verify-shipped
 fi
 
 echo "### Stage 5 — covariate-aware annotation"
@@ -52,10 +55,20 @@ echo; echo "Done. Outputs in outputs/, figures in figures/."
 echo
 echo "Verifying nothing drifted:"
 if command -v git >/dev/null && git rev-parse --git-dir >/dev/null 2>&1; then
-  if git diff --exit-code --stat -- outputs figures; then
-    echo "  clean: regenerated outputs match the committed ones."
+  # outputs/ is gated strictly: floats are serialised at a documented
+  # precision (analysis/_precision.py) so library-version noise cannot trip it.
+  # figures/ is advisory: PDF bytes depend on the font and rendering stack even
+  # with timestamps suppressed, so a difference there is reported, not fatal.
+  ok=0
+  if git diff --exit-code --stat -- outputs; then
+    echo "  outputs: clean."
   else
-    echo "  DRIFT: regenerated outputs differ from the commit (see above)." >&2
-    exit 1
+    echo "  DRIFT in outputs/ — regenerated results differ from the commit." >&2
+    ok=1
   fi
+  if ! git diff --quiet -- figures; then
+    echo "  NOTE: figures/ differ byte-wise. Expected on a different font or"
+    echo "        rendering stack; check visually rather than by hash."
+  fi
+  exit $ok
 fi

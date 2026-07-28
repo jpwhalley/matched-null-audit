@@ -37,6 +37,7 @@ Outputs (in revision/outputs/ unless noted):
 """
 
 import argparse
+import re
 import json
 import sys
 import time
@@ -48,6 +49,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from scipy import stats
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _precision import clean  # documented serialisation precision
 
 # Repository-relative paths. Scripts live in analysis/; everything they read
 # and write is inside this repository.
@@ -70,24 +74,29 @@ table_s1 = pd.read_csv(DATA / "Table_S1.csv")
 
 # ── Shared helpers ───────────────────────────────────────────────────────────
 
+# Built once at import. Rebuilding these inside assign_gene_class rescanned an
+# 18,915-row frame on every one of ~19,000 calls; hoisting them takes the
+# verification path from minutes to ~1.5 s.
+RIBOSOMAL_RE = re.compile(r"^(RPL|RPS|MRPL|MRPS)\d")
+CONSTRAINED_GENES = frozenset(
+    table_s1.loc[(table_s1["pLI"] > 0.9) | (table_s1["LOEUF"] < 0.35),
+                 "gene_symbol"].astype(str).str.upper()
+)
+DISEASE_GENES = frozenset(
+    table_s1.loc[table_s1["clinvar_disease"] == True,       # noqa: E712
+                 "gene_symbol"].astype(str).str.upper()
+)
+
+
 def assign_gene_class(sym: str) -> str:
-    import re
-    sym_u = sym.upper()
+    sym_u = str(sym).upper()
     if sym_u.startswith("MT-"):
         return "mitochondrial"
-    if re.match(r"^(RPL|RPS|MRPL|MRPS)\d", sym_u):
+    if RIBOSOMAL_RE.match(sym_u):
         return "ribosomal"
-    constrained = set(
-        table_s1.loc[(table_s1["pLI"] > 0.9) | (table_s1["LOEUF"] < 0.35),
-                     "gene_symbol"].str.upper()
-    )
-    if sym_u in constrained:
+    if sym_u in CONSTRAINED_GENES:
         return "constrained"
-    disease = set(
-        table_s1.loc[table_s1["clinvar_disease"] == True,
-                     "gene_symbol"].str.upper()
-    )
-    if sym_u in disease:
+    if sym_u in DISEASE_GENES:
         return "disease"
     return "other"
 
@@ -801,7 +810,7 @@ def compare_against_scfms(esm2_geom):
     }
 
     with open(OUT / "E1_stage2_verdict.json", "w") as f:
-        json.dump(verdict, f, indent=2, default=str)
+        json.dump(clean(verdict), f, indent=2, default=str)
 
     print(f"\n\n{'='*70}")
     print(f"  E1 STAGE 2 VERDICT: {interpretation}")

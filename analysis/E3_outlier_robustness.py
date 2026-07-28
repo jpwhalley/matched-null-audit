@@ -62,7 +62,11 @@ from scipy import stats
 from sklearn.mixture import GaussianMixture
 from pathlib import Path
 import json
+import sys
 import warnings
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _precision import clean  # documented serialisation precision
 
 # Repository-relative paths. Scripts live in analysis/; everything they read
 # and write is inside this repository.
@@ -439,7 +443,7 @@ pd.DataFrame(summary_rows).to_csv(OUT / "E3_calibrated_summary.csv", index=False
 pd.DataFrame(enrichment_rows).to_csv(OUT / "E3_enrichment_full.csv", index=False)
 
 with open(OUT / "E3_robust_core.json", "w") as f:
-    json.dump(robust_cores, f, indent=2)
+    json.dump(clean(robust_cores), f, indent=2)
 
 gate_output = {
     "overall_verdict": overall,
@@ -500,7 +504,7 @@ gate_output = {
     "per_model": verdicts,
 }
 with open(OUT / "E3_gate_verdict.json", "w") as f:
-    json.dump(gate_output, f, indent=2, default=str)
+    json.dump(clean(gate_output), f, indent=2, default=str)
 
 print(f"\n  Saved to {OUT}/:")
 for fn in ["E3_calibrated_summary.csv", "E3_enrichment_full.csv",

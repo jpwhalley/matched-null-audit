@@ -29,12 +29,16 @@ Usage:
 """
 
 import json
+import sys
 import re
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 from scipy import stats
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _precision import clean  # documented serialisation precision
 
 # Repository-relative paths. Scripts live in analysis/; everything they read
 # and write is inside this repository.
@@ -319,7 +323,7 @@ def main():
             "the difference is not cosmetic."),
     }
     with open(OUT / "E6_class_association.json", "w") as f:
-        json.dump(summary, f, indent=2)
+        json.dump(clean(summary), f, indent=2)
 
     print("\n" + "=" * 74)
     print("  PREPRINT RECONCILIATION")

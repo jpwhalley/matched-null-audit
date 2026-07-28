@@ -1,8 +1,8 @@
 {
   "interpretation": "DIVERGENT",
   "note": "Outlier sets are largely different between scFM and ESM-2 embeddings. Geometric outliers are model/tokenisation-specific, not intrinsic biological properties.",
-  "mean_jaccard": 0.023405067155067155,
-  "mean_spearman": 0.04172534885325474,
+  "mean_jaccard": 0.0234050671551,
+  "mean_spearman": 0.0417253488533,
   "n_esm2_outliers_total": 570,
   "per_model": [
     {
@@ -11,10 +11,10 @@
       "n_scfm_outliers": 389,
       "n_esm2_outliers": 570,
       "n_intersection": 49,
-      "jaccard": 0.05384615384615385,
+      "jaccard": 0.0538461538462,
       "hypergeom_p": 0.0,
-      "spearman_rho": 0.07231080249660056,
-      "spearman_p": 1.7868222549680278e-23,
+      "spearman_rho": 0.0723108024966,
+      "spearman_p": 1.78682225497e-23,
       "top50_overlap": 4,
       "cat_concordance": 3,
       "overlap_genes": [
@@ -75,10 +75,10 @@
       "n_scfm_outliers": 118,
       "n_esm2_outliers": 565,
       "n_intersection": 11,
-      "jaccard": 0.01636904761904762,
-      "hypergeom_p": 0.0008806014445578159,
-      "spearman_rho": 0.04562603252218686,
-      "spearman_p": 4.1017208869455327e-10,
+      "jaccard": 0.016369047619,
+      "hypergeom_p": 0.000880601444558,
+      "spearman_rho": 0.0456260325222,
+      "spearman_p": 4.10172088695e-10,
       "top50_overlap": 4,
       "cat_concordance": 3,
       "overlap_genes": [
@@ -103,8 +103,8 @@
       "n_intersection": 0,
       "jaccard": 0.0,
       "hypergeom_p": 1.0,
-      "spearman_rho": 0.007239211540976791,
-      "spearman_p": 0.3210898167476806,
+      "spearman_rho": 0.00723921154098,
+      "spearman_p": 0.321089816748,
       "top50_overlap": 0,
       "cat_concordance": 3,
       "overlap_genes": []

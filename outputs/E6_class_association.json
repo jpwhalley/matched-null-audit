@@ -1,18 +1,18 @@
 {
   "headline": "Geneformer geometric outliers are enriched for LoF-constrained genes but show NO significant association with ClinVar disease status when membership is tested directly.",
   "clinvar_overlapping": {
-    "OR": 1.1814000932681985,
-    "p": 0.10430625573676963,
+    "OR": 1.18140009327,
+    "p": 0.104306255737,
     "reading": "no significant association"
   },
   "clinvar_mutually_exclusive": {
-    "OR": 0.5374458135751784,
-    "p": 1.738569900552756e-07,
+    "OR": 0.537445813575,
+    "p": 1.73856990055e-07,
     "reading": "ARTIFACT of class precedence - do not report as disease-gene depletion"
   },
   "constrained_mutually_exclusive": {
-    "OR": 1.5938738577047906,
-    "p": 0.00024056582117224076,
+    "OR": 1.5938738577,
+    "p": 0.000240565821172,
     "reading": "genuine enrichment"
   },
   "clinvar_constrained_overlap": {
@@ -23,16 +23,16 @@
   },
   "preprint_reconciliation": {
     "claim": "preprint reports disease enrichment OR 3.7 for shared Geneformer-scGPT outliers",
-    "shared_set_disease_OR": 3.594064405609603,
-    "shared_set_disease_p": 4.9721310868841e-07,
-    "shared_set_constrained_OR": 7.364186046511628,
-    "all_GF_disease_OR": 1.1814000932681985,
-    "all_GF_disease_p": 0.10430625573676963,
+    "shared_set_disease_OR": 3.59406440561,
+    "shared_set_disease_p": 4.97213108688e-07,
+    "shared_set_constrained_OR": 7.36418604651,
+    "all_GF_disease_OR": 1.18140009327,
+    "all_GF_disease_p": 0.104306255737,
     "interpretation": "The preprint figure reproduces, but it is confined to the small cross-model intersection and is confounded with constraint (constrained OR is far higher in the same set). Across ALL Geneformer outliers there is no disease association. Report the contrast, not the intersection alone."
   },
   "scheme_flip_demonstration": {
     "gene_set": "shared_GF_scGPT",
-    "disease_overlapping_OR": 3.594064405609603,
+    "disease_overlapping_OR": 3.59406440561,
     "disease_mutually_exclusive_OR": 0.385,
     "note": "THE SAME GENE SET yields disease OR 3.60 (significant enrichment) under overlapping membership and OR 0.385 (significant depletion) under mutually-exclusive precedence. Opposite conclusions from identical data, driven purely by class-scheme choice. This is the clearest available demonstration that the scheme must be stated."
   },

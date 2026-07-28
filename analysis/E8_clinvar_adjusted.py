@@ -53,6 +53,7 @@ Usage:  python E8_clinvar_adjusted.py
 
 import hashlib
 import json
+import sys
 import re
 from pathlib import Path
 
@@ -60,6 +61,9 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from scipy import stats
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _precision import clean  # documented serialisation precision
 
 # Repository-relative paths. Scripts live in analysis/; everything they read
 # and write is inside this repository.
@@ -266,7 +270,7 @@ def main():
         },
     }
     with open(OUT / "E8_clinvar_adjusted.json", "w") as f:
-        json.dump(summary, f, indent=2)
+        json.dump(clean(summary), f, indent=2)
 
     print("=" * 78)
     print("  PRIMARY RESULT")

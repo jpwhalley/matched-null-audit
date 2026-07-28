@@ -28,10 +28,14 @@ Usage:  python E9_token_occurrence_audit.py [--dataset pbmc3k]
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _precision import clean  # documented serialisation precision
 
 # Repository-relative paths. Scripts live in analysis/; everything they read
 # and write is inside this repository.

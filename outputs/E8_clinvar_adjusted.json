@@ -4,32 +4,32 @@
     "gene_set": "all Geneformer geometric outliers",
     "n_outliers": 388,
     "n_universe": 18911,
-    "unadjusted_OR": 1.160379619073898,
-    "unadjusted_p": 0.14815047775495715,
-    "adjusted_OR": 1.0533026244287012,
+    "unadjusted_OR": 1.16037961907,
+    "unadjusted_p": 0.148150477755,
+    "adjusted_OR": 1.05330262443,
     "adjusted_CI": [
-      0.8225696675638681,
-      1.3474359549424844
+      0.822569667564,
+      1.34743595494
     ],
-    "adjusted_p": 0.6795067716808258
+    "adjusted_p": 0.679506771681
   },
   "sensitivity_non_mito": {
-    "adjusted_OR": 1.0530389652482377,
+    "adjusted_OR": 1.05303896525,
     "adjusted_CI": [
-      0.8225933069231349,
-      1.3480428943420717
+      0.822593306923,
+      1.34804289434
     ],
-    "adjusted_p": 0.6817046986504112,
+    "adjusted_p": 0.68170469865,
     "n_universe": 18898
   },
   "exploratory_shared_set": {
     "note": "Cross-model subset selected post hoc as the set showing an apparent signal. Small (n=72). NOT a second headline test; report as exploratory only.",
-    "adjusted_OR": 1.4513397629479012,
+    "adjusted_OR": 1.45133976295,
     "adjusted_CI": [
-      0.8020939609833788,
-      2.710645943742815
+      0.802093960983,
+      2.71064594374
     ],
-    "adjusted_p": 0.2218636584044063
+    "adjusted_p": 0.221863658404
   },
   "specification_dependence": {
     "note": "The shared-set conclusion is specification-dependent. Report the full grid in E8_clinvar_adjusted.csv rather than a single number.",

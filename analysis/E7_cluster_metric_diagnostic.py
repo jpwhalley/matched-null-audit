@@ -37,10 +37,14 @@ Usage:
 """
 
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _precision import clean  # documented serialisation precision
 
 # Repository-relative paths. Scripts live in analysis/; everything they read
 # and write is inside this repository.
@@ -234,7 +238,7 @@ def main():
             "under the FULL null; for a shifted null, read the z-statistic."),
     }
     with open(OUT / "E7_cluster_metric_diagnostic.json", "w") as f:
-        json.dump(summary, f, indent=2)
+        json.dump(clean(summary), f, indent=2)
 
     print("=" * 78)
     print("  CONCLUSION")
