@@ -12,10 +12,11 @@ disease genes are depleted among geometric outliers".
 That reading does not mean what it appears to. Constrained genes are removed
 from the pool before the disease class is formed; constrained genes are enriched
 among outliers; and ~22% of ClinVar genes are also constrained. So the residual
-`disease` class is depleted by construction. The number is not wrong -- it
-correctly estimates the association among ClinVar genes that are NOT constrained,
-ribosomal or mitochondrial. It is a DIFFERENT ESTIMAND from direct membership,
-and the error is reporting it as though it answered the direct question.
+`disease` class is not the set of ClinVar genes -- it is the set of ClinVar
+genes that are NOT also constrained, ribosomal or mitochondrial, and OR 0.54 is
+the correct association for THAT set. It is a DIFFERENT ESTIMAND from direct
+membership, not a wrong answer to the same question. The error is reporting it
+as though it answered the direct question.
 
 This script tests every class BOTH ways -- mutually exclusive and overlapping
 (direct membership) -- so the difference is explicit and reproducible rather
