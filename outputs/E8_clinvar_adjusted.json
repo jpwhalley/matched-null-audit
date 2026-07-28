@@ -39,7 +39,7 @@
   },
   "not_pre_specified": "This hierarchy was fixed after exploratory results were seen. The manuscript must not describe it as pre-specified; the defence is completeness of reporting, not blindness of choice.",
   "provenance": {
-    "table": "notebooks/data/Table_S1.csv",
+    "table": "data/Table_S1.csv",
     "sha256_16": "57443b7225229e0b",
     "gene_length_coverage": 0.9998
   }

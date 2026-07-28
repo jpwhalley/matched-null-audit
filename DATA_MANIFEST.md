@@ -22,9 +22,11 @@ inside the output JSONs of any script that reads them.
 
 **Use only this copy.** An earlier copy elsewhere in the project carried gene
 lengths for 11,752 of 18,915 genes; the rest were median-imputed downstream.
-That silently broke the length-matched design — the reported balance statistic
-was 0.070 where the true figure was 0.334, and it moved an adjusted odds ratio
-across the significance boundary.
+That silently broke the length-matched design. Three numbers tell the story:
+the old controls *appeared* balanced at SMD **0.070**; evaluating those same
+controls against complete lengths gave **0.334**; rebuilding the controls with
+complete lengths restored balance to **0.077**. The same table also moved an
+adjusted odds ratio across the significance boundary.
 
 This copy has 18,911/18,915 lengths (99.98%). Scripts assert ≥99% coverage and
 refuse to run below it. If you substitute your own annotation table, that

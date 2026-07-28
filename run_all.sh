@@ -20,8 +20,17 @@ echo "### Stage 2 — caller robustness"
 run E3_outlier_robustness.py
 
 echo "### Stage 3 — non-transcriptomic control"
-run E1_stage1_mapping.py
-run E1_stage2_esm2.py
+# E1 stage 2 regenerates ESM-2 embeddings from the checkpoint (~2 h, GPU
+# advisable). The resulting geometry table is SHIPPED, so by default we verify
+# against it rather than recompute. Set REGENERATE_ESM2=1 to recompute.
+if [[ "${REGENERATE_ESM2:-0}" == "1" ]]; then
+  run E1_stage1_mapping.py --all
+  run E1_stage2_esm2.py --all
+else
+  echo "  Using shipped outputs/E1_esm2_geometry.csv."
+  echo "  Set REGENERATE_ESM2=1 to recompute from the ESM-2 checkpoint."
+  [[ -f outputs/E1_esm2_geometry.csv ]] || { echo "MISSING: outputs/E1_esm2_geometry.csv" >&2; exit 1; }
+fi
 
 echo "### Stage 5 — covariate-aware annotation"
 run E8_clinvar_adjusted.py
@@ -40,3 +49,13 @@ echo "### Figures"
 run make_psb_figures.py
 
 echo; echo "Done. Outputs in outputs/, figures in figures/."
+echo
+echo "Verifying nothing drifted:"
+if command -v git >/dev/null && git rev-parse --git-dir >/dev/null 2>&1; then
+  if git diff --exit-code --stat -- outputs figures; then
+    echo "  clean: regenerated outputs match the committed ones."
+  else
+    echo "  DRIFT: regenerated outputs differ from the commit (see above)." >&2
+    exit 1
+  fi
+fi

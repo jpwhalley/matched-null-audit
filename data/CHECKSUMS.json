@@ -7,6 +7,14 @@
     "sha256_16": "94d814094f5a519c",
     "bytes": 4382747
   },
+  "data/scgpt_gene_embedding_geometry.csv": {
+    "sha256_16": "2c7ff95b71a5c237",
+    "bytes": 12266309
+  },
+  "data/sf_gene_embedding_geometry.csv": {
+    "sha256_16": "d3a4924c156c8835",
+    "bytes": 2606441
+  },
   "outputs/E1_esm2_geometry.csv": {
     "sha256_16": "cc3741ad4a65bde4",
     "bytes": 2690890

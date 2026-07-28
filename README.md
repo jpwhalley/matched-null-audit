@@ -15,7 +15,7 @@ below.)
 ## What this repository is for
 
 Every figure, table and in-text statistic in the manuscript maps to a specific
-script or notebook cell here. `MANUSCRIPT_TRACEABILITY.md` is that mapping. A
+script or notebook cell here, and to the saved output it came from. `MANUSCRIPT_TRACEABILITY.md` is that mapping. A
 reader who wants to check a number should be able to find it in one lookup
 without running anything.
 
@@ -119,8 +119,9 @@ Two things bite in practice, and both are guarded in code:
 
 - **Annotation table coverage.** `data/Table_S1.csv` at the repository root of
   the original project carried gene lengths for only 11,752 of 18,915 genes.
-  Matching on median-imputed lengths produced a balance statistic of 0.070 where
-  the true figure was 0.334. Scripts now assert >=99% coverage and record the
+  Matching on median-imputed lengths made the controls *appear* balanced at
+  SMD 0.070; the true figure for those controls was 0.334, and rebuilding them
+  with complete lengths gave 0.077. Scripts now assert >=99% coverage and record the
   table's SHA-256 in every output.
 - **Environment sensitivity.** The supervised probe baseline varies by
   ~6e-4 macro-F1 between execution environments while embeddings are unchanged.

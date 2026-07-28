@@ -8,11 +8,18 @@
 > produced it.
 
 Every figure panel, table entry and in-text statistic maps to a script, its
-saved output file, and the notebook that displays it.
+saved output file, and the script or notebook that displays it. (Numbered
+display notebooks are not yet written; figures are currently built directly by
+`analysis/make_psb_figures.py`.)
 
-**Status:** figures and §3.5 are final. §3.4 values marked ⏳ are pending the
-corrected length-matched deletion rerun and will be filled from the regenerated
-`E2_ablation_pbmc3k.json`.
+**Status:** Figures 1–3 and §3.5 are final. Figure 4 and the §3.4 values marked
+⏳ are pending the corrected length-matched deletion rerun, and will be filled
+from the regenerated `E2_ablation_pbmc3k.json`.
+
+All numbers below are produced from the **shipped** `data/Table_S1.csv`
+(SHA-256 `57443b7225229e0b`, 18,911/18,915 gene lengths). Earlier drafts of this
+matrix quoted counts from a length-sparse copy of the same table; those are
+superseded.
 
 ---
 
@@ -147,14 +154,14 @@ Class-scheme comparison — `outputs/E6_class_association.csv`:
 
 | Gene set | Scheme | Disease OR | p |
 |---|---|---|---|
-| shared GF∩scGPT | overlapping | 3.596 | 5.0e-07 |
+| shared GF∩scGPT | overlapping | 3.594 | 5.0e-07 |
 | shared GF∩scGPT | mutually exclusive | 0.385 | 1.6e-03 |
-| all GF outliers | overlapping | 1.182 | 0.104 |
+| all GF outliers | overlapping | 1.181 | 0.104 |
 | all GF outliers | mutually exclusive | 0.538 | 1.7e-07 |
 
 The two schemes estimate **different quantities**, not the same quantity two
 ways: the mutually-exclusive `disease` class excludes genes already assigned to
-constrained, ribosomal or mitochondrial. 1,782 of 8,284 ClinVar genes (22%) are
+constrained, ribosomal or mitochondrial. 1,784 of 8,287 ClinVar genes (22%) are
 also constrained.
 
 Geneformer class associations (original |z|>3 call) —
