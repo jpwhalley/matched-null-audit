@@ -22,29 +22,29 @@
     "retrained_f1": {
       "usable_as_outcome": true,
       "frac_controls_improving": 0.48,
-      "control_range": 0.013775336706748909,
-      "null_band_width": 0.007060714697055645,
+      "control_range": 0.0137753367067,
+      "null_band_width": 0.00706071469706,
       "band_width_over_baseline": 0.0076,
-      "control_delta_mean": -0.00020517174651192793,
-      "control_delta_sd": 0.0018862078822360748
+      "control_delta_mean": -0.000205171746512,
+      "control_delta_sd": 0.00188620788224
     },
     "cluster_ari": {
       "usable_as_outcome": false,
       "frac_controls_improving": 0.47,
-      "control_range": 0.28333679002214723,
-      "null_band_width": 0.22587223518056682,
+      "control_range": 0.283336790022,
+      "null_band_width": 0.225872235181,
       "band_width_over_baseline": 0.423,
-      "control_delta_mean": 0.04576808594811009,
-      "control_delta_sd": 0.08286496237993282
+      "control_delta_mean": 0.0457680859481,
+      "control_delta_sd": 0.0828649623799
     },
     "cluster_nmi": {
       "usable_as_outcome": false,
       "frac_controls_improving": 0.45,
-      "control_range": 0.10552677290338364,
-      "null_band_width": 0.07478562187860051,
+      "control_range": 0.105526772903,
+      "null_band_width": 0.0747856218786,
       "band_width_over_baseline": 0.1061,
-      "control_delta_mean": 0.006171021264997504,
-      "control_delta_sd": 0.02253997311834343
+      "control_delta_mean": 0.006171021265,
+      "control_delta_sd": 0.0225399731183
     }
   },
   "conclusion": "Report retrained macro-F1 alone in the headline figure. Cluster ARI is excluded on PRECISION: its 95% null band spans ~42% of the baseline value against ~0.7% for macro-F1, roughly sixty times less precise, so it cannot resolve an effect of the size at issue. The earlier 'random deletion reliably improves ARI' argument does NOT survive the corrected controls and is not relied on. Move clustering metrics to supplementary with these numbers attached.",

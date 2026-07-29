@@ -56,8 +56,6 @@ for _d in (OUT, CACHE):
     _d.mkdir(parents=True, exist_ok=True)
 BASE = REPO  # legacy alias
 
-
-
 METRICS = [
     ("retrained_f1", "baseline_retrained_f1", "gate metric (pre-specified)"),
     ("cluster_ari", "baseline_cluster_ari", "reported alongside"),
@@ -81,6 +79,16 @@ def analyse(dataset="pbmc3k"):
     with open(path) as f:
         res = json.load(f)
 
+    # Prefer the pinned standalone baseline, as E2 evaluate() and Figure 4 do.
+    # The probe baseline moves ~6e-4 between environments and the ablation
+    # stores whichever value was in memory when it ran.
+    #
+    # This matters for the DESCRIPTIVE improve-fraction, which moves by more
+    # than ten points between the two baselines -- precisely why that quantity
+    # is no longer a usability gate. The
+    # surviving criterion, band width over baseline, is insensitive to a shift
+    # this small: the band width is unchanged and the denominator moves by
+    # 0.06%.
     base = dict(res["baseline"])
     baseline_source = "ablation-run"
     pinned_path = OUT / f"E2_baseline_{dataset}.json"
@@ -205,6 +213,16 @@ def main():
         "criteria": {
             "improve_band": list(IMPROVE_BAND),
             "band_width_limit": BAND_WIDTH_LIMIT,
+            "usability_rests_on": "band_width_over_baseline only",
+            "improve_fraction_status": (
+                "DESCRIPTIVE ONLY. Not a usability gate. It is sensitive to "
+                "the baseline at a scale far below the metric's own, so at "
+                "some baselines it would reject the pre-specified metric. "
+                "Live values are in improve_fraction_observed and the CSV."),
+            "improve_fraction_observed": {
+                f"{r.dataset}/{r.null}/{r.metric}":
+                    round(float(r.frac_controls_improving), 4)
+                for r in df.itertuples()},
             "rationale": (
                 "A test whose 95% null band spans a large fraction of its "
                 "baseline value is too imprecise to resolve a plausible "
@@ -221,9 +239,9 @@ def main():
             "baseline value against ~0.7% for macro-F1, roughly sixty times "
             "less precise, so it cannot resolve an effect of the size at "
             "issue. The earlier 'random deletion reliably improves ARI' "
-            "argument does NOT survive the corrected controls (47%, not 64%) "
-            "and is not relied on. Move clustering metrics to supplementary "
-            "with these numbers attached."),
+            "argument does NOT survive the corrected controls and is not "
+            "relied on. Move clustering metrics to supplementary with these "
+            "numbers attached."),
         "likely_mechanism": (
             "Baseline CLS embeddings are dominated by expression magnitude. "
             "Deleting any set of high-expression genes - which the matched "
