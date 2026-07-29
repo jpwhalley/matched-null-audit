@@ -6,7 +6,7 @@ authors:
     given-names: Justin P.
     affiliation: "Rosalind Franklin University of Medicine and Science"
     email: justin.whalley@rosalindfranklin.edu
-repository-code: "https://github.com/USERNAME/REPO"
+repository-code: "https://github.com/jpwhalley/matched-null-audit"
 license: MIT
 type: software
 preferred-citation:
