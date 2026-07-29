@@ -1790,6 +1790,12 @@ def evaluate():
             return {
                 "n_controls": m,
                 "treatment_retrained_f1": t,
+                "control_mean_retrained_f1": float(c.mean()),
+                # Baseline-invariant effect size: the baseline cancels exactly.
+                # This is the quantity to lead with -- treatment vs its own
+                # matched controls -- rather than either arm's delta against a
+                # baseline that moves with the execution device.
+                "treatment_minus_control_mean_f1": float(t - c.mean()),
                 "treatment_delta_f1": float(dt),
                 "control_mean_delta_f1": float(dc.mean()),
                 "control_sd_delta_f1": float(dc.std(ddof=1)),
@@ -1815,7 +1821,11 @@ def evaluate():
                 continue
             print(f"")
             print(f"    {label}")
-            print(f"      ΔF1 (vs pinned)     {a['treatment_delta_f1']:+.6f}")
+            print(f"      treat - ctrl mean   "
+                  f"{a['treatment_minus_control_mean_f1']:+.6f}   "
+                  f"<- baseline-invariant")
+            print(f"      ΔF1 (vs pinned)     {a['treatment_delta_f1']:+.6f}"
+                  f"   (baseline-dependent)")
             print(f"      control mean ΔF1    "
                   f"{a['control_mean_delta_f1']:+.6f} "
                   f"(sd {a['control_sd_delta_f1']:.6f})")
