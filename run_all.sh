@@ -41,12 +41,22 @@ run E6_class_association.py
 
 echo "### Stage 4 — matched deletion test  (SLOW: ~18 h, checkpoints every 10 controls)"
 if [[ "${SKIP_ABLATION:-0}" == "1" ]]; then
-  echo "  SKIP_ABLATION=1 set; skipping."
+  echo "  SKIP_ABLATION=1 set; skipping the ablation and E9."
 else
   run E2_downstream_ablation.py --setup --baseline --ablation --evaluate --datasets pbmc3k
+  # E9 reads the tokenised cells and matched-control sets from cache/, which is
+  # git-ignored and empty in a clean clone. It can only run after --setup has
+  # rebuilt them, so it stays inside this branch.
   run E9_token_occurrence_audit.py --dataset pbmc3k
-  run E7_cluster_metric_diagnostic.py
 fi
+
+# E7 reads only shipped outputs (E2_ablation_*.json, E2_baseline_*.json) and
+# takes seconds, so it runs unconditionally. That puts it under the outputs
+# drift gate below on every invocation -- including SKIP_ABLATION=1, which is
+# how the default path is exercised. A script whose committed output is never
+# regenerated is a script whose output can silently stop matching it.
+echo "### Stage 4b — clustering-metric diagnostic"
+run E7_cluster_metric_diagnostic.py
 
 echo "### Figures"
 run make_psb_figures.py
