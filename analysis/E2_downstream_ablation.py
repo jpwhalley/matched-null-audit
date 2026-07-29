@@ -1715,7 +1715,7 @@ def run_single_ablation(model, tokenized, cell_types, tokens_to_delete,
 
 # ── Step 4: Evaluate + verdict ───────────────────────────────────────────────
 
-def evaluate():
+def evaluate(datasets=None):
     """Gate assessment.
 
     Deltas are recomputed here from absolute retrained_f1 against the PINNED
@@ -1733,7 +1733,10 @@ def evaluate():
     print("  STEP 4: Gate assessment")
     print("=" * 70)
 
-    for dataset_name in ["pbmc3k", "tabula_sapiens"]:
+    # Honour --datasets. Without this an evaluation aimed at one dataset
+    # silently rewrites the other's verdict file, which is how a canonical
+    # result gets clobbered by an unrelated run.
+    for dataset_name in (datasets or ["pbmc3k", "tabula_sapiens"]):
         results_path = OUT / f"E2_ablation_{dataset_name}.json"
         if not results_path.exists():
             print(f"\n  Skipping {dataset_name} (no results)")
@@ -1875,10 +1878,13 @@ def evaluate():
                     "shows effect. Unexpected — inspect balance tables.")
         else:
             gate = "NULL"
-            note = ("Treatment ablation falls within the matched-control "
-                    "null band. Geometry does not independently predict "
-                    "task vulnerability beyond expression and class "
-                    "confounds. Pre-committed pivot to characterisation.")
+            note = ("The treatment did not show excess disruption relative to "
+                    "its matched-control null in this dataset. Pre-committed "
+                    "pivot to characterisation.")
+            if results.get("primary_only"):
+                note += (" Only the primary arm was run: the "
+                         "ribosomal/mitochondrial sensitivity arm was not "
+                         "replicated for this dataset.")
 
         print(f"\n    GATE: {gate}")
         print(f"    {note}")
@@ -1983,7 +1989,7 @@ if __name__ == "__main__":
     if args.all or args.ablation:
         run_ablation(args.datasets, primary_only=args.primary_only)
     if args.all or args.evaluate:
-        evaluate()
+        evaluate(args.datasets)
 
     if not any([args.setup, args.baseline, args.ablation,
                 args.evaluate, args.all]):
