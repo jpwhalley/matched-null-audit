@@ -151,10 +151,10 @@ def main():
     print("=" * 78)
     print("  E7 - Clustering-metric diagnostic (interpretation lock H3)")
     print("=" * 78)
-    print(f"  Null behaves if {IMPROVE_BAND[0]:.0%}-{IMPROVE_BAND[1]:.0%} of "
-          f"matched controls improve on baseline.")
-    print(f"  Precision acceptable if the 95% null band spans <= "
-          f"{BAND_WIDTH_LIMIT:.0%} of the baseline value.\n")
+    print(f"  USABILITY: the 95% null band must span <= "
+          f"{BAND_WIDTH_LIMIT:.0%} of the baseline value.")
+    print(f"  %improve is reported for description only and does not affect "
+          f"the verdict.\n")
 
     frames = []
     for ds in ["pbmc3k", "tabula_sapiens"]:

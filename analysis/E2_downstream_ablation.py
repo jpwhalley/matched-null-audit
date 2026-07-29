@@ -1174,7 +1174,8 @@ def run_baseline(datasets=None):
         # the dir if the tokenized input ever changes.
         embs = extract_cls_embeddings(
             model, tokenized, pad_id, device, FORWARD_BATCH_SIZE,
-            chunk_path=str(CACHE / f"E2_baseline_chunks_{dataset_name}")
+            chunk_path=str(CACHE / f"E2_baseline_chunks_{dataset_name}_"
+                                   f"{device.type}")
         )
         print(f"    Embeddings: {embs.shape}")
 
@@ -1198,6 +1199,11 @@ def run_baseline(datasets=None):
         }
         with open(OUT / f"E2_baseline_{dataset_name}.json", "w") as f:
             json.dump(result, f, indent=2)
+        with open(OUT / f"E2_baseline_{dataset_name}_{device.type}.json",
+                  "w") as f:
+            json.dump(result, f, indent=2)
+        print(f"    Device: {device.type}  ->  also saved "
+              f"E2_baseline_{dataset_name}_{device.type}.json")
 
     del model
     if torch.cuda.is_available():
@@ -1296,7 +1302,9 @@ def extract_cls_embeddings(model, tokenized, pad_id, device, batch_size,
         if os.path.exists(manifest):
             try:
                 with open(manifest) as mf:
-                    prev = json.load(mf).get("n_cells")
+                    _m = json.load(mf)
+                prev = _m.get("n_cells")
+                prev_dev = _m.get("device")
                 stale = (prev != n_in)
                 if stale:
                     print(f"      Chunk cache built for {prev} cells but this "
@@ -1312,7 +1320,7 @@ def extract_cls_embeddings(model, tokenized, pad_id, device, batch_size,
                 if f.startswith("chunk_") or f == "manifest.json":
                     os.remove(os.path.join(chunk_path, f))
         with open(manifest, "w") as mf:
-            json.dump({"n_cells": n_in}, mf)
+            json.dump({"n_cells": n_in, "device": device.type}, mf)
 
     max_len_all = max(len(t) for t in tokenized)
     print(f"      {n_in} cells -> {len(batches)} batches / "
