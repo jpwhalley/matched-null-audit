@@ -63,16 +63,17 @@ different release changes the gene-to-protein mapping in stage 3.
 | `outputs/E6_*.{csv,json}` | `E6_class_association.py` | Class associations under both schemes; per-class scFM-only breakdown. |
 | `outputs/E8_clinvar_adjusted.{csv,json}` | `E8_clinvar_adjusted.py` | Covariate-adjusted disease association, full specification grid. |
 | `outputs/E2_treatment_genes.csv` | `E2_downstream_ablation.py --setup` | The top-50 treatment set with class assignments. |
-| `outputs/E2_ablation_pbmc3k.json` | `E2_downstream_ablation.py --ablation` | ⏳ **Pending corrected rerun.** |
-| `outputs/E2_baseline_pbmc3k.json` | `E2_downstream_ablation.py --baseline` | ⏳ **Pending.** Must carry an `environment` fingerprint block. |
-| `outputs/E7_*`, `outputs/E9_*` | `E7_*.py`, `E9_*.py` | ⏳ **Pending** — depend on the corrected control sets. |
-| `figures/F4_nullband_pbmc3k.pdf` | `make_psb_figures.py` | ⏳ **Pending.** |
+| `outputs/E2_ablation_pbmc3k.json` | `E2_downstream_ablation.py --ablation` | 200 draws against the corrected length-matched controls. |
+| `outputs/E2_baseline_pbmc3k.json` | `E2_downstream_ablation.py --baseline` | Pinned MPS baseline, device-matched to the ablation; carries an `environment` fingerprint. `_cpu` and `_mps` copies retained alongside. |
+| `outputs/E2_verdict_pbmc3k.json` | `E2_downstream_ablation.py --evaluate` | Gate z, tail count and add-one empirical p, recomputed from absolute F1 against the pinned baseline. |
+| `outputs/E7_*`, `outputs/E9_*` | `E7_*.py`, `E9_*.py` | Regenerated against the corrected control sets. |
+| `figures/F4_nullband_pbmc3k.pdf` | `make_psb_figures.py` | Corrected controls; shows z = −1.56 and z = +0.35, both inside. |
 | `cache/` | various | Regenerable intermediates; git-ignored. |
 
-**The pending files are deliberately absent rather than stale.** E2, E7, E9 and
-Figure 4 form one consistent set and will be added together after the
-length-matched rerun. A repository containing a mixture of generations is worse
-than one that is visibly incomplete.
+**E2, E7, E9 and Figure 4 form one consistent set and were added together.**
+While the corrected rerun was outstanding they were deliberately absent rather
+than stale: a repository containing a mixture of generations is worse than one
+that is visibly incomplete.
 
 ---
 

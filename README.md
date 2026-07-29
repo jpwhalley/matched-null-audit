@@ -25,9 +25,8 @@ re-running the expensive steps.
 
 > **Status.** The D-series and `P01` are executed and current. The numbered
 > display notebooks (one per figure) are **not yet written** — figures are built
-> directly by `analysis/make_psb_figures.py` in the meantime. Outputs for the
-> matched deletion test (E2, E7, E9 and Figure 4) are pending a corrected
-> length-matched rerun and are deliberately absent rather than stale.
+> directly by `analysis/make_psb_figures.py` in the meantime. All analysis
+> outputs, including the matched deletion test, are present and current.
 
 ---
 
@@ -123,8 +122,10 @@ Two things bite in practice, and both are guarded in code:
   SMD 0.070; the true figure for those controls was 0.334, and rebuilding them
   with complete lengths gave 0.077. Scripts now assert >=99% coverage and record the
   table's SHA-256 in every output.
-- **Environment sensitivity.** The supervised probe baseline varies by
-  ~6e-4 macro-F1 between execution environments while embeddings are unchanged.
+- **Environment sensitivity.** The supervised probe baseline differs by 5.1e-4
+  macro-F1 between CPU and MPS on the same machine and library stack. The pinned
+  baseline is MPS, matching the device the ablations ran on, and reproduces
+  bit-identically across two independent runs with the embedding cache cleared.
   BLAS threads are pinned and a full environment fingerprint is written
   alongside every result. The matched-null gate statistic compares treatment and
   control F1 directly and is invariant to this.

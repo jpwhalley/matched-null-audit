@@ -130,8 +130,8 @@ def audit(dataset="pbmc3k"):
                        "note": ("Exposure is measured on the tokenised cells "
                                 "actually analysed, not on global expression "
                                 "statistics. This is the quantity that "
-                                "determines how much signal a deletion "
-                                "removes.")}, f, indent=2)
+                                "determines how often a deletion alters the "
+                                "analysed input.")}, f, indent=2)
         print(f"  Saved: {OUT/'E9_token_occurrence.csv'}")
         print(f"         {OUT/'E9_token_occurrence.json'}")
     return summary

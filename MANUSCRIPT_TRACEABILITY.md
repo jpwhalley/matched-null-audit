@@ -12,9 +12,10 @@ saved output file, and the script or notebook that displays it. (Numbered
 display notebooks are not yet written; figures are currently built directly by
 `analysis/make_psb_figures.py`.)
 
-**Status:** Figures 1–3 and §3.5 are final. Figure 4 and the §3.4 values marked
-⏳ are pending the corrected length-matched deletion rerun, and will be filled
-from the regenerated `E2_ablation_pbmc3k.json`.
+**Status:** all figures and sections are final. The §3.4 values below come from
+the corrected length-matched deletion run (200 draws, `Table_S1.csv`
+`57443b7225229e0b`, 99.98% length coverage) evaluated against the pinned MPS
+baseline.
 
 All numbers below are produced from the **shipped** `data/Table_S1.csv`
 (SHA-256 `57443b7225229e0b`, 18,911/18,915 gene lengths). Earlier drafts of this
@@ -87,15 +88,28 @@ gives 139 rather than 87.
 
 | Claim | Value | Source |
 |---|---|---|
-| Baseline macro-F1 (pinned) | 0.9247927 | `outputs/E2_baseline_pbmc3k.json` |
-| Treatment retrained F1 | ⏳ | `E2_ablation_pbmc3k.json::treatment.retrained_f1` |
-| Treatment ΔF1 | ⏳ | derived |
-| Control Δ mean, 95% band | ⏳ | derived from `control_results_full` |
-| Gate statistic z | ⏳ | derived |
-| One-sided empirical p | ⏳ | derived |
-| Controls at least as damaging | ⏳ | derived |
-| Sensitivity (36 genes) ΔF1, z | ⏳ | `sensitivity`, `control_results_no_ribo_mito` |
-| k-sweep ΔF1 (k=25/50/100) | ⏳ | `k_sensitivity` |
+| Baseline macro-F1 (pinned, MPS) | 0.9242778046911788 | `outputs/E2_baseline_pbmc3k.json` |
+| Treatment retrained F1 | 0.9211266 | `E2_ablation_pbmc3k.json::treatment.retrained_f1` |
+| **Treatment − control mean** (baseline-invariant) | **−0.002946** | `E2_verdict_pbmc3k.json::full.treatment_minus_control_mean_f1` |
+| **Gate statistic z** | **−1.5619** | `full.gate_z` |
+| **Controls at least as damaging** | **11/200** | `full.n_controls_at_least_as_damaging` |
+| **One-sided empirical p** (add-one) | **0.0597** | `full.empirical_p_addone` |
+| Treatment ΔF1 (vs pinned baseline) | −0.003151 | `full.treatment_delta_f1` |
+| Control Δ mean | −0.000205 | `full.control_mean_delta_f1` |
+| 95% null band | [−0.004186, +0.002874] | `full.null_band_2_5` / `null_band_97_5` |
+| Sensitivity: treatment − control mean | +0.000544 | `sensitivity.treatment_minus_control_mean_f1` |
+| Sensitivity z, p, rank | +0.3481, 0.6617, 132/200 | `sensitivity.*` |
+| Sensitivity ΔF1, control mean | −0.001274, −0.001817 | `sensitivity.*` |
+| k-sweep ΔF1 (k=25/50/100) | −0.001245 / −0.003151 / −0.004101 | `k_sensitivity`, rebased on the pinned baseline |
+
+**On the baseline.** Descriptive deltas use the pinned MPS baseline, matching
+the device on which the treatment and control ablations were evaluated. It
+reproduces bit-identically across two independent runs with the embedding cache
+cleared. A CPU baseline on the same machine and library stack gives 0.9247927, a
+difference of 5.1e-04. That figure is a diagnostic recorded here for provenance;
+it is not shipped as an artefact and nothing in the manuscript depends on it.
+The gate statistic, rank and empirical p are unchanged by a common baseline
+shift because they compare treatment and control F1 directly.
 | Treatment composition | 19 constrained · 13 ribosomal · 9 other · 8 disease · 1 mitochondrial | `outputs/E2_treatment_genes.csv` |
 
 Matching balance — `outputs/E2_matched_controls_pbmc3k_balance.csv`:
@@ -116,9 +130,13 @@ Excluded from the headline figure — `analysis/E7_cluster_metric_diagnostic.py`
 
 | Metric | % of controls improving | 95% band as % of baseline | Usable |
 |---|---|---|---|
-| retrained macro-F1 | 45% | 0.7% | yes |
-| cluster NMI | 60% | 10.7% | no |
-| cluster ARI | 64% | 42.7% | no |
+| retrained macro-F1 | 48% | **0.8%** | yes |
+| cluster NMI | 45% | **10.6%** | no |
+| cluster ARI | 47% | **42.3%** | no |
+
+Usability rests on the band-width column alone. The improve-fraction is
+descriptive: it shifts by more than ten points on a baseline change of ~5e-4, so
+it is not a stable property of the metric and is not used as a gate.
 
 Token-level exposure — `analysis/E9_token_occurrence_audit.py`:
 

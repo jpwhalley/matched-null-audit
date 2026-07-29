@@ -1,0 +1,54 @@
+{
+  "criteria": {
+    "improve_band": [
+      0.35,
+      0.65
+    ],
+    "band_width_limit": 0.05,
+    "usability_rests_on": "band_width_over_baseline only",
+    "improve_fraction_status": "DESCRIPTIVE ONLY. Not a usability gate. It is sensitive to the baseline at a scale far below the metric's own, so at some baselines it would reject the pre-specified metric. Live values are in improve_fraction_observed and the CSV.",
+    "improve_fraction_observed": {
+      "pbmc3k/full/retrained_f1": 0.48,
+      "pbmc3k/full/cluster_ari": 0.47,
+      "pbmc3k/full/cluster_nmi": 0.45,
+      "pbmc3k/no_ribo_mito/retrained_f1": 0.115,
+      "pbmc3k/no_ribo_mito/cluster_ari": 0.425,
+      "pbmc3k/no_ribo_mito/cluster_nmi": 0.435
+    },
+    "rationale": "A test whose 95% null band spans a large fraction of its baseline value is too imprecise to resolve a plausible ablation effect. That is the sole usability criterion.",
+    "rejected_criterion": "control range as a multiple of the treatment effect - tautological for a null result, since a treatment inside the band implies the band exceeds the effect."
+  },
+  "per_metric": {
+    "retrained_f1": {
+      "usable_as_outcome": true,
+      "frac_controls_improving": 0.48,
+      "control_range": 0.013775336706748909,
+      "null_band_width": 0.007060714697055645,
+      "band_width_over_baseline": 0.0076,
+      "control_delta_mean": -0.00020517174651192793,
+      "control_delta_sd": 0.0018862078822360748
+    },
+    "cluster_ari": {
+      "usable_as_outcome": false,
+      "frac_controls_improving": 0.47,
+      "control_range": 0.28333679002214723,
+      "null_band_width": 0.22587223518056682,
+      "band_width_over_baseline": 0.423,
+      "control_delta_mean": 0.04576808594811009,
+      "control_delta_sd": 0.08286496237993282
+    },
+    "cluster_nmi": {
+      "usable_as_outcome": false,
+      "frac_controls_improving": 0.45,
+      "control_range": 0.10552677290338364,
+      "null_band_width": 0.07478562187860051,
+      "band_width_over_baseline": 0.1061,
+      "control_delta_mean": 0.006171021264997504,
+      "control_delta_sd": 0.02253997311834343
+    }
+  },
+  "conclusion": "Report retrained macro-F1 alone in the headline figure. Cluster ARI is excluded on PRECISION: its 95% null band spans ~42% of the baseline value against ~0.7% for macro-F1, roughly sixty times less precise, so it cannot resolve an effect of the size at issue. The earlier 'random deletion reliably improves ARI' argument does NOT survive the corrected controls and is not relied on. Move clustering metrics to supplementary with these numbers attached.",
+  "likely_mechanism": "Baseline CLS embeddings are dominated by expression magnitude. Deleting any set of high-expression genes - which the matched controls are by construction - reduces the dominance of a few directions and lets k-means recover cleaner clusters. This is a property of the embedding space, not of the genes deleted.",
+  "note": "The gate metric was pre-specified as retrained macro-F1, so excluding clustering from the headline figure costs nothing inferentially.",
+  "sensitivity_null_shift": "SEPARATE OBSERVATION, not a metric pathology. The no_ribo_mito control pool differs from the full pool: excluding ribosomal and mitochondrial genes from the treatment set changes the expression profile its matched controls are drawn from, so those controls are moderately-expressed informative genes whose deletion systematically costs a little accuracy. The inference is unaffected because the treatment is compared to ITS OWN null; read the z-statistic, not the improve-fraction. Numbers for both nulls are in the CSV and are regenerated with the controls."
+}
