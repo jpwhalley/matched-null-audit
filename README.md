@@ -144,6 +144,19 @@ Scripts and notebooks superseded by that revision are retained under
 `notebooks/superseded/` with a note explaining what replaced them, rather than
 deleted.
 
+### On the earlier terminology
+
+The v1 preprint framed these genes as "glitch genes", by analogy with glitch
+tokens in language models. Reviewers objected that the analogy imports an
+inverted mechanism --- NLP glitch tokens are *under*-trained, whereas these are
+high-exposure genes --- and the term was retired on 2026-07-07, before any of
+the deletion compute. See §2 and §6 of the dated plan.
+
+The word therefore survives only in documents that are deliberately preserved
+unmodified: the dated analysis plan, which records the decision to drop it, and
+the superseded notebooks. It appears nowhere in the current analysis code, the
+manuscript, or this repository's documentation.
+
 ---
 
 ## Citation

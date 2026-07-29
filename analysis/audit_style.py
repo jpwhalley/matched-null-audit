@@ -1,9 +1,9 @@
 """
-Shared plotting style for the glitch-gene project.
+Shared plotting style for the matched-null audit.
 
 Usage in any notebook:
-    from glitch_style import *
-    # Then use FIG_SINGLE, FIG_DOUBLE, GLITCH_COLOR, etc.
+    from audit_style import *
+    # Then use FIG_SINGLE, FIG_DOUBLE, OUTLIER_COLOR, etc.
     # apply_style() is called automatically on import.
 
 For publication-ready figures, save as PDF:
@@ -26,14 +26,14 @@ BASE = REPO  # legacy alias
 
 
 # ── Colour palette ─────────────────────────────────────────────────────────
-GLITCH_COLOR  = '#E05A4F'   # tomato-ish, distinguishable in B&W
+OUTLIER_COLOR  = '#E05A4F'   # tomato-ish, distinguishable in B&W
 CONTROL_COLOR = '#4682B4'   # steelblue
 NEUTRAL_COLOR = '#888888'   # grey for background/reference elements
 ACCENT_COLOR  = '#2CA02C'   # green for third category if needed
 
-PALETTE = {'glitch': GLITCH_COLOR, 'control': CONTROL_COLOR}
+PALETTE = {'outlier': OUTLIER_COLOR, 'control': CONTROL_COLOR}
 PALETTE_NEURONAL = {
-    'glitch_neuronal':  GLITCH_COLOR,
+    'outlier_neuronal':  OUTLIER_COLOR,
     'control_neuronal': CONTROL_COLOR,
     'non_neuronal':     NEUTRAL_COLOR,
 }
