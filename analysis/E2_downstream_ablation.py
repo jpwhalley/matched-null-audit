@@ -1708,6 +1708,19 @@ def run_single_ablation(model, tokenized, cell_types, tokens_to_delete,
 # ── Step 4: Evaluate + verdict ───────────────────────────────────────────────
 
 def evaluate():
+    """Gate assessment.
+
+    Deltas are recomputed here from absolute retrained_f1 against the PINNED
+    standalone baseline, not read from the ablation JSON. The ablation stores
+    deltas against whatever baseline was in memory when it ran, and the probe
+    baseline moves by ~6e-4 between execution environments, so those stored
+    deltas are not safe to quote.
+
+    The inference statistics -- gate z, tail count and empirical p -- compare
+    treatment and control F1 directly and are invariant to the baseline. They
+    are final regardless of which baseline is pinned. The descriptive deltas
+    and null-band coordinates are not, and are labelled accordingly.
+    """
     print("=" * 70)
     print("  STEP 4: Gate assessment")
     print("=" * 70)
@@ -1721,76 +1734,109 @@ def evaluate():
         with open(results_path) as f:
             results = json.load(f)
 
-        baseline_f1 = results["baseline"]["baseline_retrained_f1"]
-        treat_delta = results["treatment_delta_f1"]
-        sens_delta = results.get("sensitivity_delta_f1")
-        if results.get("primary_only"):
-            print("  (run was --primary-only: no sensitivity arm, k-sweep "
-                  "or sensitivity null)")
+        run_baseline = results["baseline"]["baseline_retrained_f1"]
 
-        # ── Full treatment vs full null ──────────────────────────────────
-        ctrl_full = results.get("control_results_full", [])
-        full_deltas = [c["delta_f1"] for c in ctrl_full] if ctrl_full else []
+        # ── Pinned baseline is the source of truth for descriptive deltas ──
+        pinned_path = OUT / f"E2_baseline_{dataset_name}.json"
+        baseline_source, pinned_env = "ablation-run (NO STANDALONE FILE)", None
+        pinned_baseline = run_baseline
+        if pinned_path.exists():
+            with open(pinned_path) as f:
+                pin = json.load(f)
+            pinned_baseline = pin["baseline_retrained_f1"]
+            pinned_env = pin.get("environment")
+            baseline_source = str(pinned_path.name)
 
-        # ── Sensitivity vs sensitivity null (own matched controls) ───────
-        ctrl_sens = results.get("control_results_no_ribo_mito", [])
-        sens_deltas = [c["delta_f1"] for c in ctrl_sens] if ctrl_sens else []
-
-        def _null_stats(deltas):
-            if not deltas:
-                return None
-            return {
-                "mean": float(np.mean(deltas)),
-                "std": float(np.std(deltas)),
-                "p2_5": float(np.percentile(deltas, 2.5)),
-                "p97_5": float(np.percentile(deltas, 97.5)),
-                "n": len(deltas),
-            }
-
-        full_null = _null_stats(full_deltas)
-        sens_null = _null_stats(sens_deltas)
-
-        # Gate logic
-        treat_below = (full_null and treat_delta < full_null["p2_5"])
-        sens_below = (sens_null is not None and sens_delta is not None
-                      and sens_delta < sens_null["p2_5"])
+        baseline_agrees = abs(pinned_baseline - run_baseline) < 1e-9
 
         print(f"\n  ── {dataset_name} ──")
-        print(f"    Baseline retrained F1:  {baseline_f1:.4f}")
-        print(f"")
-        print(f"    Treatment ΔF1:          {treat_delta:+.4f}")
-        if full_null:
-            print(f"    Full null band:         "
-                  f"[{full_null['p2_5']:+.4f}, {full_null['p97_5']:+.4f}]")
-            print(f"    Treatment < 2.5th pctl: {treat_below}")
-        print(f"")
-        if sens_delta is not None:
-            print(f"    Sensitivity ΔF1:        {sens_delta:+.4f}")
-        if sens_null:
-            print(f"    Sensitivity null band:  "
-                  f"[{sens_null['p2_5']:+.4f}, {sens_null['p97_5']:+.4f}]")
-            print(f"    Sensitivity < 2.5th pctl: {sens_below}")
+        print(f"    Pinned baseline F1:     {pinned_baseline:.7f}  "
+              f"({baseline_source})")
+        if not baseline_agrees:
+            print(f"    Ablation-run baseline:  {run_baseline:.7f}  "
+                  f"(differs by {pinned_baseline - run_baseline:+.2e})")
+            print(f"    -> deltas below are rebased onto the pinned value; "
+                  f"z / rank / p are unaffected.")
+        if pinned_env is None:
+            print(f"    WARNING: pinned baseline carries no environment "
+                  f"fingerprint. Regenerate it before quoting deltas.")
 
-        # Fixed-probe results
+        def _arm(ctrl_key, treat_key, delta_key):
+            ctrl = results.get(ctrl_key, [])
+            treat = results.get(treat_key)
+            if not ctrl or treat is None:
+                return None
+            c = np.array([r["retrained_f1"] for r in ctrl], dtype=float)
+            t = float(treat["retrained_f1"])
+            m = len(c)
+            # Inference: baseline-invariant, computed on absolute F1.
+            z = float((t - c.mean()) / c.std(ddof=1))
+            b = int((c <= t).sum())
+            # Add-one empirical p: the controls are a random sample of the
+            # possible matched sets, so a Monte-Carlo p must not be able to
+            # reach zero (Phipson & Smyth 2010).
+            p_addone = (b + 1) / (m + 1)
+            # Description: depends on the baseline.
+            dc = c - pinned_baseline
+            dt = t - pinned_baseline
+            return {
+                "n_controls": m,
+                "treatment_retrained_f1": t,
+                "treatment_delta_f1": float(dt),
+                "control_mean_delta_f1": float(dc.mean()),
+                "control_sd_delta_f1": float(dc.std(ddof=1)),
+                "null_band_2_5": float(np.percentile(dc, 2.5)),
+                "null_band_97_5": float(np.percentile(dc, 97.5)),
+                "inside_band": bool(dt >= np.percentile(dc, 2.5)),
+                "gate_z": z,
+                "n_controls_at_least_as_damaging": b,
+                "empirical_p_raw": b / m,
+                "empirical_p_addone": p_addone,
+            }
+
+        full = _arm("control_results_full", "treatment", "treatment_delta_f1")
+        sens = _arm("control_results_no_ribo_mito", "sensitivity",
+                    "sensitivity_delta_f1")
+
+        if results.get("primary_only"):
+            print("    (run was --primary-only: no sensitivity arm, k-sweep "
+                  "or sensitivity null)")
+
+        for label, a in (("FULL treatment", full), ("SENSITIVITY", sens)):
+            if a is None:
+                continue
+            print(f"")
+            print(f"    {label}")
+            print(f"      ΔF1 (vs pinned)     {a['treatment_delta_f1']:+.6f}")
+            print(f"      control mean ΔF1    "
+                  f"{a['control_mean_delta_f1']:+.6f} "
+                  f"(sd {a['control_sd_delta_f1']:.6f})")
+            print(f"      95% null band       "
+                  f"[{a['null_band_2_5']:+.6f}, {a['null_band_97_5']:+.6f}]")
+            print(f"      inside band         {a['inside_band']}")
+            print(f"      gate z              {a['gate_z']:+.4f}")
+            print(f"      controls >= damage  "
+                  f"{a['n_controls_at_least_as_damaging']}/{a['n_controls']}")
+            print(f"      empirical p         "
+                  f"{a['empirical_p_addone']:.4f} (add-one; "
+                  f"raw {a['empirical_p_raw']:.4f})")
+
+        # Gate is the pre-specified 2.5th-percentile rule, nothing else.
+        treat_below = full is not None and not full["inside_band"]
+        sens_below = sens is not None and not sens["inside_band"]
+
         treat_fixed = results["treatment"].get("fixed_f1")
-        baseline_fixed_f1 = baseline_f1  # fixed-probe baseline = retrained baseline
         if treat_fixed is not None:
             print(f"")
-            print(f"    Treatment fixed-probe F1: {treat_fixed:.4f}")
-            sens_fixed = results["sensitivity"].get("fixed_f1")
-            if sens_fixed is not None:
-                print(f"    Sensitivity fixed-probe F1: {sens_fixed:.4f}")
+            print(f"    Treatment fixed-probe F1: {treat_fixed:.4f} "
+                  f"(in-sample; not comparable to the CV baseline)")
 
-        # Clustering metrics
         treat_clust = results["treatment"].get("cluster_ari")
         bl_clust = results["baseline"].get("baseline_cluster_ari")
         if treat_clust is not None and bl_clust is not None:
-            print(f"")
-            print(f"    Baseline cluster ARI:   {bl_clust:.4f}")
-            print(f"    Treatment cluster ARI:  {treat_clust:.4f} "
-                  f"(Δ={treat_clust - bl_clust:+.4f})")
+            print(f"    Baseline cluster ARI {bl_clust:.4f} -> treatment "
+                  f"{treat_clust:.4f} (Δ={treat_clust - bl_clust:+.4f})")
 
-        # Gate verdict
         if treat_below and sens_below:
             gate = "POSITIVE"
             note = ("Treatment ablation degrades cell-type annotation "
@@ -1823,20 +1869,27 @@ def evaluate():
             "dataset": dataset_name,
             "gate": gate,
             "note": note,
-            "baseline_retrained_f1": baseline_f1,
-            "treatment_retrained_f1": results["treatment"]["retrained_f1"],
-            "treatment_delta_f1": float(treat_delta),
+            "baseline": {
+                "pinned_retrained_f1": pinned_baseline,
+                "pinned_source": baseline_source,
+                "pinned_has_environment": pinned_env is not None,
+                "ablation_run_retrained_f1": run_baseline,
+                "agrees": baseline_agrees,
+                "note": ("Descriptive deltas and null-band coordinates are "
+                         "computed against the pinned baseline. gate_z, the "
+                         "tail count and empirical p compare treatment and "
+                         "control F1 directly and do not depend on it."),
+            },
+            "full": full,
+            "sensitivity": sens,
             "treatment_fixed_f1": treat_fixed,
-            "sensitivity_retrained_f1": (
-                None if results.get("sensitivity") is None
-                else results["sensitivity"]["retrained_f1"]),
-            "sensitivity_delta_f1": (
-                None if sens_delta is None else float(sens_delta)),
-            "full_null": full_null,
-            "sensitivity_null": sens_null,
-            "treatment_cluster_ari": results["treatment"].get("cluster_ari"),
+            "treatment_cluster_ari": treat_clust,
             "baseline_cluster_ari": bl_clust,
             "k_sensitivity": results.get("k_sensitivity", {}),
+            "environment_ablation_run": results.get("environment"),
+            "environment_pinned_baseline": pinned_env,
+            "table_s1": results.get("table_s1"),
+            "n_bootstrap": results.get("n_bootstrap"),
         }
         with open(OUT / f"E2_verdict_{dataset_name}.json", "w") as f:
             json.dump(verdict, f, indent=2, default=str)

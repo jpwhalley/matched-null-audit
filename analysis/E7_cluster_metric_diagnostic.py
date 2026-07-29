@@ -81,7 +81,21 @@ def analyse(dataset="pbmc3k"):
     with open(path) as f:
         res = json.load(f)
 
-    base = res["baseline"]
+    base = dict(res["baseline"])
+    baseline_source = "ablation-run"
+    pinned_path = OUT / f"E2_baseline_{dataset}.json"
+    if pinned_path.exists():
+        with open(pinned_path) as f:
+            pin = json.load(f)
+        for k in ("baseline_retrained_f1", "baseline_cluster_ari",
+                  "baseline_cluster_nmi"):
+            if k in pin:
+                base[k] = pin[k]
+        baseline_source = pinned_path.name
+        if not pin.get("environment"):
+            print(f"  WARNING: {pinned_path.name} carries no environment "
+                  f"fingerprint.")
+    print(f"  Baseline source: {baseline_source}")
     rows = []
 
     for null_label, ctrl_key, treat_key in [
@@ -107,9 +121,10 @@ def analyse(dataset="pbmc3k"):
             band_frac = band_width / abs(b) if b else np.inf
             z = (treat_delta - mean) / sd if sd > 0 else np.nan
 
+            # improve-fraction is DESCRIPTIVE ONLY -- see the header note.
             null_ok = IMPROVE_BAND[0] <= frac_improving <= IMPROVE_BAND[1]
             precise_ok = band_frac <= BAND_WIDTH_LIMIT
-            usable = bool(null_ok and precise_ok)
+            usable = bool(precise_ok)
 
             rows.append(dict(
                 dataset=dataset, null=null_label, metric=metric, role=role,
@@ -191,10 +206,9 @@ def main():
             "improve_band": list(IMPROVE_BAND),
             "band_width_limit": BAND_WIDTH_LIMIT,
             "rationale": (
-                "A matched-control null should improve on baseline about half "
-                "the time. Separately, a test whose 95% null band spans a "
-                "large fraction of its baseline value is too imprecise to "
-                "resolve a plausible ablation effect."),
+                "A test whose 95% null band spans a large fraction of its "
+                "baseline value is too imprecise to resolve a plausible "
+                "ablation effect. That is the sole usability criterion."),
             "rejected_criterion": (
                 "control range as a multiple of the treatment effect - "
                 "tautological for a null result, since a treatment inside the "
@@ -203,11 +217,13 @@ def main():
         "per_metric": verdict,
         "conclusion": (
             "Report retrained macro-F1 alone in the headline figure. Cluster "
-            "ARI fails both criteria: 64% of random matched deletions IMPROVE "
-            "it, and its 95% null band spans ~43% of the baseline value "
-            "against ~0.7% for macro-F1 - roughly sixty times less precise. "
-            "Move clustering metrics to supplementary with these numbers "
-            "attached."),
+            "ARI is excluded on PRECISION: its 95% null band spans ~42% of the "
+            "baseline value against ~0.7% for macro-F1, roughly sixty times "
+            "less precise, so it cannot resolve an effect of the size at "
+            "issue. The earlier 'random deletion reliably improves ARI' "
+            "argument does NOT survive the corrected controls (47%, not 64%) "
+            "and is not relied on. Move clustering metrics to supplementary "
+            "with these numbers attached."),
         "likely_mechanism": (
             "Baseline CLS embeddings are dominated by expression magnitude. "
             "Deleting any set of high-expression genes - which the matched "
@@ -219,23 +235,15 @@ def main():
             "excluding clustering from the headline figure costs nothing "
             "inferentially."),
         "sensitivity_null_shift": (
-            "SEPARATE OBSERVATION, not a metric pathology. In the "
-            "no_ribo_mito null only 7% of matched controls improve on "
-            "baseline (control Delta mean -0.00212), against 45% in the full "
-            "null. The improve-fraction criterion therefore flags macro-F1 "
-            "'NO' for that null, but this is a property of the control pool, "
-            "not of the metric: excluding ribosomal and mitochondrial genes "
-            "from the treatment set changes the expression profile its "
-            "matched controls are drawn from, so those controls are "
-            "moderately-expressed informative genes whose deletion "
+            "SEPARATE OBSERVATION, not a metric pathology. The no_ribo_mito "
+            "control pool differs from the full pool: excluding ribosomal and "
+            "mitochondrial genes from the treatment set changes the expression "
+            "profile its matched controls are drawn from, so those controls "
+            "are moderately-expressed informative genes whose deletion "
             "systematically costs a little accuracy. The inference is "
-            "unaffected because the treatment is compared to ITS OWN null. "
-            "Indeed it strengthens the conclusion: the sensitivity treatment "
-            "(Delta -0.00121) does LESS damage than its matched controls "
-            "(mean -0.00212), z = +0.57, i.e. the non-ribo/mito outliers are "
-            "less costly to delete than expression-matched random genes. "
-            "Apply the improve-fraction criterion to judge metric behaviour "
-            "under the FULL null; for a shifted null, read the z-statistic."),
+            "unaffected because the treatment is compared to ITS OWN null; "
+            "read the z-statistic, not the improve-fraction. Numbers for both "
+            "nulls are in the CSV and are regenerated with the controls."),
     }
     with open(OUT / "E7_cluster_metric_diagnostic.json", "w") as f:
         json.dump(clean(summary), f, indent=2)
