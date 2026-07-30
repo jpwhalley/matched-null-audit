@@ -1,9 +1,9 @@
 [project]
 name = "scfm-embedding-audit"
 version = "1.0.0"
-description = "Matched-null auditing of gene-embedding outliers in single-cell foundation models"
+description = "Comparative geometry of gene embeddings in single-cell foundation models"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.12"
 license = { file = "LICENSE" }
 authors = [{ name = "Justin P. Whalley", email = "justin.whalley@rosalindfranklin.edu" }]
 

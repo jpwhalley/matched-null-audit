@@ -462,11 +462,11 @@ gate_output = {
         "strict, returns 43 outliers for Geneformer (containment 10.5%) and 0 "
         "for both scGPT and scFoundation, so it cannot discriminate stability "
         "from its own insensitivity (evidence: E3_calibrated_summary.csv, NOT "
-        "E3_degenerate_diagnostics.csv). CAVEAT: only IQR/Tukey is present in "
-        "E3_calibrated_summary.csv and E3_enrichment_full.csv; GMM and "
-        "percentile 1/99 appear only in the earlier E3_jaccard_results.csv and "
-        "E3_enrichment_results.csv. OPEN ACTION: add them to the headline CSVs "
-        "or list the older files as supplementary outputs. Assessment uses "
+        "E3_degenerate_diagnostics.csv). OUTPUT LOCATION: IQR/Tukey is present "
+        "in E3_calibrated_summary.csv and E3_enrichment_full.csv; GMM and "
+        "percentile 1/99 are retained in E3_jaccard_results.csv and "
+        "E3_enrichment_results.csv, both listed in the traceability matrix. "
+        "Assessment uses "
         "MAD z>3, MAD z>3.5, and rank-matched MAD composite as comparators."
     ),
     "direction_note": (

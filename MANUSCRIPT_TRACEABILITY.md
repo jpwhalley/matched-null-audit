@@ -24,13 +24,17 @@ superseded.
 
 ---
 
-## Figure 1 — The five-stage workflow
+## Figure 1 — Model designs and the shared screen
 
-**Built by:** `analysis/make_psb_figures.py::fig1_workflow`
-**Output:** `figures/F1_workflow.pdf`
+**Built by:** `analysis/make_psb_figures.py::fig1_designs`
+**Output:** `figures/F1_designs.pdf`
 
-Schematic only; no data dependencies. Stage outcomes shown on the figure are
-summaries of the results below.
+The architecture, expression-encoding and vocabulary descriptions come from the
+three model methods. The displayed outlier counts (410, 188 and 164) come from
+`outputs/E3_calibrated_summary.csv`. The schematic distinguishes analyses run
+for all three models from the matched deletion follow-up run only in
+Geneformer; it does not attribute between-model differences to architecture
+alone.
 
 ---
 
@@ -67,8 +71,11 @@ summaries of the results below.
 | Mean Jaccard, scFM vs ESM-2 | 0.023 | `outputs/E1_stage2_verdict.json` |
 | Mean Spearman | 0.042 | `outputs/E1_stage2_verdict.json` |
 | Geneformer ∩ ESM-2 | 49 of 389/570 | `E1_stage2_verdict.json::per_model` |
+| Expected Geneformer overlap / excess | 11.7 / 4.2-fold | derived from `n_shared`, `n_scfm_outliers`, `n_esm2_outliers`, `n_intersection` |
+| Geneformer anomaly-score ρ / p | 0.072 / 1.8e-23 | `E1_stage2_verdict.json::per_model` |
 | Geneformer top-50 overlap | 4 | `E1_stage2_verdict.json::top50_overlap` |
 | Shared gene universe | 19,017 | `E6_scfm_only_by_class.csv::n_shared_genes` |
+| scGPT / scFoundation shared universes | 18,748 / 18,788 | `E1_stage2_verdict.json::per_model.n_shared` |
 | Ribosomal scFM-only | 47/68 | `E6_scfm_only_by_class.csv` |
 | Mitochondrial scFM-only | 2/10 | `E6_scfm_only_by_class.csv` |
 | Constrained scFM-only | 86/87 | `E6_scfm_only_by_class.csv` |
@@ -76,12 +83,14 @@ summaries of the results below.
 
 **Two restrictions are required** to reproduce the constrained figure: the
 19,017-gene shared universe, and mutually-exclusive class precedence
-(mitochondrial → ribosomal → constrained → disease → other). Omitting the second
-gives 139 rather than 87.
+(mitochondrial → ribosomal → constrained → disease → other). Under direct,
+overlapping membership the shared universe contains 138 constrained Geneformer
+outliers, 125 of them scFM-only; both versions are saved in
+`E6_scfm_only_by_class.csv`.
 
 ---
 
-## Figure 4 — The matched deletion test (claim gate)
+## Figure 4 — Matched-control deletion results
 
 **Built by:** `analysis/make_psb_figures.py::fig4_nullband`
 **Data:** `outputs/E2_ablation_pbmc3k.json` ← `analysis/E2_downstream_ablation.py`
@@ -137,6 +146,10 @@ Excluded from the headline figure — `analysis/E7_cluster_metric_diagnostic.py`
 Usability rests on the band-width column alone. The improve-fraction is
 descriptive: it shifts by more than ten points on a baseline change of ~5e-4, so
 it is not a stable property of the metric and is not used as a gate.
+Tabula Sapiens cluster NMI later met the same precision criterion (3.9% of
+baseline) but remained secondary because macro-F1 had already been designated
+as the gate before that replication was analysed; the result and timing are
+recorded in `prespecification/results_addendum_2026-07-29.md`.
 
 ### Tabula Sapiens replication (primary arm only)
 
@@ -204,13 +217,15 @@ Class-scheme comparison — `outputs/E6_class_association.csv`:
 |---|---|---|---|
 | shared GF∩scGPT | overlapping | 3.594 | 5.0e-07 |
 | shared GF∩scGPT | mutually exclusive | 0.385 | 1.6e-03 |
-| all GF outliers | overlapping | 1.181 | 0.104 |
-| all GF outliers | mutually exclusive | 0.538 | 1.7e-07 |
+| all GF outliers | overlapping | 1.160 | 0.148 |
+| all GF outliers | mutually exclusive | 0.519 | 3.8e-08 |
 
 The two schemes estimate **different quantities**, not the same quantity two
 ways: the mutually-exclusive `disease` class excludes genes already assigned to
-constrained, ribosomal or mitochondrial. 1,784 of 8,287 ClinVar genes (22%) are
-also constrained.
+constrained, ribosomal or mitochondrial. 1,784 of 8,285 ClinVar genes (22%) are
+also constrained. The all-Geneformer rows use the 18,911 complete-case
+`table_s1` universe, matching Table 1 in the manuscript; the full-vocabulary
+geometry rows remain available in the same CSV and are not quoted there.
 
 Geneformer class associations (original |z|>3 call) —
 `outputs/E3_enrichment_full.csv`:
@@ -236,8 +251,8 @@ Geneformer class associations (original |z|>3 call) —
 | Annotation table SHA-256 | `57443b7225229e0b` | same |
 | Canonical pinned environment | Python 3.11.15, numpy 1.26.4, sklearn 1.8.0, threads=1 | `E2_baseline_pbmc3k.json::environment` |
 
-**On the 412 → 410 discrepancy.** The preprint reported 412 Geneformer outliers
-across 20,275 genes; this work reports 410 across 20,271. The difference is the
-exclusion of four special tokens (`<pad>`, `<mask>`, `<cls>`, `<eos>`), two of
-which were geometric outliers. Special tokens are not genes and are excluded
-from every analysis here.
+**On special-token exclusion.** The raw geometry file contains 412 Geneformer
+outliers across 20,275 vocabulary entries. The analysis contains 410 across
+20,271 genes after excluding four special tokens (`<pad>`, `<mask>`, `<cls>`,
+`<eos>`), two of which were geometric outliers. Special tokens are not genes
+and are excluded from every analysis here.

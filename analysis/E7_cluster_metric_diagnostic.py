@@ -3,11 +3,12 @@ E7 — Diagnostic: are the clustering metrics usable as outcome measures?
 
 WHY THIS EXISTS
 ---------------
-The E2 matched-control design reports retrained macro-F1 (the pre-specified
-gate) alongside k-means cluster ARI and NMI. The control distributions showed
-that random *matched* gene deletions IMPROVE cluster ARI on average, which is
-not how a null should behave. The interpretation lock (H3) barred these metrics
-from gate status and required a diagnostic before they appear in any figure.
+The E2 matched-control design reports retrained macro-F1 alongside k-means
+cluster ARI and NMI. The dated plan listed annotation accuracy and clustering
+stability as outcomes but did not designate a gate metric; macro-F1 was chosen
+after that plan was written. The interpretation lock (H3) barred the clustering
+metrics from gate status unless a diagnostic showed that their control
+distributions were precise enough to resolve an effect of the size at issue.
 
 This script is that diagnostic. It quantifies, for each metric:
 
@@ -22,7 +23,7 @@ This script is that diagnostic. It quantifies, for each metric:
 NOTE ON A REJECTED CRITERION. An earlier version scored "control range as a
 multiple of the treatment effect". That is tautological for a null result: if
 the treatment falls inside the band, the band is by definition wider than the
-effect, so the criterion flags the pre-specified gate metric as unusable too.
+effect, so the criterion flags the retained gate metric as unusable too.
 It has been replaced by the band-width-over-baseline measure above.
 
 Conclusion reached 2026-07-27: report retrained macro-F1 alone in the headline
@@ -57,9 +58,9 @@ for _d in (OUT, CACHE):
 BASE = REPO  # legacy alias
 
 METRICS = [
-    ("retrained_f1", "baseline_retrained_f1", "gate metric (pre-specified)"),
-    ("cluster_ari", "baseline_cluster_ari", "reported alongside"),
-    ("cluster_nmi", "baseline_cluster_nmi", "reported alongside"),
+    ("retrained_f1", "baseline_retrained_f1", "headline gate"),
+    ("cluster_ari", "baseline_cluster_ari", "pre-specified secondary outcome"),
+    ("cluster_nmi", "baseline_cluster_nmi", "pre-specified secondary outcome"),
 ]
 
 # A null whose improve-fraction sits outside this band is not behaving like a
@@ -217,7 +218,7 @@ def main():
             "improve_fraction_status": (
                 "DESCRIPTIVE ONLY. Not a usability gate. It is sensitive to "
                 "the baseline at a scale far below the metric's own, so at "
-                "some baselines it would reject the pre-specified metric. "
+                "some baselines it would reject the retained gate metric. "
                 "Live values are in improve_fraction_observed and the CSV."),
             "improve_fraction_observed": {
                 f"{r.dataset}/{r.null}/{r.metric}":
@@ -242,16 +243,16 @@ def main():
             "argument does NOT survive the corrected controls and is not "
             "relied on. Move clustering metrics to supplementary with these "
             "numbers attached."),
-        "likely_mechanism": (
-            "Baseline CLS embeddings are dominated by expression magnitude. "
-            "Deleting any set of high-expression genes - which the matched "
-            "controls are by construction - reduces the dominance of a few "
-            "directions and lets k-means recover cleaner clusters. This is a "
-            "property of the embedding space, not of the genes deleted."),
+        "possible_mechanism_not_tested": (
+            "The broad clustering nulls could reflect sensitivity of k-means "
+            "to dominant embedding directions, but this mechanism was not "
+            "tested and no interpretation depends on it."),
         "note": (
-            "The gate metric was pre-specified as retrained macro-F1, so "
-            "excluding clustering from the headline figure costs nothing "
-            "inferentially."),
+            "The dated plan listed annotation accuracy and clustering stability "
+            "but did not designate a gate metric. Macro-F1 was selected after "
+            "the plan and before the Tabula Sapiens result was analysed. The "
+            "clustering exclusion is reported rather than treated as "
+            "pre-specified, and no headline inference rests on it."),
         "sensitivity_null_shift": (
             "SEPARATE OBSERVATION, not a metric pathology. The no_ribo_mito "
             "control pool differs from the full pool: excluding ribosomal and "

@@ -51,7 +51,7 @@ import pandas as pd
 from scipy import stats
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _precision import clean  # documented serialisation precision
+from _precision import SIGFIGS, clean  # documented serialisation precision
 
 # Repository-relative paths. Scripts live in analysis/; everything they read
 # and write is inside this repository.
@@ -773,7 +773,11 @@ def compare_against_scfms(esm2_geom):
         })
 
     comp_df = pd.DataFrame(comparison_rows)
-    comp_df.to_csv(OUT / "E1_esm2_comparison.csv", index=False)
+    comp_df.to_csv(
+        OUT / "E1_esm2_comparison.csv",
+        index=False,
+        float_format=f"%.{SIGFIGS}g",
+    )
 
     # ── Verdict ──────────────────────────────────────────────────────────
     mean_jaccard = comp_df["jaccard"].mean()
@@ -782,18 +786,22 @@ def compare_against_scfms(esm2_geom):
     if mean_jaccard < 0.15 and mean_rho < 0.3:
         interpretation = "DIVERGENT"
         note = ("Outlier sets are largely different between scFM and ESM-2 "
-                "embeddings. Geometric outliers are model/tokenisation-specific, "
-                "not intrinsic biological properties.")
+                "embeddings. Their geometry is principally model-specific rather "
+                "than explained by protein-sequence geometry; this comparison "
+                "does not isolate architecture or tokenisation from corpus, "
+                "objective, vocabulary, or scale.")
     elif mean_jaccard > 0.5 and mean_rho > 0.6:
         interpretation = "CONVERGENT"
         note = ("Same genes are geometric outliers in both expression-trained "
-                "and sequence-trained embeddings. Outlier status reflects "
-                "intrinsic biological properties, not model-specific failure.")
+                "and sequence-trained embeddings. The recurrence is consistent "
+                "with a shared sequence-related component, but does not by itself "
+                "establish biological importance.")
     else:
         interpretation = "PARTIAL"
-        note = ("Partial overlap: some gene classes (likely sequence-intrinsic) "
-                "are shared outliers, while expression-exposure-driven outliers "
-                "are scFM-specific. Supports a mixed interpretation.")
+        note = ("Partial overlap: some gene classes recur across the two "
+                "embedding sources while others remain scFM-specific. This "
+                "supports a mixed descriptive interpretation without assigning "
+                "a causal mechanism.")
 
     verdict = {
         "interpretation": interpretation,

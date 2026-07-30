@@ -6,7 +6,7 @@
     ],
     "band_width_limit": 0.05,
     "usability_rests_on": "band_width_over_baseline only",
-    "improve_fraction_status": "DESCRIPTIVE ONLY. Not a usability gate. It is sensitive to the baseline at a scale far below the metric's own, so at some baselines it would reject the pre-specified metric. Live values are in improve_fraction_observed and the CSV.",
+    "improve_fraction_status": "DESCRIPTIVE ONLY. Not a usability gate. It is sensitive to the baseline at a scale far below the metric's own, so at some baselines it would reject the retained gate metric. Live values are in improve_fraction_observed and the CSV.",
     "improve_fraction_observed": {
       "pbmc3k/full/retrained_f1": 0.48,
       "pbmc3k/full/cluster_ari": 0.47,
@@ -25,33 +25,33 @@
     "retrained_f1": {
       "usable_as_outcome": true,
       "frac_controls_improving": 0.48,
-      "control_range": 0.0137753367067,
-      "null_band_width": 0.00706071469706,
+      "control_range": 0.01377533671,
+      "null_band_width": 0.007060714697,
       "band_width_over_baseline": 0.0076,
-      "control_delta_mean": -0.000205171746512,
-      "control_delta_sd": 0.00188620788224
+      "control_delta_mean": -0.0002051717465,
+      "control_delta_sd": 0.001886207882
     },
     "cluster_ari": {
       "usable_as_outcome": false,
       "frac_controls_improving": 0.47,
-      "control_range": 0.283336790022,
-      "null_band_width": 0.225872235181,
+      "control_range": 0.28333679,
+      "null_band_width": 0.2258722352,
       "band_width_over_baseline": 0.423,
-      "control_delta_mean": 0.0457680859481,
-      "control_delta_sd": 0.0828649623799
+      "control_delta_mean": 0.04576808595,
+      "control_delta_sd": 0.08286496238
     },
     "cluster_nmi": {
       "usable_as_outcome": false,
       "frac_controls_improving": 0.45,
-      "control_range": 0.105526772903,
-      "null_band_width": 0.0747856218786,
+      "control_range": 0.1055267729,
+      "null_band_width": 0.07478562188,
       "band_width_over_baseline": 0.1061,
       "control_delta_mean": 0.006171021265,
-      "control_delta_sd": 0.0225399731183
+      "control_delta_sd": 0.02253997312
     }
   },
   "conclusion": "Report retrained macro-F1 alone in the headline figure. Cluster ARI is excluded on PRECISION: its 95% null band spans ~42% of the baseline value against ~0.7% for macro-F1, roughly sixty times less precise, so it cannot resolve an effect of the size at issue. The earlier 'random deletion reliably improves ARI' argument does NOT survive the corrected controls and is not relied on. Move clustering metrics to supplementary with these numbers attached.",
-  "likely_mechanism": "Baseline CLS embeddings are dominated by expression magnitude. Deleting any set of high-expression genes - which the matched controls are by construction - reduces the dominance of a few directions and lets k-means recover cleaner clusters. This is a property of the embedding space, not of the genes deleted.",
-  "note": "The gate metric was pre-specified as retrained macro-F1, so excluding clustering from the headline figure costs nothing inferentially.",
+  "possible_mechanism_not_tested": "The broad clustering nulls could reflect sensitivity of k-means to dominant embedding directions, but this mechanism was not tested and no interpretation depends on it.",
+  "note": "The dated plan listed annotation accuracy and clustering stability but did not designate a gate metric. Macro-F1 was selected after the plan and before the Tabula Sapiens result was analysed. The clustering exclusion is reported rather than treated as pre-specified, and no headline inference rests on it.",
   "sensitivity_null_shift": "SEPARATE OBSERVATION, not a metric pathology. The no_ribo_mito control pool differs from the full pool: excluding ribosomal and mitochondrial genes from the treatment set changes the expression profile its matched controls are drawn from, so those controls are moderately-expressed informative genes whose deletion systematically costs a little accuracy. The inference is unaffected because the treatment is compared to ITS OWN null; read the z-statistic, not the improve-fraction. Numbers for both nulls are in the CSV and are regenerated with the controls."
 }

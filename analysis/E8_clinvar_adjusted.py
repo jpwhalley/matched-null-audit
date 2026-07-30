@@ -63,7 +63,7 @@ import statsmodels.api as sm
 from scipy import stats
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _precision import clean  # documented serialisation precision
+from _precision import SIGFIGS, clean  # documented serialisation precision
 
 # Repository-relative paths. Scripts live in analysis/; everything they read
 # and write is inside this repository.
@@ -235,7 +235,11 @@ def main():
         print()
 
     df = pd.DataFrame(rows)
-    df.to_csv(OUT / "E8_clinvar_adjusted.csv", index=False)
+    df.to_csv(
+        OUT / "E8_clinvar_adjusted.csv",
+        index=False,
+        float_format=f"%.{SIGFIGS}g",
+    )
 
     prim = df[(df.tier == "PRIMARY") & (df.gene_set == "gf")].iloc[0]
     sens = df[(df.tier == "SENSITIVITY") & (df.gene_set == "gf")].iloc[0]

@@ -1,5 +1,5 @@
 """
-E2 — Expression-matched downstream ablation (THE claim gate).
+E2 — Covariate-matched downstream deletion analysis.
 
 Tests whether removing geometric-outlier genes from Geneformer's input
 degrades cell-type annotation more than removing expression-matched,

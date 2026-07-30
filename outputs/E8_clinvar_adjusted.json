@@ -4,76 +4,76 @@
     "Geneformer": {
       "n_outliers": 388,
       "n_universe": 18911,
-      "unadjusted_OR": 1.16037961907,
-      "unadjusted_p": 0.148150477755,
-      "adjusted_OR": 1.05330262443,
+      "unadjusted_OR": 1.160379619,
+      "unadjusted_p": 0.1481504778,
+      "adjusted_OR": 1.053302624,
       "adjusted_CI": [
-        0.822569667564,
-        1.34743595494
+        0.8225696676,
+        1.347435955
       ],
-      "adjusted_p": 0.679506771681
+      "adjusted_p": 0.6795067717
     },
     "scGPT": {
       "n_outliers": 102,
       "n_universe": 18911,
-      "unadjusted_OR": 2.95422056756,
-      "unadjusted_p": 1.84655285331e-07,
-      "adjusted_OR": 1.22030426617,
+      "unadjusted_OR": 2.954220568,
+      "unadjusted_p": 1.846552853e-07,
+      "adjusted_OR": 1.220304266,
       "adjusted_CI": [
-        0.761965376951,
-        1.9891152302
+        0.761965377,
+        1.98911523
       ],
-      "adjusted_p": 0.411226413237
+      "adjusted_p": 0.4112264132
     },
     "scFoundation": {
       "n_outliers": 161,
       "n_universe": 18911,
-      "unadjusted_OR": 0.801734971016,
-      "unadjusted_p": 0.176225082763,
-      "adjusted_OR": 0.979821986241,
+      "unadjusted_OR": 0.801734971,
+      "unadjusted_p": 0.1762250828,
+      "adjusted_OR": 0.9798219862,
       "adjusted_CI": [
-        0.693129720407,
-        1.37606769693
+        0.6931297204,
+        1.376067697
       ],
-      "adjusted_p": 0.904784343068
+      "adjusted_p": 0.9047843431
     }
   },
   "sensitivity_by_model": {
     "Geneformer": {
       "n_outliers": 378,
       "n_universe": 18898,
-      "unadjusted_OR": 1.09772202287,
-      "unadjusted_p": 0.373821956044,
-      "adjusted_OR": 1.05303896525,
+      "unadjusted_OR": 1.097722023,
+      "unadjusted_p": 0.373821956,
+      "adjusted_OR": 1.053038965,
       "adjusted_CI": [
-        0.822593306923,
-        1.34804289434
+        0.8225933069,
+        1.348042894
       ],
-      "adjusted_p": 0.68170469865
+      "adjusted_p": 0.6817046987
     },
     "scGPT": {
       "n_outliers": 93,
       "n_universe": 18898,
-      "unadjusted_OR": 2.58099878197,
-      "unadjusted_p": 1.25236292639e-05,
-      "adjusted_OR": 1.2300123871,
+      "unadjusted_OR": 2.580998782,
+      "unadjusted_p": 1.252362926e-05,
+      "adjusted_OR": 1.230012387,
       "adjusted_CI": [
-        0.760140911387,
-        1.99032896368
+        0.7601409114,
+        1.990328964
       ],
-      "adjusted_p": 0.399167901518
+      "adjusted_p": 0.3991679015
     },
     "scFoundation": {
       "n_outliers": 161,
       "n_universe": 18898,
-      "unadjusted_OR": 0.803004466098,
-      "unadjusted_p": 0.201697634325,
-      "adjusted_OR": 0.977323270768,
+      "unadjusted_OR": 0.8030044661,
+      "unadjusted_p": 0.2016976343,
+      "adjusted_OR": 0.9773232708,
       "adjusted_CI": [
-        0.693325775229,
-        1.37765075194
+        0.6933257752,
+        1.377650752
       ],
-      "adjusted_p": 0.895813332739
+      "adjusted_p": 0.8958133327
     }
   },
   "multiplicity": "The three model-specific p-values are uncorrected. All exceed 0.4, so no correction would change any conclusion.",
@@ -82,32 +82,32 @@
     "gene_set": "all Geneformer geometric outliers (see primary_by_model for all three)",
     "n_outliers": 388,
     "n_universe": 18911,
-    "unadjusted_OR": 1.16037961907,
-    "unadjusted_p": 0.148150477755,
-    "adjusted_OR": 1.05330262443,
+    "unadjusted_OR": 1.160379619,
+    "unadjusted_p": 0.1481504778,
+    "adjusted_OR": 1.053302624,
     "adjusted_CI": [
-      0.822569667564,
-      1.34743595494
+      0.8225696676,
+      1.347435955
     ],
-    "adjusted_p": 0.679506771681
+    "adjusted_p": 0.6795067717
   },
   "sensitivity_non_mito": {
-    "adjusted_OR": 1.05303896525,
+    "adjusted_OR": 1.053038965,
     "adjusted_CI": [
-      0.822593306923,
-      1.34804289434
+      0.8225933069,
+      1.348042894
     ],
-    "adjusted_p": 0.68170469865,
+    "adjusted_p": 0.6817046987,
     "n_universe": 18898
   },
   "exploratory_shared_set": {
     "note": "Cross-model subset selected post hoc as the set showing an apparent signal. Small (n=72). NOT a second headline test; report as exploratory only.",
-    "adjusted_OR": 1.45133976295,
+    "adjusted_OR": 1.451339763,
     "adjusted_CI": [
-      0.802093960983,
-      2.71064594374
+      0.802093961,
+      2.710645944
     ],
-    "adjusted_p": 0.221863658404
+    "adjusted_p": 0.2218636584
   },
   "specification_dependence": {
     "note": "The shared-set conclusion is specification-dependent. Report the full grid in E8_clinvar_adjusted.csv rather than a single number.",

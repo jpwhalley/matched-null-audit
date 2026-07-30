@@ -7,11 +7,12 @@ differ in the last few digits of a p-value (1.7868222549680278e-23 vs
 precision makes the gate portable across environments while still catching
 any difference that could matter.
 
-12 significant figures is far beyond what is reported or interpretable, and
-well inside the digits that vary between library versions.
+10 significant figures is far beyond what is reported or interpretable. It
+also suppresses the profile-likelihood and rank-test drift observed across
+supported Python and numerical-library builds.
 """
 
-SIGFIGS = 12
+SIGFIGS = 10
 
 
 def round_sig(x, sig=SIGFIGS):

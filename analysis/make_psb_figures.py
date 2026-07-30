@@ -1,5 +1,5 @@
 """
-Build PSB 2027 figures F2-F4 from saved analysis outputs.
+Build PSB 2027 figures F1-F4 from saved analysis outputs.
 
 Design constraints (12-page limit, four figures):
   * each figure must fit ~0.45-0.55 page => single-column width 4.6in,
@@ -7,10 +7,7 @@ Design constraints (12-page limit, four figures):
   * greyscale-safe: distinguish by shape/hatch/position, not colour alone
   * no chartjunk; the null band in F4 must be unambiguous at a glance
 
-F1 (audit schematic + metric distributions) is built separately from the
-original figure pipeline.
-
-Outputs: psb2027/figs/{F2_stability,F3_esm2,F4_nullband}.pdf
+Outputs: figures/{F1_designs,F2_stability,F3_esm2,F4_nullband_*}.pdf
 """
 
 import json
@@ -184,72 +181,229 @@ def fig4_nullband(dataset="pbmc3k"):
 
 
 # ---------------------------------------------------------------- F1
-def fig1_workflow():
-    """The five-stage claim-auditing workflow, with this paper's outcomes.
-
-    For a workflow paper the schematic earns the space more than metric
-    distributions do: it shows that each stage can falsify independently, and
-    that our claim survives two stages and fails two.
-    """
+def fig1_designs():
+    """Three model designs, the shared geometry screen, and follow-up tests."""
     from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
-    stages = [
-        ("1", "Geometry\nscreen", "which genes are\nextreme?", "410 outliers", "n"),
-        ("2", "Caller\nrobustness", "artefact of\nthresholding?", "survives", "p"),
-        ("3", "ESM-2\ncontrol", "generic\nbiology?", "model-specific", "p"),
-        ("4", "Matched\ndeletion", "does it affect\na task?", "inside null", "f"),
-        ("5", "Annotation\nscheme", "robust to\nconvention?", "reverses", "f"),
+    width, height = 5.6, 2.85
+    grey, edge = "0.35", "0.25"
+    fills = ["#EAEFF5", "#EAF2EA", "#F5EEE6"]
+    models = [
+        {
+            "name": "Geneformer",
+            "design": "BERT-style encoder",
+            "detail": [
+                "rank-ordered gene tokens",
+                "no expression values",
+                "20,271 genes",
+            ],
+            "out": "410 outliers",
+        },
+        {
+            "name": "scGPT",
+            "design": "generative transformer",
+            "detail": [
+                "gene tokens $+$ expression",
+                "value embeddings",
+                "60,694 genes",
+            ],
+            "out": "188 outliers",
+        },
+        {
+            "name": "scFoundation",
+            "design": "asymmetric encoder-decoder",
+            "detail": [
+                "continuous expression via",
+                "learned auto-discretisation",
+                "19,264 genes",
+            ],
+            "out": "164 outliers",
+        },
     ]
 
-    fig, ax = plt.subplots(figsize=(W, 1.72))
-    ax.set_xlim(0, 10); ax.set_ylim(0.15, 3.0); ax.axis("off")
-
-    bw, gap = 1.72, 0.30
-    x0 = 0.12
-    for i, (num, name, question, outcome, kind) in enumerate(stages):
-        x = x0 + i * (bw + gap)
-        face = {"n": "0.93", "p": "0.86", "f": "0.62"}[kind]
+    def box(ax, x, y, w, h, fc, lw=0.7, rounding=0.015):
         ax.add_patch(FancyBboxPatch(
-            (x, 1.30), bw, 0.92, boxstyle="round,pad=0.045",
-            facecolor=face, edgecolor="black", linewidth=0.7))
-        ax.text(x + bw / 2, 2.02, num, ha="center", va="center",
-                fontsize=6.5, color="0.35")
-        ax.text(x + bw / 2, 1.70, name, ha="center", va="center",
-                fontsize=7.2, linespacing=1.15)
-        ax.text(x + bw / 2, 1.06, question, ha="center", va="top",
-                fontsize=6.1, color="0.32", linespacing=1.2, style="italic")
-        # outcome chip
-        mark = {"n": "", "p": "✓ ", "f": "✗ "}[kind]
-        ax.text(x + bw / 2, 2.52, mark + outcome, ha="center", va="center",
-                fontsize=6.6,
-                bbox=dict(boxstyle="round,pad=0.22",
-                          fc="white" if kind != "f" else "0.90",
-                          ec="0.45", lw=0.55))
-        if i < len(stages) - 1:
-            ax.add_patch(FancyArrowPatch(
-                (x + bw + 0.03, 1.76), (x + bw + gap - 0.03, 1.76),
-                arrowstyle="-|>", mutation_scale=7, lw=0.7, color="0.3"))
+            (x, y),
+            w,
+            h,
+            boxstyle=f"round,pad=0,rounding_size={rounding}",
+            linewidth=lw,
+            edgecolor=edge,
+            facecolor=fc,
+            zorder=2,
+        ))
 
-    # legend: swatch then label, laid out horizontally so nothing overlaps
-    ax.add_patch(FancyBboxPatch((0.12, 0.30), 0.26, 0.17,
-                                boxstyle="round,pad=0.02", facecolor="0.86",
-                                edgecolor="black", linewidth=0.5))
-    ax.text(0.50, 0.385, "claim survives this stage", fontsize=6.4,
-            color="0.3", va="center")
-    ax.add_patch(FancyBboxPatch((3.15, 0.30), 0.26, 0.17,
-                                boxstyle="round,pad=0.02", facecolor="0.62",
-                                edgecolor="black", linewidth=0.5))
-    ax.text(3.53, 0.385, "claim fails this stage", fontsize=6.4,
-            color="0.3", va="center")
-    fig.tight_layout(pad=0.2)
-    fig.savefig(REPO / "figures" / "F1_workflow.pdf", metadata=DETERMINISTIC_PDF)
+    def arrow(ax, x0, y0, x1, y1, lw=0.7):
+        ax.add_patch(FancyArrowPatch(
+            (x0, y0),
+            (x1, y1),
+            arrowstyle="-|>",
+            mutation_scale=6,
+            linewidth=lw,
+            color=edge,
+            zorder=3,
+            shrinkA=0,
+            shrinkB=0,
+        ))
+
+    with plt.rc_context({
+        "font.size": 7,
+        "font.family": "serif",
+        "pdf.fonttype": 42,
+        "axes.linewidth": 0.6,
+        "savefig.bbox": None,
+    }):
+        fig, ax = plt.subplots(figsize=(width, height))
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.axis("off")
+
+        # Three model designs.
+        bw, bh, gap = 0.30, 0.34, 0.05
+        y0 = 0.60
+        for i, model in enumerate(models):
+            x = i * (bw + gap)
+            box(ax, x, y0, bw, bh, fills[i])
+            ax.text(
+                x + bw / 2,
+                y0 + bh - 0.055,
+                model["name"],
+                ha="center",
+                va="top",
+                fontsize=8,
+                fontweight="bold",
+                zorder=4,
+            )
+            ax.text(
+                x + bw / 2,
+                y0 + bh - 0.125,
+                model["design"],
+                ha="center",
+                va="top",
+                fontsize=6.6,
+                style="italic",
+                color=grey,
+                zorder=4,
+            )
+            for j, detail in enumerate(model["detail"]):
+                ax.text(
+                    x + bw / 2,
+                    y0 + bh - 0.185 - j * 0.052,
+                    detail,
+                    ha="center",
+                    va="top",
+                    fontsize=6.2,
+                    color=grey,
+                    zorder=4,
+                )
+            arrow(ax, x + bw / 2, y0 - 0.005, x + bw / 2, 0.505)
+
+        ax.text(
+            0.5,
+            0.985,
+            "Three influential models, three representational designs",
+            ha="center",
+            va="top",
+            fontsize=7.4,
+            color=grey,
+        )
+
+        # Identical geometry screen.
+        box(ax, 0.0, 0.35, 1.0, 0.15, "#F2F2F2", lw=0.8)
+        ax.text(
+            0.5,
+            0.455,
+            "identical four-metric geometry screen on the gene-embedding matrix",
+            ha="center",
+            va="center",
+            fontsize=7.2,
+            fontweight="bold",
+        )
+        ax.text(
+            0.5,
+            0.395,
+            "norm  $\\cdot$  centroid distance  $\\cdot$  cosine to centroid  "
+            "$\\cdot$  isolation ($k=10$);   outlier if $|z|>3$ on any metric",
+            ha="center",
+            va="center",
+            fontsize=6.4,
+            color=grey,
+        )
+
+        for i, model in enumerate(models):
+            x = i * (bw + gap)
+            ax.text(
+                x + bw / 2,
+                0.305,
+                model["out"],
+                ha="center",
+                va="center",
+                fontsize=7.0,
+                fontweight="bold",
+            )
+
+        # Shared tests and the model-specific downstream follow-up.
+        box(ax, 0.0, 0.03, 0.665, 0.19, "#FFFFFF", lw=0.8)
+        box(ax, 0.685, 0.03, 0.315, 0.19, "#FFFFFF", lw=0.8)
+        ax.text(
+            0.3325,
+            0.175,
+            "all three models",
+            ha="center",
+            va="center",
+            fontsize=7.2,
+            fontweight="bold",
+        )
+        ax.text(
+            0.8425,
+            0.175,
+            "Geneformer only",
+            ha="center",
+            va="center",
+            fontsize=7.2,
+            fontweight="bold",
+        )
+        shared_questions = [
+            "stable under\nre-calling?",
+            "recur in ESM-2\nsequence space?",
+            "associated with\nClinVar?",
+        ]
+        for i, question in enumerate(shared_questions):
+            ax.text(
+                0.115 + i * 0.222,
+                0.085,
+                question,
+                ha="center",
+                va="center",
+                fontsize=6.3,
+                color=grey,
+                linespacing=1.35,
+            )
+        ax.text(
+            0.8425,
+            0.085,
+            "costly to delete vs\nmatched controls?",
+            ha="center",
+            va="center",
+            fontsize=6.3,
+            color=grey,
+            linespacing=1.35,
+        )
+        for xval in (0.2255, 0.4475):
+            ax.plot([xval, xval], [0.045, 0.135], lw=0.5, color="0.75", zorder=1)
+
+        fig.subplots_adjust(left=0.005, right=0.995, top=0.995, bottom=0.005)
+        fig.savefig(
+            REPO / "figures" / "F1_designs.pdf",
+            metadata=DETERMINISTIC_PDF,
+        )
     plt.close(fig)
-    print("  F1_workflow.pdf")
+    print("  F1_designs.pdf")
 
 
 if __name__ == "__main__":
     print("Building PSB figures ->", REPO / "figures")
-    fig1_workflow()
+    fig1_designs()
     fig2_stability()
     fig3_esm2()
     fig4_nullband("pbmc3k")

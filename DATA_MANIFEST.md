@@ -67,7 +67,11 @@ different release changes the gene-to-protein mapping in stage 3.
 | `outputs/E2_baseline_pbmc3k.json` | `E2_downstream_ablation.py --baseline` | Pinned MPS baseline, device-matched to the ablation; carries an `environment` fingerprint. `_cpu` and `_mps` copies retained alongside. |
 | `outputs/E2_verdict_pbmc3k.json` | `E2_downstream_ablation.py --evaluate` | Gate z, tail count and add-one empirical p, recomputed from absolute F1 against the pinned baseline. |
 | `outputs/E7_*`, `outputs/E9_*` | `E7_*.py`, `E9_*.py` | Regenerated against the corrected control sets. |
+| `figures/F1_designs.pdf` | `make_psb_figures.py` | Comparative model-design schematic used as Figure 1. |
+| `figures/F2_stability.pdf` | `make_psb_figures.py` | Caller-robustness results used as Figure 2. |
+| `figures/F3_esm2.pdf` | `make_psb_figures.py` | ESM-2 comparison used as Figure 3. |
 | `figures/F4_nullband_pbmc3k.pdf` | `make_psb_figures.py` | Corrected controls; shows z = −1.56 and z = +0.35, both inside. |
+| `figures/F4_nullband_tabula_sapiens.pdf` | `make_psb_figures.py` | Tabula Sapiens primary-arm replication; generated for traceability and not displayed in the manuscript. |
 | `cache/` | various | Regenerable intermediates; git-ignored. |
 
 **E2, E7, E9 and Figure 4 form one consistent set and were added together.**

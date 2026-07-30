@@ -1,7 +1,7 @@
 {
   "overall_verdict": "MIXED",
   "overall_note": "Two models (Geneformer, scFoundation) stable; scGPT mixed due to bimodal norm distribution. Proceed to E1 with Geneformer as primary E2 model. For scGPT, use original \u2229 MAD robust core or treat as sensitivity analysis.",
-  "criteria_note": "Gate criteria specified before downstream experiments; amended after diagnostic checks. THREE callers are excluded as degenerate, each on DIFFERENT evidence: (1) 2-component GMM - too permissive, minority component captured 24.20-49.17% of genes in every model x metric combination (see E3_degenerate_diagnostics.csv, which documents this and nothing else); (2) percentile 1/99 - fixed-rate selector flagging ~5-7% of genes by construction regardless of distributional shape (observed union rates 4.96%/6.77%/5.92% for Geneformer/scGPT/scFoundation; evidence: construction of the method plus these rates, NOT E3_degenerate_diagnostics.csv); (3) IQR k=3 (Tukey extreme) - too strict, returns 43 outliers for Geneformer (containment 10.5%) and 0 for both scGPT and scFoundation, so it cannot discriminate stability from its own insensitivity (evidence: E3_calibrated_summary.csv, NOT E3_degenerate_diagnostics.csv). CAVEAT: only IQR/Tukey is present in E3_calibrated_summary.csv and E3_enrichment_full.csv; GMM and percentile 1/99 appear only in the earlier E3_jaccard_results.csv and E3_enrichment_results.csv. OPEN ACTION: add them to the headline CSVs or list the older files as supplementary outputs. Assessment uses MAD z>3, MAD z>3.5, and rank-matched MAD composite as comparators.",
+  "criteria_note": "Gate criteria specified before downstream experiments; amended after diagnostic checks. THREE callers are excluded as degenerate, each on DIFFERENT evidence: (1) 2-component GMM - too permissive, minority component captured 24.20-49.17% of genes in every model x metric combination (see E3_degenerate_diagnostics.csv, which documents this and nothing else); (2) percentile 1/99 - fixed-rate selector flagging ~5-7% of genes by construction regardless of distributional shape (observed union rates 4.96%/6.77%/5.92% for Geneformer/scGPT/scFoundation; evidence: construction of the method plus these rates, NOT E3_degenerate_diagnostics.csv); (3) IQR k=3 (Tukey extreme) - too strict, returns 43 outliers for Geneformer (containment 10.5%) and 0 for both scGPT and scFoundation, so it cannot discriminate stability from its own insensitivity (evidence: E3_calibrated_summary.csv, NOT E3_degenerate_diagnostics.csv). OUTPUT LOCATION: IQR/Tukey is present in E3_calibrated_summary.csv and E3_enrichment_full.csv; GMM and percentile 1/99 are retained in E3_jaccard_results.csv and E3_enrichment_results.csv, both listed in the traceability matrix. Assessment uses MAD z>3, MAD z>3.5, and rank-matched MAD composite as comparators.",
   "direction_note": "IMPORTANT: enrichment_test uses Fisher alternative='two-sided', so significant=True covers DEPLETION as well as enrichment. Geneformer 'disease' is a significant DEPLETION: OR 0.538 (original), 0.513 (MAD z>3), 0.679 (MAD z>3.5), 0.658 (Top-n) - all below 1. Do NOT describe Geneformer's four significant classes as 'four enrichments'. Correct wording: 'class associations', with direction stated. Geneformer enriched: mitochondrial (OR 165.5), ribosomal (OR 36.7), constrained (OR 1.59); depleted: disease (OR 0.54). scGPT's three significant classes are all genuine enrichments.",
   "enrichment_flips_note": "enrichment_flips counts ONLY classes significant under |z|>3 (original) that lose significance in >=2 of three MAD-family callers (MAD z>3, MAD z>3.5, Top-n by MAD). It does not evaluate percentile, GMM or IQR/Tukey; it does not count GAINS; and it returns 0 vacuously for a model with no significant enrichment. Specifically: scFoundation's 0 is vacuous (no class significant under the original call or any of the three MAD-family callers; best p_bonf across those four = 0.0609 ribosomal MAD z>3, 0.0639 under the original alone). SCOPE CAREFULLY: under the DEGENERATE GMM caller scFoundation DOES show two significant depletions (ribosomal p_corr=5.8e-04 OR 0.510; constrained p_corr=1.4e-07 OR 0.755, E3_enrichment_results.csv) - an artifact of GMM assigning 24-49% of the vocabulary to the outlier component. Do not write 'no significant association under any caller'. scGPT 'disease' GAINS significance under MAD z>3 (OR 1.06 p_bonf=1.0 -> OR 2.11 p_bonf=4.8e-12), scored as 0 flips. Under the excluded IQR/Tukey caller Geneformer loses mitochondrial and disease, and scGPT loses all three significant classes. Supported claim: Geneformer and scGPT class associations are stable across MAD-family callers - NOT 'stable across methods'.",
   "per_model": {
@@ -9,7 +9,7 @@
       "verdict": "STABLE",
       "note": "original z-score outliers are a conservative core under MAD; rank ordering is preserved",
       "containment": 1.0,
-      "spearman_rho": 0.95576008296,
+      "spearman_rho": 0.955760083,
       "top50_overlap": 50,
       "robust_core_n": 410,
       "original_n": 410,
@@ -18,8 +18,8 @@
     "scGPT": {
       "verdict": "MIXED",
       "note": "biological enrichment pattern is stable but individual gene identity is method-sensitive",
-      "containment": 0.829787234043,
-      "spearman_rho": 0.858026233417,
+      "containment": 0.829787234,
+      "spearman_rho": 0.8580262334,
       "top50_overlap": 22,
       "robust_core_n": 156,
       "original_n": 188,
@@ -28,8 +28,8 @@
     "scFoundation": {
       "verdict": "STABLE",
       "note": "original z-score outliers are a conservative core under MAD; rank ordering is preserved",
-      "containment": 0.969512195122,
-      "spearman_rho": 0.99909595471,
+      "containment": 0.9695121951,
+      "spearman_rho": 0.9990959547,
       "top50_overlap": 49,
       "robust_core_n": 159,
       "original_n": 164,

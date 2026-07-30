@@ -20,13 +20,13 @@ as though it answered the direct question.
 
 This script tests every class BOTH ways -- mutually exclusive and overlapping
 (direct membership) -- so the difference is explicit and reproducible rather
-than an ad hoc check. The headline precision-medicine result of the PSB paper
-depends on it.
+than an ad hoc check.
 
 Outputs (revision/outputs/):
   E6_class_association.csv   -- every model x scheme x class test
-  E6_class_association.json  -- headline figures + reconciliation of the
-                                preprint's shared-set OR 3.7
+  E6_class_association.json  -- headline figures and shared-set context
+  E6_scfm_only_by_class.csv  -- mutually-exclusive and overlapping class
+                                counts for the ESM-2 comparison
 
 Usage:
   python E6_class_association.py
@@ -98,6 +98,20 @@ def membership_flags(symbols):
     }
 
 
+def is_class_member(sym: str, cls: str) -> bool:
+    """Direct, overlapping membership in one annotation panel."""
+    u = sym.upper()
+    if cls == "mitochondrial":
+        return u.startswith("MT-")
+    if cls == "ribosomal":
+        return bool(RIBO_RE.match(u))
+    if cls == "constrained":
+        return u in CONSTRAINED
+    if cls == "disease":
+        return u in DISEASE
+    raise ValueError(f"Unknown class: {cls}")
+
+
 def fisher(in_set, in_class, alternative="two-sided"):
     a = int(np.sum(in_set & in_class))
     b = int(np.sum(in_set & ~in_class))
@@ -119,10 +133,10 @@ def load_geneformer():
 
 
 def load_from_table_s1():
-    """outlier_class encodes the cross-model membership used in the preprint.
+    """Load cross-model outlier membership on the complete-case universe.
 
     Restricted to complete cases (gene length present), so this reproduces the
-    same 18,911-gene universe the manuscript's Table 2 and the covariate-adjusted
+    same 18,911-gene universe the manuscript's Table 1 and the covariate-adjusted
     analysis in E8 use. On the full 18,915 rows the odds ratios agree to every
     digit reported, but the universes should match exactly, not coincidentally.
     """
@@ -169,7 +183,7 @@ def main():
                                                    ("OR", "p")}))
             print(f"  {cls:<15} {scheme:<20} {r['OR']:>9.3f} {r['p']:>12.2e}")
 
-    # ---- Cross-model sets from Table_S1 (reconciles the preprint) ---------
+    # ---- Cross-model sets from Table_S1 -----------------------------------
     t = load_from_table_s1()
     syms_t = t["gene"].astype(str).tolist()
     over_t = membership_flags(syms_t)
@@ -219,9 +233,18 @@ def main():
                         "disease"]:
                 members = {g for g in scfm_out if assign_gene_class(g) == cls}
                 ov = members & esm_out
+                overlapping_members = {
+                    g for g in scfm_out if is_class_member(g, cls)
+                }
+                overlapping_ov = overlapping_members & esm_out
                 scfm_only_rows.append(dict(
                     cls=cls, n_scfm_outliers=len(members),
                     n_also_esm2=len(ov), n_scfm_only=len(members) - len(ov),
+                    overlapping_n_scfm_outliers=len(overlapping_members),
+                    overlapping_n_also_esm2=len(overlapping_ov),
+                    overlapping_n_scfm_only=(
+                        len(overlapping_members) - len(overlapping_ov)
+                    ),
                     n_shared_genes=len(shared)))
                 print(f"  {cls:<16}{len(members):>6}{len(ov):>12}"
                       f"{len(members) - len(ov):>11}")
@@ -306,9 +329,9 @@ def main():
             "n_clinvar": n_clinvar, "n_also_constrained": n_both,
             "pct": round(pct, 1),
             "note": "this overlap is why the two schemes diverge"},
-        "preprint_reconciliation": {
-            "claim": "preprint reports disease enrichment OR 3.7 for shared "
-                     "Geneformer-scGPT outliers",
+        "shared_set_context": {
+            "claim": "The 72-gene Geneformer-scGPT intersection has a strong "
+                     "unadjusted direct-membership association with ClinVar.",
             "shared_set_disease_OR": (None if shared_dis is None
                                       else float(shared_dis["OR"])),
             "shared_set_disease_p": (None if shared_dis is None
@@ -318,15 +341,12 @@ def main():
             "all_GF_disease_OR": float(dis_over["OR"]),
             "all_GF_disease_p": float(dis_over["p"]),
             "interpretation": (
-                "The preprint figure reproduces, but it is confined to the "
-                "small cross-model intersection, and that intersection is "
-                "itself strongly constraint-enriched (constrained OR is far "
-                "higher in the same set). The association attenuates under "
-                "simultaneous covariate adjustment in E8; no nested models "
-                "were fitted, so the attenuation is NOT attributed to "
-                "constraint specifically. Across ALL Geneformer outliers "
-                "there is no disease association. Report the contrast, not "
-                "the intersection alone."),
+                "The association is confined to a small, post-hoc cross-model "
+                "intersection that is itself strongly constraint-enriched. It "
+                "attenuates under simultaneous covariate adjustment in E8; no "
+                "nested models were fitted, so the attenuation is not assigned "
+                "to constraint specifically. Across all Geneformer outliers "
+                "there is no direct-membership disease association."),
         },
         "scheme_flip_demonstration": {
             "gene_set": "shared_GF_scGPT",
@@ -371,11 +391,11 @@ def main():
         json.dump(clean(summary), f, indent=2)
 
     print("\n" + "=" * 74)
-    print("  PREPRINT RECONCILIATION")
+    print("  SHARED-SET CONTEXT")
     print("=" * 74)
     if shared_dis is not None:
         print(f"  shared GF n scGPT, disease     OR {shared_dis['OR']:.3f}  "
-              f"p {shared_dis['p']:.2e}  (preprint says 3.7)")
+              f"p {shared_dis['p']:.2e}")
         print(f"  shared GF n scGPT, constrained OR {shared_con['OR']:.3f}")
     print(f"  ALL GF outliers,   disease     OR {dis_over['OR']:.3f}  "
           f"p {dis_over['p']:.2e}  <- nothing here")

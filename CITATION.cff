@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software or its results, please cite the preprint below."
-title: "A matched-null framework for auditing gene-embedding outliers in single-cell foundation models"
+title: "Comparative geometry of gene embeddings in single-cell foundation models: model-specific outliers and limited predictive value in Geneformer"
 authors:
   - family-names: Whalley
     given-names: Justin P.
@@ -11,7 +11,7 @@ license: MIT
 type: software
 preferred-citation:
   type: article
-  title: "A matched-null framework for auditing gene-embedding outliers in single-cell foundation models"
+  title: "Comparative geometry of gene embeddings in single-cell foundation models: model-specific outliers and limited predictive value in Geneformer"
   authors:
     - family-names: Whalley
       given-names: Justin P.

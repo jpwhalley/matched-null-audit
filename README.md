@@ -1,14 +1,12 @@
-# Matched-null auditing of gene-embedding outliers in single-cell foundation models
+# Comparative geometry of gene embeddings in single-cell foundation models
 
 Code and reproducibility materials for:
 
-> **A matched-null framework for auditing gene-embedding outliers in single-cell
-> foundation models**
+> **Comparative geometry of gene embeddings in single-cell foundation models:
+> model-specific outliers and limited predictive value in Geneformer**
 > Whalley, J.P. (2026). Submitted to *Pacific Symposium on Biocomputing 2027*.
 
 Preprint: [doi:10.64898/2026.06.22.733850](https://doi.org/10.64898/2026.06.22.733850)
-(v1 reported a different conclusion; see *Relationship to the earlier version*
-below.)
 
 ---
 
@@ -41,18 +39,19 @@ figures/            manuscript figures as PDF
 outputs/            saved result files (CSV/JSON) consumed by the notebooks
 ```
 
-The pipeline runs left to right:
+The current release pipeline runs left to right:
 
 ```
-D-series  ->  analysis/E*.py  ->  outputs/*.{csv,json}  ->  notebooks/0*  ->  figures/
-(acquire)     (compute)            (results)                (display)
+D-series / P01  ->  analysis/E*.py  ->  outputs/*.{csv,json}  ->  analysis/make_psb_figures.py  ->  figures/
+(acquire/screen)    (compute)            (results)                  (display)
 ```
 
 ---
 
 ## The five audit stages
 
-The paper's contribution is the workflow, not the gene list. Each stage can
+The same screen is applied to Geneformer, scGPT and scFoundation, and the
+resulting outlier sets are then tested for what they support. Each stage can
 falsify a claim independently.
 
 | Stage | Question | Implementation |
@@ -61,27 +60,35 @@ falsify a claim independently.
 | 2. Caller robustness | Is the outlier set an artefact of thresholding? | `analysis/E3_outlier_robustness.py` |
 | 3. Non-transcriptomic control | Are the same genes outliers in protein-sequence space? | `analysis/E1_stage1_mapping.py`, `analysis/E1_stage2_esm2.py` |
 | 4. Matched deletion test | Does removing them affect a downstream task more than matched controls? | `analysis/E2_downstream_ablation.py` |
-| 5. Covariate-aware annotation | Does outlier status carry independent disease signal? | `analysis/E8_clinvar_adjusted.py`, `analysis/E6_class_association.py` |
+| 5. Covariate-aware annotation | Does outlier status carry independent disease signal? Run for all three models under one specification. | `analysis/E8_clinvar_adjusted.py`, `analysis/E6_class_association.py` |
 
 Supporting diagnostics:
 
 | Script | Purpose |
 |---|---|
-| `E7_cluster_metric_diagnostic.py` | Tests whether clustering metrics are usable as outcome measures. They are not; the paper reports macro-F1 alone. |
-| `E9_token_occurrence_audit.py` | Measures actual token-level exposure of treatment vs control gene sets, to rule out an exposure-driven null. |
+| `E7_cluster_metric_diagnostic.py` | Quantifies outcome precision and documents why macro-F1, rather than clustering metrics, was retained as the headline measure. |
+| `E9_token_occurrence_audit.py` | Measures token-level exposure of treatment vs control gene sets. The treatment genes are not under-represented, which rules out one route to the null but not others. |
 
 ---
 
 ## Pre-specification
 
-`prespecification/analysis_plan_2026-07-07.md` fixes the gate metric,
-treatment-set size, number of matched-control draws, and the stop-on-null
-decision rule for the deletion test (§2 line 33, §3 line 87). It predates all
-deletion compute. It was **not** lodged with an external registry, so the paper
-describes the design as *pre-specified* rather than pre-registered.
+`prespecification/analysis_plan_2026-07-07.md` predates all deletion compute. It
+fixes class-stratified matching on expression, breadth and length; a minimum of
+100 matched-control draws; the matched-control band as the gate criterion; and
+the stop-on-null rule that a result inside the band would not be expanded in
+search of significance.
 
-The file is preserved unmodified. Note that a Git commit created now cannot
-independently establish its 2026-07-07 date; the claim rests on the document
+It does **not** designate macro-F1 as the gate metric, fix the treatment-set size
+*k*, or set the final draw counts of 200 and 100. Those were decided after the
+plan was written. `prespecification/results_addendum_2026-07-29.md` records every
+such departure next to what was executed, and is the file to read second. The
+plan itself is preserved unmodified, because a plan edited after seeing results
+is not a plan.
+
+The design was **not** lodged with an external registry, so the paper describes
+it as *pre-specified* rather than pre-registered. A Git commit created now cannot
+independently establish the 2026-07-07 date; the claim rests on the document
 itself and on its use in the analysis scripts, not on repository history.
 
 Note the contrast with the disease analysis: the specification hierarchy in
@@ -132,30 +139,11 @@ Two things bite in practice, and both are guarded in code:
 
 ---
 
-## Relationship to the earlier version
+## Archived analyses
 
-The bioRxiv v1 preprint reported that embedding geometry predicts functional
-fragility. That claim was tested here against expression-, breadth-, length- and
-class-matched control gene sets and was not supported; it is retired. The
-present work adds the non-transcriptomic control, the caller-robustness
-analysis, the matched deletion test and the covariate-adjusted disease analysis.
-
-Scripts and notebooks superseded by that revision are retained under
-`notebooks/superseded/` with a note explaining what replaced them, rather than
-deleted.
-
-### On the earlier terminology
-
-The v1 preprint framed these genes as "glitch genes", by analogy with glitch
-tokens in language models. Reviewers objected that the analogy imports an
-inverted mechanism --- NLP glitch tokens are *under*-trained, whereas these are
-high-exposure genes --- and the term was retired on 2026-07-07, before any of
-the deletion compute. See §2 and §6 of the dated plan.
-
-The word therefore survives only in documents that are deliberately preserved
-unmodified: the dated analysis plan, which records the decision to drop it, and
-the superseded notebooks. It appears nowhere in the current analysis code, the
-manuscript, or this repository's documentation.
+Superseded scripts and notebooks are retained under `notebooks/superseded/`
+with a note explaining what replaced them. They are historical records, not
+parts of the current analysis pipeline; `run_all.sh` does not execute them.
 
 ---
 
@@ -164,8 +152,9 @@ manuscript, or this repository's documentation.
 ```bibtex
 @misc{whalley2026matchednull,
   author       = {Whalley, Justin P.},
-  title        = {A matched-null framework for auditing gene-embedding outliers
-                  in single-cell foundation models},
+  title        = {Comparative geometry of gene embeddings in single-cell
+                  foundation models: model-specific outliers and limited
+                  predictive value in Geneformer},
   year         = {2026},
   howpublished = {bioRxiv},
   doi          = {10.64898/2026.06.22.733850},

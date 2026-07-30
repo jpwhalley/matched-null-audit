@@ -1,18 +1,18 @@
 {
   "headline": "Geneformer geometric outliers are enriched for LoF-constrained genes but show NO significant association with ClinVar disease status when membership is tested directly.",
   "clinvar_overlapping": {
-    "OR": 1.16037961907,
-    "p": 0.148150477755,
+    "OR": 1.160379619,
+    "p": 0.1481504778,
     "reading": "no significant association"
   },
   "clinvar_mutually_exclusive": {
-    "OR": 0.519309462586,
-    "p": 3.81645706172e-08,
+    "OR": 0.5193094626,
+    "p": 3.816457062e-08,
     "reading": "DIFFERENT ESTIMAND under class precedence - do not report as disease-gene depletion"
   },
   "constrained_mutually_exclusive": {
-    "OR": 1.5757459007,
-    "p": 0.000416382755746,
+    "OR": 1.575745901,
+    "p": 0.0004163827557,
     "reading": "genuine enrichment"
   },
   "clinvar_constrained_overlap": {
@@ -21,18 +21,18 @@
     "pct": 21.5,
     "note": "this overlap is why the two schemes diverge"
   },
-  "preprint_reconciliation": {
-    "claim": "preprint reports disease enrichment OR 3.7 for shared Geneformer-scGPT outliers",
-    "shared_set_disease_OR": 3.5942598844,
-    "shared_set_disease_p": 4.97144852089e-07,
-    "shared_set_constrained_OR": 7.3623255814,
-    "all_GF_disease_OR": 1.16037961907,
-    "all_GF_disease_p": 0.148150477755,
-    "interpretation": "The preprint figure reproduces, but it is confined to the small cross-model intersection, and that intersection is itself strongly constraint-enriched (constrained OR is far higher in the same set). The association attenuates under simultaneous covariate adjustment in E8; no nested models were fitted, so the attenuation is NOT attributed to constraint specifically. Across ALL Geneformer outliers there is no disease association. Report the contrast, not the intersection alone."
+  "shared_set_context": {
+    "claim": "The 72-gene Geneformer-scGPT intersection has a strong unadjusted direct-membership association with ClinVar.",
+    "shared_set_disease_OR": 3.594259884,
+    "shared_set_disease_p": 4.971448521e-07,
+    "shared_set_constrained_OR": 7.362325581,
+    "all_GF_disease_OR": 1.160379619,
+    "all_GF_disease_p": 0.1481504778,
+    "interpretation": "The association is confined to a small, post-hoc cross-model intersection that is itself strongly constraint-enriched. It attenuates under simultaneous covariate adjustment in E8; no nested models were fitted, so the attenuation is not assigned to constraint specifically. Across all Geneformer outliers there is no direct-membership disease association."
   },
   "scheme_flip_demonstration": {
     "gene_set": "shared_GF_scGPT",
-    "disease_overlapping_OR": 3.5942598844,
+    "disease_overlapping_OR": 3.594259884,
     "disease_mutually_exclusive_OR": 0.385,
     "note": "THE SAME GENE SET yields disease OR 3.60 (significant enrichment) under overlapping membership and OR 0.385 (significant depletion) under mutually-exclusive precedence. These are DIFFERENT ESTIMANDS, not opposite answers to one question: the mutually-exclusive figure is the association among ClinVar genes that are not also constrained, ribosomal or mitochondrial. Both are correctly computed. The failure mode is reporting either one without naming the scheme, because a reader will take it for the other."
   },
@@ -40,15 +40,15 @@
     "geometry_csv": {
       "n_genes": 20271,
       "n_outliers": 410,
-      "disease_overlapping_OR": 1.18140009327,
-      "p": 0.104306255737,
+      "disease_overlapping_OR": 1.181400093,
+      "p": 0.1043062557,
       "note": "full model vocabulary"
     },
     "table_s1": {
       "n_genes": 18911,
       "n_outliers": 388,
-      "disease_overlapping_OR": 1.16037961907,
-      "p": 0.148150477755,
+      "disease_overlapping_OR": 1.160379619,
+      "p": 0.1481504778,
       "note": "annotated complete cases; this is what the manuscript reports"
     },
     "note": "Different universes; same qualitative answer (ns)."
