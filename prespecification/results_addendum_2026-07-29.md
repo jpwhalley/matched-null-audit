@@ -50,7 +50,7 @@ exceptional after standardisation. Executed on separate hardware under Python
 ## Fixed in advance
 
 - class-stratified matching on expression, breadth and length
-- ≥100 matched draws (200 were run)
+- ≥100 matched draws (PBMC3k: 200; Tabula Sapiens: 100)
 - gate criterion: treatment Δ outside the matched-control band
 - the two-limbed stop-on-null rule above
 

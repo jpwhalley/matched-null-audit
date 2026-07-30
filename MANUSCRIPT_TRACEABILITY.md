@@ -178,11 +178,21 @@ Non-mitochondrial sensitivity: 18,898 (378, 64).
 
 | Tier | Gene set | Unadjusted OR | Adjusted OR | 95% CI | p |
 |---|---|---|---|---|---|
-| **PRIMARY** Firth, all genes | all Geneformer | 1.16 | **1.05** | 0.82–1.35 | 0.680 |
-| **PRIMARY** Firth, all genes | shared (exploratory) | 3.59 | 1.45 | 0.80–2.71 | 0.222 |
-| SENSITIVITY logistic, non-mito | all Geneformer | 1.10 | 1.05 | 0.82–1.35 | 0.682 |
-| SENSITIVITY logistic, non-mito | shared (exploratory) | 3.05 | 1.47 | 0.80–2.71 | 0.215 |
+| **PRIMARY** Firth, all genes | Geneformer ($n$=388) | 1.16 | **1.05** | 0.82–1.35 | 0.680 |
+| **PRIMARY** Firth, all genes | scGPT ($n$=102) | 2.95 | **1.22** | 0.76–1.99 | 0.411 |
+| **PRIMARY** Firth, all genes | scFoundation ($n$=161) | 0.80 | **0.98** | 0.69–1.38 | 0.905 |
+| **PRIMARY** Firth, all genes | shared (exploratory, $n$=72) | 3.59 | 1.45 | 0.80–2.71 | 0.222 |
+| SENSITIVITY logistic, non-mito | Geneformer | 1.10 | 1.05 | 0.82–1.35 | 0.682 |
+| SENSITIVITY logistic, non-mito | scGPT | 2.58 | 1.23 | 0.76–1.99 | 0.399 |
+| SENSITIVITY logistic, non-mito | scFoundation | 0.80 | 0.98 | 0.69–1.38 | 0.896 |
 | DIAGNOSTIC mito covariate omitted | shared | 3.59 | 2.28 | 1.26–4.13 | 0.007 |
+
+The three model-specific tests use an identical specification: same universe,
+same covariates, same Firth primary, only the exposure flag differs. Their
+p-values are uncorrected; all exceed 0.4. scGPT's unadjusted p is
+1.847×10⁻⁷, so the adjustment is what removes the association rather than a
+weak signal being absent throughout. Source: `outputs/E8_clinvar_adjusted.json`
+keys `primary_by_model` and `sensitivity_by_model`.
 
 The DIAGNOSTIC row is **mis-specified** and reported only to document what
 happens when a perfectly separated class (all 13 MT- genes are ClinVar-positive)

@@ -21,3 +21,10 @@ models/
 # OS / editor
 .DS_Store
 .ipynb_checkpoints/
+
+# Google Drive sync-conflict duplicates. These are superseded copies with a
+# numeric suffix; they must never be committed, and `git add -A` would sweep
+# them in silently.
+*([0-9]).*
+* [0-9].*
+*conflicted copy*

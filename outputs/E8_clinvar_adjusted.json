@@ -1,7 +1,85 @@
 {
+  "headline": "Under an identical covariate adjustment, no model's outlier set shows a detectable ClinVar association. scGPT is the informative case: a strong unadjusted association does not survive the same adjustment applied to the other two.",
+  "primary_by_model": {
+    "Geneformer": {
+      "n_outliers": 388,
+      "n_universe": 18911,
+      "unadjusted_OR": 1.16037961907,
+      "unadjusted_p": 0.148150477755,
+      "adjusted_OR": 1.05330262443,
+      "adjusted_CI": [
+        0.822569667564,
+        1.34743595494
+      ],
+      "adjusted_p": 0.679506771681
+    },
+    "scGPT": {
+      "n_outliers": 102,
+      "n_universe": 18911,
+      "unadjusted_OR": 2.95422056756,
+      "unadjusted_p": 1.84655285331e-07,
+      "adjusted_OR": 1.22030426617,
+      "adjusted_CI": [
+        0.761965376951,
+        1.9891152302
+      ],
+      "adjusted_p": 0.411226413237
+    },
+    "scFoundation": {
+      "n_outliers": 161,
+      "n_universe": 18911,
+      "unadjusted_OR": 0.801734971016,
+      "unadjusted_p": 0.176225082763,
+      "adjusted_OR": 0.979821986241,
+      "adjusted_CI": [
+        0.693129720407,
+        1.37606769693
+      ],
+      "adjusted_p": 0.904784343068
+    }
+  },
+  "sensitivity_by_model": {
+    "Geneformer": {
+      "n_outliers": 378,
+      "n_universe": 18898,
+      "unadjusted_OR": 1.09772202287,
+      "unadjusted_p": 0.373821956044,
+      "adjusted_OR": 1.05303896525,
+      "adjusted_CI": [
+        0.822593306923,
+        1.34804289434
+      ],
+      "adjusted_p": 0.68170469865
+    },
+    "scGPT": {
+      "n_outliers": 93,
+      "n_universe": 18898,
+      "unadjusted_OR": 2.58099878197,
+      "unadjusted_p": 1.25236292639e-05,
+      "adjusted_OR": 1.2300123871,
+      "adjusted_CI": [
+        0.760140911387,
+        1.99032896368
+      ],
+      "adjusted_p": 0.399167901518
+    },
+    "scFoundation": {
+      "n_outliers": 161,
+      "n_universe": 18898,
+      "unadjusted_OR": 0.803004466098,
+      "unadjusted_p": 0.201697634325,
+      "adjusted_OR": 0.977323270768,
+      "adjusted_CI": [
+        0.693325775229,
+        1.37765075194
+      ],
+      "adjusted_p": 0.895813332739
+    }
+  },
+  "multiplicity": "The three model-specific p-values are uncorrected. All exceed 0.4, so no correction would change any conclusion.",
   "primary": {
     "specification": "Firth penalised logistic, full-coverage table, all genes, profile-likelihood CI",
-    "gene_set": "all Geneformer geometric outliers",
+    "gene_set": "all Geneformer geometric outliers (see primary_by_model for all three)",
     "n_outliers": 388,
     "n_universe": 18911,
     "unadjusted_OR": 1.16037961907,

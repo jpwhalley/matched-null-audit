@@ -116,6 +116,17 @@ def load():
     d["gf"] = d.outlier_class.isin(
         ["GF-only", "GF∩scGPT", "GF∩SF", "All three"]).astype(int)
     d["shared"] = d.outlier_class.isin(["GF∩scGPT", "All three"]).astype(int)
+    # Post hoc comparative extension (2026-07-30). The same specification is
+    # applied to the scGPT and scFoundation outlier sets so the disease analysis
+    # covers all three models rather than one. Nothing about the specification
+    # changes: same universe, same covariates, same Firth primary. Only the
+    # exposure flag differs. Model encoding is irrelevant here because the
+    # regression uses the derived outlier flag and gene-level annotations, not
+    # model inference.
+    d["scgpt"] = d.outlier_class.isin(
+        ["scGPT-only", "GF∩scGPT", "All three"]).astype(int)
+    d["scfound"] = d.outlier_class.isin(
+        ["SF-only", "GF∩SF", "All three"]).astype(int)
     d = d.dropna(subset=["log_expr", "breadth", "log_len"])
     return d, cov
 
@@ -191,14 +202,17 @@ def main():
     print(f"  Table: {TABLE_S1.name}  sha256[:16]={file_hash(TABLE_S1)}")
     print(f"  Gene-length coverage: {cov:.4f}")
     print(f"  Universe: {len(d)} complete cases "
-          f"({int(d.gf.sum())} Geneformer, {int(d.shared.sum())} shared)")
+          f"({int(d.gf.sum())} Geneformer, {int(d.scgpt.sum())} scGPT, "
+          f"{int(d.scfound.sum())} scFoundation, {int(d.shared.sum())} shared)")
     print(f"  Non-mito: {len(d_nm)} "
           f"({int(d_nm.gf.sum())} Geneformer, {int(d_nm.shared.sum())} shared)")
     print()
 
     for tier, desc, dat, covs, fn in specs:
         print(f"  [{tier}] {desc}")
-        for flag, setname in [("gf", "all Geneformer outliers"),
+        for flag, setname in [("gf", "Geneformer outliers"),
+                              ("scgpt", "scGPT outliers"),
+                              ("scfound", "scFoundation outliers"),
                               ("shared", "shared GF n scGPT (exploratory)")]:
             uOR, up = unadjusted(dat, flag)
             try:
@@ -227,11 +241,47 @@ def main():
     sens = df[(df.tier == "SENSITIVITY") & (df.gene_set == "gf")].iloc[0]
     prim_sh = df[(df.tier == "PRIMARY") & (df.gene_set == "shared")].iloc[0]
 
+    MODEL_SETS = [("gf", "Geneformer"), ("scgpt", "scGPT"),
+                  ("scfound", "scFoundation")]
+
+    def _row(tier, flag):
+        m = df[(df.tier == tier) & (df.gene_set == flag)]
+        return None if m.empty else m.iloc[0]
+
+    def _block(tier):
+        out = {}
+        for flag, label in MODEL_SETS:
+            r = _row(tier, flag)
+            if r is None:
+                continue
+            out[label] = {
+                "n_outliers": int(r.n_set), "n_universe": int(r.n_total),
+                "unadjusted_OR": float(r.unadj_OR),
+                "unadjusted_p": float(r.unadj_p),
+                "adjusted_OR": float(r.adj_OR),
+                "adjusted_CI": [float(r.ci_lo), float(r.ci_hi)],
+                "adjusted_p": float(r.adj_p),
+            }
+        return out
+
     summary = {
+        "headline": (
+            "Under an identical covariate adjustment, no model's outlier set "
+            "shows a detectable ClinVar association. scGPT is the informative "
+            "case: a strong unadjusted association does not survive the same "
+            "adjustment applied to the other two."),
+        "primary_by_model": _block("PRIMARY"),
+        "sensitivity_by_model": _block("SENSITIVITY"),
+        "multiplicity": (
+            "The three model-specific p-values are uncorrected. All exceed "
+            "0.4, so no correction would change any conclusion."),
+        # Geneformer-only keys below are retained for backward compatibility
+        # with anything that read this file before the three-model extension.
         "primary": {
             "specification": "Firth penalised logistic, full-coverage table, "
                              "all genes, profile-likelihood CI",
-            "gene_set": "all Geneformer geometric outliers",
+            "gene_set": "all Geneformer geometric outliers "
+                        "(see primary_by_model for all three)",
             "n_outliers": int(prim.n_set), "n_universe": int(prim.n_total),
             "unadjusted_OR": prim.unadj_OR, "unadjusted_p": prim.unadj_p,
             "adjusted_OR": prim.adj_OR,
@@ -264,7 +314,7 @@ def main():
             "The manuscript must not describe it as pre-specified; the "
             "defence is completeness of reporting, not blindness of choice."),
         "provenance": {
-            "table": str(TABLE_S1.relative_to(REPO)),
+            "table": str(TABLE_S1.relative_to(BASE)),
             "sha256_16": file_hash(TABLE_S1),
             "gene_length_coverage": round(float(cov), 4),
         },
@@ -273,7 +323,17 @@ def main():
         json.dump(clean(summary), f, indent=2)
 
     print("=" * 78)
-    print("  PRIMARY RESULT")
+    print("  PRIMARY RESULT, all three models (Firth, all genes)")
+    for flag, label in MODEL_SETS:
+        r = _row("PRIMARY", flag)
+        if r is None:
+            continue
+        print(f"    {label:<13} n={int(r.n_set):>4}  unadj OR {r.unadj_OR:5.2f}"
+              f"   adj OR {r.adj_OR:5.2f} [{r.ci_lo:.2f}, {r.ci_hi:.2f}]"
+              f"  p = {r.adj_p:.3f}")
+    print("    p-values uncorrected; all exceed 0.4.")
+    print()
+    print("  GENEFORMER DETAIL")
     print("=" * 78)
     print(f"  All Geneformer outliers, Firth, all genes:")
     print(f"    adjusted OR {prim.adj_OR:.2f} "
