@@ -1,70 +1,38 @@
 {
-  "dataset": "pbmc3k",
+  "dataset": "tabula_sapiens",
   "gate": "NULL",
-  "note": "The treatment did not show excess disruption relative to its matched-control null in this dataset. This does not alter the pre-specified pivot to characterisation.",
+  "note": "The treatment did not show excess disruption relative to its matched-control null in this dataset. This does not alter the pre-specified pivot to characterisation. Only the primary arm was run: the ribosomal/mitochondrial sensitivity arm was not replicated for this dataset.",
   "baseline": {
-    "pinned_retrained_f1": 0.9242778046911788,
-    "pinned_source": "E2_baseline_pbmc3k.json",
+    "pinned_retrained_f1": 0.6347886452386879,
+    "pinned_source": "E2_baseline_tabula_sapiens.json",
     "pinned_has_environment": true,
-    "ablation_run_retrained_f1": 0.9242120074677699,
-    "agrees": false,
+    "ablation_run_retrained_f1": 0.6347886452386879,
+    "agrees": true,
     "note": "Descriptive deltas and null-band coordinates are computed against the pinned baseline. gate_z, the tail count and empirical p compare treatment and control F1 directly and do not depend on it."
   },
   "full": {
-    "n_controls": 200,
-    "treatment_retrained_f1": 0.9211265503607908,
-    "control_mean_retrained_f1": 0.924072632944667,
-    "treatment_minus_control_mean_f1": -0.002946082583876186,
-    "treatment_delta_f1": -0.003151254330387987,
-    "control_mean_delta_f1": -0.00020517174651192793,
-    "control_sd_delta_f1": 0.0018862078822360748,
-    "null_band_2_5": -0.00418645060251114,
-    "null_band_97_5": 0.0028742640945445047,
+    "n_controls": 100,
+    "treatment_retrained_f1": 0.6272860521301082,
+    "control_mean_retrained_f1": 0.6351800183680075,
+    "treatment_minus_control_mean_f1": -0.007893966237899286,
+    "treatment_delta_f1": -0.007502593108579703,
+    "control_mean_delta_f1": 0.0003913731293195288,
+    "control_sd_delta_f1": 0.006284323740781814,
+    "null_band_2_5": -0.010635427990666768,
+    "null_band_97_5": 0.011555702986181481,
     "inside_band": true,
-    "gate_z": -1.5619076834646899,
+    "gate_z": -1.2561361514003129,
     "n_controls_at_least_as_damaging": 11,
-    "empirical_p_raw": 0.055,
-    "empirical_p_addone": 0.05970149253731343
+    "empirical_p_raw": 0.11,
+    "empirical_p_addone": 0.1188118811881188
   },
-  "sensitivity": {
-    "n_controls": 200,
-    "treatment_retrained_f1": 0.9230040997949172,
-    "control_mean_retrained_f1": 0.9224605157986455,
-    "treatment_minus_control_mean_f1": 0.0005435839962716349,
-    "treatment_delta_f1": -0.0012737048962616626,
-    "control_mean_delta_f1": -0.0018172888925332426,
-    "control_sd_delta_f1": 0.0015616451495855269,
-    "null_band_2_5": -0.004159442061716159,
-    "null_band_97_5": 0.0011757503354962323,
-    "inside_band": true,
-    "gate_z": 0.3480841959621278,
-    "n_controls_at_least_as_damaging": 132,
-    "empirical_p_raw": 0.66,
-    "empirical_p_addone": 0.6616915422885572
-  },
-  "treatment_fixed_f1": 0.9570385898396546,
-  "treatment_cluster_ari": 0.5016316639805505,
-  "baseline_cluster_ari": 0.5339805433588092,
-  "k_sensitivity": {
-    "25": {
-      "retrained_f1": 0.9230331967331729,
-      "probe_ari": 0.8662302427368558,
-      "cluster_ari": 0.5448983891772566,
-      "cluster_nmi": 0.7085476748269486,
-      "fixed_f1": 0.9767170676376857,
-      "fixed_probe_ari": 0.9480541703032773
-    },
-    "100": {
-      "retrained_f1": 0.920177010928775,
-      "probe_ari": 0.8634971353749239,
-      "cluster_ari": 0.5051223614213628,
-      "cluster_nmi": 0.6858772103947383,
-      "fixed_f1": 0.9142784696822333,
-      "fixed_probe_ari": 0.727490806273823
-    }
-  },
+  "sensitivity": null,
+  "treatment_fixed_f1": 0.8816602807093915,
+  "treatment_cluster_ari": 0.351640140225106,
+  "baseline_cluster_ari": 0.34573863805905825,
+  "k_sensitivity": {},
   "environment_ablation_run": {
-    "python": "3.11.15",
+    "python": "3.11.14",
     "platform": "macOS-26.5.2-arm64-arm-64bit",
     "machine": "arm64",
     "threads_pinned": "1",
@@ -107,7 +75,7 @@
     "device": "mps"
   },
   "environment_pinned_baseline": {
-    "python": "3.11.15",
+    "python": "3.11.14",
     "platform": "macOS-26.5.2-arm64-arm-64bit",
     "machine": "arm64",
     "threads_pinned": "1",
@@ -155,5 +123,5 @@
     "n_genes": 18915,
     "gene_length_coverage": 0.9998
   },
-  "n_bootstrap": 200
+  "n_bootstrap": 100
 }

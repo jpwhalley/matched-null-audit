@@ -1,0 +1,58 @@
+{
+  "dataset": "tabula_sapiens",
+  "n_cells": 3919,
+  "n_types": 22,
+  "baseline_retrained_f1": 0.6347886452386879,
+  "baseline_probe_ari": 0.7576832418744975,
+  "baseline_cluster_ari": 0.34573863805905825,
+  "baseline_cluster_nmi": 0.5879212095116733,
+  "environment": {
+    "python": "3.11.14",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "threads_pinned": "1",
+    "thread_env": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1"
+    },
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "sklearn": "1.8.0",
+    "torch": "2.10.0",
+    "torch_num_threads": 1,
+    "threadpools": [
+      {
+        "user_api": "blas",
+        "internal_api": "openblas",
+        "prefix": "libopenblas",
+        "version": "0.3.23.dev",
+        "num_threads": "1"
+      },
+      {
+        "user_api": "openmp",
+        "internal_api": "openmp",
+        "prefix": "libomp",
+        "version": "None",
+        "num_threads": "1"
+      },
+      {
+        "user_api": "openmp",
+        "internal_api": "openmp",
+        "prefix": "libomp",
+        "version": "None",
+        "num_threads": "1"
+      }
+    ],
+    "device": "mps"
+  },
+  "table_s1": {
+    "path": "notebooks/data/Table_S1.csv",
+    "sha256_16": "57443b7225229e0b",
+    "n_genes": 18915,
+    "gene_length_coverage": 0.9998
+  }
+}

@@ -28,6 +28,23 @@ Both limbs were met and the pre-specified pivot was executed.
 Verdict: **NULL**. The treatment did not exceed the matched-control null on
 either arm.
 
+### Replication (Tabula Sapiens Immune, primary arm only)
+
+| | full (50 genes) |
+|---|---:|
+| baseline macro-F1 | 0.6348 |
+| treatment − control mean | **−0.007894** |
+| control SD | 0.006284 |
+| gate statistic z | **−1.2561** |
+| controls at least as damaging | **11/100** |
+| one-sided empirical p (add-one) | **0.1188** |
+| inside 95% band | yes |
+
+Concordant gate decision on a lower-baseline task. The raw contrast is larger
+than PBMC3k's, inside a null that is intrinsically more variable, so it is less
+exceptional after standardisation. Executed on separate hardware under Python
+3.11.14. The sensitivity arm was not replicated.
+
 ---
 
 ## Fixed in advance
@@ -45,8 +62,8 @@ Recorded here rather than presented as pre-specified.
 |---|---|---|
 | Outcome metric | "Tasks (≥2): (a) annotation accuracy; (b) clustering stability (ARI/NMI)" — no gate designated | retrained macro-F1 designated as the gate |
 | Treatment size *k* | "top-k", k free | k = 50, with k = 25 and 100 as a descriptive sweep |
-| Draw count | ≥100 | 200 |
-| External dataset | "PBMC3k **plus one external labelled set**" | PBMC3k only; the Tabula Sapiens attempt is described in the manuscript's limitations |
+| Draw count | ≥100 | PBMC3k 200; Tabula Sapiens 100 |
+| External dataset | "PBMC3k **plus one external labelled set**" | Met in part: PBMC3k plus a Tabula Sapiens Immune subset (22 of 43 types, 3,919 cells), primary arm only |
 | MANE release | v1.4 (Appendix A.1) | v1.3 |
 
 Clustering was a **pre-specified outcome** that is excluded from the headline
@@ -54,6 +71,13 @@ figure. The exclusion rests on precision — the ARI null band spans ~42% of its
 baseline against ~0.8% for macro-F1 — and is reported rather than applied
 silently. An earlier justification, that random matched deletion reliably
 *improves* ARI, did not survive the corrected controls and is not relied on.
+
+On Tabula Sapiens, cluster NMI *does* meet the precision criterion (band 3.9% of
+baseline) where it failed on PBMC3k (10.6%), but shows no treatment effect
+against its controls (z = −0.06). It remains secondary because macro-F1 was
+fixed as the gate before Tabula Sapiens was analysed. Reported rather than acted
+on: changing the outcome metric after seeing a second dataset is the move this
+addendum exists to make visible.
 
 ---
 

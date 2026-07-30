@@ -138,6 +138,26 @@ Usability rests on the band-width column alone. The improve-fraction is
 descriptive: it shifts by more than ten points on a baseline change of ~5e-4, so
 it is not a stable property of the metric and is not used as a gate.
 
+### Tabula Sapiens replication (primary arm only)
+
+**Data:** `outputs/E2_verdict_tabula_sapiens.json` ← `outputs/E2_ablation_tabula_sapiens.json`
+
+| Claim | Value | Source |
+|---|---|---|
+| Baseline macro-F1 (pinned) | 0.6347886452386879 | `outputs/E2_baseline_tabula_sapiens.json` |
+| Treatment − control mean | **−0.007894** | `full.treatment_minus_control_mean_f1` |
+| Gate statistic z | **−1.2561** | `full.gate_z` |
+| Controls at least as damaging | **11/100** | `full.n_controls_at_least_as_damaging` |
+| Empirical p (add-one) | **0.1188** | `full.empirical_p_addone` |
+| Control SD | 0.006284 | `full.control_sd_delta_f1` |
+| Cells, cell types | 3,919 / 22 | `baseline.n_cells`, `n_types` |
+| Balance: expr / breadth / length | 0.283 / 0.020 / 0.112 | `E2_matched_controls_tabula_sapiens_balance.csv` |
+| Token exposure | 21.75 vs 21.43, z +1.29 | `outputs/E9_token_occurrence_TS.json` |
+
+Primary arm only; the sensitivity arm was not replicated. Executed on separate
+Apple-silicon hardware under Python 3.11.14. `figures/F4_nullband_tabula_sapiens.pdf`
+is generated for traceability and is not referenced by the manuscript.
+
 Token-level exposure — `analysis/E9_token_occurrence_audit.py`:
 
 | Arm | Treatment | Controls | z |

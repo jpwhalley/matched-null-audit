@@ -13,7 +13,10 @@
       "pbmc3k/full/cluster_nmi": 0.45,
       "pbmc3k/no_ribo_mito/retrained_f1": 0.115,
       "pbmc3k/no_ribo_mito/cluster_ari": 0.425,
-      "pbmc3k/no_ribo_mito/cluster_nmi": 0.435
+      "pbmc3k/no_ribo_mito/cluster_nmi": 0.435,
+      "tabula_sapiens/full/retrained_f1": 0.57,
+      "tabula_sapiens/full/cluster_ari": 0.61,
+      "tabula_sapiens/full/cluster_nmi": 0.42
     },
     "rationale": "A test whose 95% null band spans a large fraction of its baseline value is too imprecise to resolve a plausible ablation effect. That is the sole usability criterion.",
     "rejected_criterion": "control range as a multiple of the treatment effect - tautological for a null result, since a treatment inside the band implies the band exceeds the effect."

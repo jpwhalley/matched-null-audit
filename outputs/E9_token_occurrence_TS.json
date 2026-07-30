@@ -1,0 +1,26 @@
+{
+  "dataset": "tabula_sapiens",
+  "arms": {
+    "full": {
+      "n_treatment_genes": 50,
+      "n_controls": 100,
+      "treatment_tokens_per_cell": 21.751722378157694,
+      "control_tokens_per_cell_mean": 21.431056391936718,
+      "control_tokens_per_cell_sd": 0.2488206734977146,
+      "z": 1.2887433415934473,
+      "frac_controls_ge_treatment": 0.08,
+      "interpretation": "treatment not less token-exposed than controls -> lower token exposure does not explain the null"
+    },
+    "no_ribo_mito": {
+      "n_treatment_genes": 36,
+      "n_controls": 100,
+      "treatment_tokens_per_cell": 10.031895891809135,
+      "control_tokens_per_cell_mean": 9.632878285276856,
+      "control_tokens_per_cell_sd": 0.20503012860615402,
+      "z": 1.9461413268620593,
+      "frac_controls_ge_treatment": 0.02,
+      "interpretation": "treatment not less token-exposed than controls -> lower token exposure does not explain the null"
+    }
+  },
+  "note": "Exposure is measured on the tokenised cells actually analysed, not on global expression statistics. This is the quantity that determines how often a deletion alters the analysed input."
+}
