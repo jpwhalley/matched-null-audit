@@ -15,7 +15,7 @@ The stop-on-null rule has two limbs, joined by *or*:
 > removed → geometry adds nothing beyond expression + class → pivot cleanly to
 > characterisation framing; do not expand the pilot chasing significance.
 
-Both limbs were met. The pre-committed pivot was executed.
+Both limbs were met and the pre-specified pivot was executed.
 
 | | full (50 genes) | sensitivity (36 genes) |
 |---|---:|---:|

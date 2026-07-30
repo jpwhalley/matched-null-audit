@@ -1879,7 +1879,7 @@ def evaluate(datasets=None):
         else:
             gate = "NULL"
             note = ("The treatment did not show excess disruption relative to "
-                    "its matched-control null in this dataset. Pre-committed "
+                    "its matched-control null in this dataset. Pre-specified "
                     "pivot to characterisation.")
             if results.get("primary_only"):
                 note += (" Only the primary arm was run: the "
