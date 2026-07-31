@@ -19,6 +19,9 @@ run () {
   $PY "$script" "$@"
 }
 
+echo "### Stage 1b — direct cross-model agreement"
+run E10_cross_model_agreement.py
+
 echo "### Stage 2 — caller robustness"
 run E3_outlier_robustness.py
 

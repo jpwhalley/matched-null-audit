@@ -1,0 +1,63 @@
+{
+  "headline": "The two models that represent genes as discrete tokens (Geneformer, scGPT) overlap far above chance but still agree only weakly in absolute terms; scGPT and scFoundation overlap at chance. Agreement is graded, not uniform.",
+  "shared_vocabulary": 18915,
+  "outlier_counts": {
+    "Geneformer": 388,
+    "scGPT": 102,
+    "scFoundation": 161
+  },
+  "pairs": [
+    {
+      "model_a": "Geneformer",
+      "model_b": "scGPT",
+      "n_shared_vocabulary": 18915,
+      "n_outliers_a": 388,
+      "n_outliers_b": 102,
+      "observed_overlap": 72,
+      "expected_overlap": 2.092307692,
+      "fold_enrichment": 34.41176471,
+      "jaccard": 0.1722488038,
+      "spearman_rho": 0.1863132942,
+      "spearman_p": 2.500228063e-147,
+      "hypergeometric_p": 1.057917577e-99,
+      "n_scored_both": 18915
+    },
+    {
+      "model_a": "Geneformer",
+      "model_b": "scFoundation",
+      "n_shared_vocabulary": 18915,
+      "n_outliers_a": 388,
+      "n_outliers_b": 161,
+      "observed_overlap": 8,
+      "expected_overlap": 3.302564103,
+      "fold_enrichment": 2.422360248,
+      "jaccard": 0.01478743068,
+      "spearman_rho": 0.02588383261,
+      "spearman_p": 0.00037055603,
+      "hypergeometric_p": 0.01820119611,
+      "n_scored_both": 18915
+    },
+    {
+      "model_a": "scGPT",
+      "model_b": "scFoundation",
+      "n_shared_vocabulary": 18915,
+      "n_outliers_a": 102,
+      "n_outliers_b": 161,
+      "observed_overlap": 1,
+      "expected_overlap": 0.8681998414,
+      "fold_enrichment": 1.15180855,
+      "jaccard": 0.003816793893,
+      "spearman_rho": 0.006643678738,
+      "spearman_p": 0.3608919074,
+      "hypergeometric_p": 0.5828302999,
+      "n_scored_both": 18915
+    }
+  ],
+  "three_way_intersection": 1,
+  "union_all_outliers": 571,
+  "note": "Jaccard and the score correlation answer different questions and can diverge: a pair may overlap far above chance and still have a low Jaccard. Both are reported.",
+  "provenance": {
+    "table": "data/Table_S1.csv",
+    "sha256_16": "57443b7225229e0b"
+  }
+}

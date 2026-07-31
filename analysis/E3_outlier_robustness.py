@@ -67,6 +67,7 @@ import warnings
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _precision import clean  # documented serialisation precision
+from _ribosomal_panel import panel_provenance, ribosomal_symbols
 
 # Repository-relative paths. Scripts live in analysis/; everything they read
 # and write is inside this repository.
@@ -95,6 +96,7 @@ Z_COLS      = ["norm_zscore", "dist_zscore", "cos_zscore", "isolation_zscore"]
 ENRICH_CATS = ["ribosomal", "mitochondrial", "constrained", "disease"]
 
 table_s1 = pd.read_csv(DATA / "Table_S1.csv")
+RIBOSOMAL = frozenset(ribosomal_symbols(table_s1))
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -119,7 +121,7 @@ def assign_gene_classes(genes: pd.Series) -> pd.Series:
     sym = genes.str.upper()
 
     classes[sym.str.startswith("MT-")]                    = "mitochondrial"
-    classes[sym.str.match(r"^(RPL|RPS|MRPL|MRPS)\d")]     = "ribosomal"
+    classes[sym.isin(RIBOSOMAL)] = "ribosomal"
 
     constrained = set(
         table_s1.loc[(table_s1["pLI"] > 0.9) | (table_s1["LOEUF"] < 0.35),
@@ -448,6 +450,7 @@ with open(OUT / "E3_robust_core.json", "w") as f:
 gate_output = {
     "overall_verdict": overall,
     "overall_note": overall_note,
+    "panel_provenance": panel_provenance(),
     "criteria_note": (
         "Gate criteria specified before downstream experiments; amended after "
         "diagnostic checks. THREE callers are excluded as degenerate, each on "
@@ -462,44 +465,33 @@ gate_output = {
         "strict, returns 43 outliers for Geneformer (containment 10.5%) and 0 "
         "for both scGPT and scFoundation, so it cannot discriminate stability "
         "from its own insensitivity (evidence: E3_calibrated_summary.csv, NOT "
-        "E3_degenerate_diagnostics.csv). OUTPUT LOCATION: IQR/Tukey is present "
-        "in E3_calibrated_summary.csv and E3_enrichment_full.csv; GMM and "
-        "percentile 1/99 are retained in E3_jaccard_results.csv and "
-        "E3_enrichment_results.csv, both listed in the traceability matrix. "
-        "Assessment uses "
+        "E3_degenerate_diagnostics.csv). CAVEAT: only IQR/Tukey is present in "
+        "E3_calibrated_summary.csv and E3_enrichment_full.csv. GMM component "
+        "sizes are retained only as degeneracy diagnostics; older GMM and "
+        "percentile enrichment files used a superseded ribosomal definition "
+        "and must not be quoted for class effects. Assessment uses "
         "MAD z>3, MAD z>3.5, and rank-matched MAD composite as comparators."
     ),
     "direction_note": (
         "IMPORTANT: enrichment_test uses Fisher alternative='two-sided', so "
-        "significant=True covers DEPLETION as well as enrichment. Geneformer "
-        "'disease' is a significant DEPLETION: OR 0.538 (original), 0.513 "
-        "(MAD z>3), 0.679 (MAD z>3.5), 0.658 (Top-n) - all below 1. Do NOT "
-        "describe Geneformer's four significant classes as 'four enrichments'. "
-        "Correct wording: 'class associations', with direction stated. "
-        "Geneformer enriched: mitochondrial (OR 165.5), ribosomal (OR 36.7), "
-        "constrained (OR 1.59); depleted: disease (OR 0.54). scGPT's three "
-        "significant classes are all genuine enrichments."
+        "significant=True covers DEPLETION as well as enrichment. Do not "
+        "describe every significant class association as an enrichment. "
+        "Under the original caller, Geneformer is enriched for mitochondrial, "
+        "ribosomal and constrained genes but depleted for the residual "
+        "mutually-exclusive disease class. Directions and current effect "
+        "sizes are recorded in E3_enrichment_full.csv."
     ),
     "enrichment_flips_note": (
         "enrichment_flips counts ONLY classes significant under |z|>3 "
         "(original) that lose significance in >=2 of three MAD-family callers "
         "(MAD z>3, MAD z>3.5, Top-n by MAD). It does not evaluate percentile, "
-        "GMM or IQR/Tukey; it does not count GAINS; and it returns 0 vacuously "
-        "for a model with no significant enrichment. Specifically: "
-        "scFoundation's 0 is vacuous (no class significant under the original "
-        "call or any of the three MAD-family callers; best p_bonf across those "
-        "four = 0.0609 ribosomal MAD z>3, 0.0639 under the original alone). "
-        "SCOPE CAREFULLY: under the DEGENERATE GMM caller scFoundation DOES "
-        "show two significant depletions (ribosomal p_corr=5.8e-04 OR 0.510; "
-        "constrained p_corr=1.4e-07 OR 0.755, E3_enrichment_results.csv) - an "
-        "artifact of GMM assigning 24-49% of the vocabulary to the outlier "
-        "component. Do not write 'no significant association under any "
-        "caller'. scGPT 'disease' GAINS significance under MAD z>3 (OR 1.06 "
-        "p_bonf=1.0 -> OR 2.11 p_bonf=4.8e-12), scored as 0 flips. Under the "
-        "excluded IQR/Tukey caller Geneformer loses mitochondrial and disease, "
-        "and scGPT loses all three significant classes. Supported claim: "
-        "Geneformer and scGPT class associations are stable across MAD-family "
-        "callers - NOT 'stable across methods'."
+        "GMM or IQR/Tukey and it does not count gains. Under the pinned HGNC "
+        "panel, scFoundation's ribosomal association is significant under the "
+        "original caller and two of three MAD-family comparators, so its zero "
+        "is not vacuous. scGPT disease gains significance under MAD z>3 but "
+        "that gain is not counted. The excluded callers must not be used to "
+        "support a claim of stability across all methods; current method- and "
+        "class-specific results are in E3_enrichment_full.csv."
     ),
     "per_model": verdicts,
 }

@@ -11,8 +11,8 @@
     "reading": "DIFFERENT ESTIMAND under class precedence - do not report as disease-gene depletion"
   },
   "constrained_mutually_exclusive": {
-    "OR": 1.575745901,
-    "p": 0.0004163827557,
+    "OR": 1.460658555,
+    "p": 0.003837888045,
     "reading": "genuine enrichment"
   },
   "clinvar_constrained_overlap": {
@@ -21,14 +21,14 @@
     "pct": 21.5,
     "note": "this overlap is why the two schemes diverge"
   },
-  "shared_set_context": {
-    "claim": "The 72-gene Geneformer-scGPT intersection has a strong unadjusted direct-membership association with ClinVar.",
+  "preprint_reconciliation": {
+    "claim": "preprint reports disease enrichment OR 3.7 for shared Geneformer-scGPT outliers",
     "shared_set_disease_OR": 3.594259884,
     "shared_set_disease_p": 4.971448521e-07,
     "shared_set_constrained_OR": 7.362325581,
     "all_GF_disease_OR": 1.160379619,
     "all_GF_disease_p": 0.1481504778,
-    "interpretation": "The association is confined to a small, post-hoc cross-model intersection that is itself strongly constraint-enriched. It attenuates under simultaneous covariate adjustment in E8; no nested models were fitted, so the attenuation is not assigned to constraint specifically. Across all Geneformer outliers there is no direct-membership disease association."
+    "interpretation": "The preprint figure reproduces, but it is confined to the small cross-model intersection, and that intersection is itself strongly constraint-enriched (constrained OR is far higher in the same set). The association attenuates under simultaneous covariate adjustment in E8; no nested models were fitted, so the attenuation is NOT attributed to constraint specifically. Across ALL Geneformer outliers there is no disease association. Report the contrast, not the intersection alone."
   },
   "scheme_flip_demonstration": {
     "gene_set": "shared_GF_scGPT",
@@ -53,5 +53,12 @@
     },
     "note": "Different universes; same qualitative answer (ns)."
   },
-  "reporting_rule": "Always state whether a class scheme is mutually exclusive or overlapping. The two give materially different answers here and the difference is not cosmetic."
+  "reporting_rule": "Always state whether a class scheme is mutually exclusive or overlapping. The two give materially different answers here and the difference is not cosmetic.",
+  "panel_provenance": {
+    "ribosomal_panel": "ribosomal_panel.csv",
+    "ribosomal_panel_sha256": "acd2a7adf03ad9b435785fd1f239d41faef8242a7068553f805e26465cf5842e",
+    "ribosomal_panel_n": 171,
+    "ribosomal_panel_source": "HGNC gene groups 728, 729, 646",
+    "ribosomal_panel_retrieved": "2026-07-30"
+  }
 }

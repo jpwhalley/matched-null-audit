@@ -54,7 +54,6 @@ Usage:  python E8_clinvar_adjusted.py
 import hashlib
 import json
 import sys
-import re
 from pathlib import Path
 
 import numpy as np
@@ -63,7 +62,8 @@ import statsmodels.api as sm
 from scipy import stats
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _precision import SIGFIGS, clean  # documented serialisation precision
+from _precision import clean  # documented serialisation precision
+from _ribosomal_panel import panel_provenance, ribosomal_symbols
 
 # Repository-relative paths. Scripts live in analysis/; everything they read
 # and write is inside this repository.
@@ -106,9 +106,10 @@ def load():
     d = t[["gene_symbol", "outlier_class", "pLI", "LOEUF", "clinvar_disease",
            "max_tpm", "expression_breadth", "gene_length_bp"]].copy()
     u = d.gene_symbol.astype(str).str.upper()
+    ribosomal = ribosomal_symbols(t)
     d["clinvar"] = (d.clinvar_disease == True).astype(int)      # noqa: E712
     d["constrained"] = ((d.pLI > 0.9) | (d.LOEUF < 0.35)).astype(int)
-    d["ribo"] = u.str.match(r"^(RPL|RPS|MRPL|MRPS)\d").astype(int)
+    d["ribo"] = u.isin(ribosomal).astype(int)
     d["mito"] = u.str.startswith("MT-").astype(int)
     d["log_expr"] = np.log1p(d.max_tpm.fillna(0))
     d["breadth"] = d.expression_breadth.fillna(0)
@@ -235,11 +236,7 @@ def main():
         print()
 
     df = pd.DataFrame(rows)
-    df.to_csv(
-        OUT / "E8_clinvar_adjusted.csv",
-        index=False,
-        float_format=f"%.{SIGFIGS}g",
-    )
+    df.to_csv(OUT / "E8_clinvar_adjusted.csv", index=False)
 
     prim = df[(df.tier == "PRIMARY") & (df.gene_set == "gf")].iloc[0]
     sens = df[(df.tier == "SENSITIVITY") & (df.gene_set == "gf")].iloc[0]
@@ -321,6 +318,7 @@ def main():
             "table": str(TABLE_S1.relative_to(BASE)),
             "sha256_16": file_hash(TABLE_S1),
             "gene_length_coverage": round(float(cov), 4),
+            **panel_provenance(),
         },
     }
     with open(OUT / "E8_clinvar_adjusted.json", "w") as f:

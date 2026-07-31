@@ -1,5 +1,5 @@
 """
-E2 — Covariate-matched downstream deletion analysis.
+E2 — Expression-matched downstream ablation (THE claim gate).
 
 Tests whether removing geometric-outlier genes from Geneformer's input
 degrades cell-type annotation more than removing expression-matched,
@@ -39,6 +39,8 @@ Outputs (all in revision/outputs/):
 """
 
 import argparse
+import hashlib
+import pathlib
 import json
 import os
 import pickle
@@ -69,6 +71,13 @@ from sklearn.metrics import (f1_score, adjusted_rand_score,
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
 
+# Paths resolve for BOTH trees this file lives in, so the two copies cannot
+# drift apart again:
+#   release  <repo>/analysis/E2_*.py          -> <repo>/{data,outputs,cache}
+#   compute  <root>/revision/notebooks/E2_*.py -> <root>/notebooks/data,
+#                                                 <root>/revision/{outputs,cache}
+# Geneformer weights are BASE/"Geneformer" in both layouts. Only the compute
+# tree has them, which is why the release clone cannot run the ablation.
 # Repository-relative paths. Scripts live in analysis/; everything they read
 # and write is inside this repository.
 REPO = Path(__file__).resolve().parent.parent
@@ -206,11 +215,23 @@ _DISEASE_GENES = set(
 )
 
 
+# Ribosomal panel: pinned HGNC gene groups 728, 729 and 646, resolved by
+# Ensembl gene ID. Replaces the earlier symbol regex, which admitted RPS6K*
+# kinases and RPS19BP1, carried the obsolete symbol MRPS36, and omitted seven
+# genuine members. See analysis/_ribosomal_panel.py and
+# data/ribosomal_panel_provenance.json. Every matched-control cache records
+# the panel SHA-256 and is refused if it differs.
+from _ribosomal_panel import (ribosomal_symbols, panel_provenance,  # noqa: E402
+                              PANEL_SHA256 as RIBOSOMAL_PANEL_SHA256)
+_RIBOSOMAL = ribosomal_symbols(table_s1)
+
+
 def assign_gene_class(sym: str) -> str:
+    """Class labels for the matched-control strata (mutually exclusive)."""
     sym_u = sym.upper()
     if sym_u.startswith("MT-"):
         return "mitochondrial"
-    if re.match(r"^(RPL|RPS|MRPL|MRPS)\d", sym_u):
+    if sym_u in _RIBOSOMAL:
         return "ribosomal"
     if sym_u in _CONSTRAINED_GENES:
         return "constrained"
@@ -635,11 +656,13 @@ def setup(datasets=None):
     pbmc_ctrl_cache = CACHE / "E2_matched_controls_pbmc3k.json"
     pbmc_sens_cache = CACHE / "E2_matched_controls_pbmc3k_no_ribo_mito.json"
     if pbmc_ctrl_cache.exists():
+        _assert_control_spec(pbmc_ctrl_cache)
         print("    Matched controls (full) already built (cached).")
     else:
         print("    Building matched controls — full treatment (PBMC3k)...")
         build_matched_controls(treatment_info, pbmc_gene_stats, "pbmc3k")
     if pbmc_sens_cache.exists():
+        _assert_control_spec(pbmc_sens_cache)
         print("    Matched controls (sensitivity) already built (cached).")
     else:
         print("    Building matched controls — no ribo/mito (PBMC3k)...")
@@ -772,6 +795,7 @@ def setup(datasets=None):
     ts_ctrl_cache = CACHE / "E2_matched_controls_tabula_sapiens.json"
     ts_sens_cache = CACHE / "E2_matched_controls_tabula_sapiens_no_ribo_mito.json"
     if ts_ctrl_cache.exists():
+        _assert_control_spec(ts_ctrl_cache)
         with open(ts_ctrl_cache) as _f:
             _n_draws = len(json.load(_f))
         if _n_draws != N_BOOTSTRAP:
@@ -786,6 +810,7 @@ def setup(datasets=None):
         build_matched_controls(treatment_info, ts_gene_stats,
                                "tabula_sapiens")
     if ts_sens_cache.exists():
+        _assert_control_spec(ts_sens_cache)
         print("    Matched controls (sensitivity) already built (cached).")
     else:
         print("    Building matched controls — no ribo/mito (TS)...")
@@ -890,6 +915,51 @@ def _get_treatment_properties(treatment_df, gene_stats_df, s1, pool_stats):
     return treat_props
 
 
+def _controls_fingerprint(cache_path):
+    """sha256[:16] of a matched-control cache, used to bind checkpoints."""
+    return hashlib.sha256(pathlib.Path(cache_path).read_bytes()).hexdigest()[:16]
+
+
+def _assert_control_spec(cache_path):
+    """Refuse a matched-control cache built under a different specification.
+
+    Control caches have stable filenames, so a cache drawn under the old
+    digit-anchored ribosomal pattern, or at a different draw count, would
+    otherwise be reused silently and the null would not correspond to the
+    specification in force. Every field written by build_matched_controls is
+    checked, not just the pattern.
+    """
+    cache_path = pathlib.Path(cache_path)
+    spec_path = cache_path.with_name(cache_path.stem + "_spec.json")
+    hint = (f"Archive and remove the control caches and ablation checkpoints, "
+            f"then re-run --setup:\n"
+            f"  python revision/notebooks/archive_controls.py\n"
+            f"  rm -f {CACHE}/E2_matched_controls_*.json "
+            f"{CACHE}/E2_matched_controls_*_spec.json "
+            f"{CACHE}/E2_ablation_ckpt_*.json\n"
+            f"(Keep E2_baseline_*, E2_*_tokenized.json, E2_*_gene_stats.csv.)")
+    if not spec_path.exists():
+        raise RuntimeError(
+            f"{cache_path.name} has no _spec.json sidecar, so it predates the "
+            f"2026-07-30 ribosomal correction and was drawn under the old "
+            f"panel.\n{hint}")
+    spec = json.loads(spec_path.read_text())
+    expected = {"ribosomal_panel_sha256": RIBOSOMAL_PANEL_SHA256,
+                "n_bootstrap": N_BOOTSTRAP}
+    bad = {k: (spec.get(k), v) for k, v in expected.items() if spec.get(k) != v}
+    if bad:
+        detail = "; ".join(f"{k}: cache={got!r} run={want!r}"
+                           for k, (got, want) in bad.items())
+        raise RuntimeError(
+            f"{cache_path.name} specification mismatch -- {detail}.\n"
+            f"The eligible control pool or the null size differs.\n{hint}")
+    n_draws = len(json.loads(cache_path.read_text()))
+    if n_draws != N_BOOTSTRAP:
+        raise RuntimeError(
+            f"{cache_path.name} holds {n_draws} draws but N_BOOTSTRAP="
+            f"{N_BOOTSTRAP}.\n{hint}")
+
+
 def build_matched_controls(treatment_df, gene_stats_df, dataset_name,
                            label=None):
     """Build 200 class-stratified matched control gene sets.
@@ -991,6 +1061,14 @@ def build_matched_controls(treatment_df, gene_stats_df, dataset_name,
     # Save detailed control gene info (for diagnostics)
     with open(CACHE / f"{fname_base}_detail.json", "w") as f:
         json.dump(controls_detail, f)
+
+    # Spec sidecar: the class definition these controls were drawn under.
+    # Checked on reuse so a cache built under a different ribosomal panel
+    # cannot be silently picked up by a later run.
+    with open(CACHE / f"{fname_base}_spec.json", "w") as f:
+        json.dump({"ribosomal_panel_sha256": RIBOSOMAL_PANEL_SHA256,
+                   "n_bootstrap": N_BOOTSTRAP,
+                   **panel_provenance()}, f, indent=2)
 
     # ── Balance table (Fix 3) ────────────────────────────────────────────
     _write_balance_table(treat_props, controls_detail, fname_base)
@@ -1642,13 +1720,26 @@ def _run_control_null(model, tokenized, cell_types, ctrl_path,
           f"({len(controls)} controls)...")
 
     ckpt_path = CACHE / f"E2_ablation_ckpt_{dataset_name}_{null_label}.json"
+    ctrl_fp = _controls_fingerprint(ctrl_path)
     ctrl_results = []
     start_idx = 0
     if ckpt_path.exists():
-        with open(ckpt_path) as f:
-            ctrl_results = json.load(f)
+        _ck = json.loads(ckpt_path.read_text())
+        if not isinstance(_ck, dict) or "controls_sha256" not in _ck:
+            raise RuntimeError(
+                f"{ckpt_path.name} is in the pre-2026-07-30 format and is not "
+                f"bound to a control set, so resuming could mix results from "
+                f"different nulls. Delete it and restart this band.")
+        if _ck["controls_sha256"] != ctrl_fp:
+            raise RuntimeError(
+                f"{ckpt_path.name} was written against controls "
+                f"{_ck['controls_sha256']} but {ctrl_path.name} is now "
+                f"{ctrl_fp}. Resuming would splice two different nulls. "
+                f"Delete the checkpoint and restart this band.")
+        ctrl_results = _ck["results"]
         start_idx = len(ctrl_results)
-        print(f"      Resuming from control {start_idx}/{len(controls)}")
+        print(f"      Resuming from control {start_idx}/{len(controls)} "
+              f"(controls {ctrl_fp})")
 
     import time
     _t0 = time.time()
@@ -1673,7 +1764,8 @@ def _run_control_null(model, tokenized, cell_types, ctrl_path,
         # within minutes rather than after the first 10-control checkpoint.
         if _n_done_this_run == 1 or (ci + 1) % 10 == 0:
             with open(ckpt_path, "w") as f:
-                json.dump(ctrl_results, f)
+                json.dump({"controls_sha256": ctrl_fp,
+                           "results": ctrl_results}, f)
             _per = (time.time() - _t0) / _n_done_this_run
             _left = len(controls) - (ci + 1)
             print(f"      Control {ci+1}/{len(controls)}: "

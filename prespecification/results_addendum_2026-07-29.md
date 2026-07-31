@@ -107,6 +107,125 @@ addendum exists to make visible.
 3. **Empirical p definition.** Reported as (b+1)/(m+1), the add-one form, since
    the controls are a random sample of the possible matched sets.
 
+4. **Ribosomal panel definition.** The panel was defined by the pattern
+   `^(RPL|RPS|MRPL|MRPS)\d`, which requires a digit immediately after the
+   family prefix and therefore misses four genuine ribosomal protein genes:
+   RPLP0, RPLP1, RPLP2 and RPSA. All four are Geneformer geometric outliers.
+   The pattern was corrected on 2026-07-30 in E1, E3, E6 and E8.
+
+   **This does affect the deletion controls, and the first version of this
+   note was wrong to say otherwise.** No treatment gene changes class, so the
+   treatment strata are unchanged. But three of the four (RPLP0, RPLP2, RPSA)
+   were eligible as `constrained` controls and one (RPLP1) as `other`, and they
+   were drawn repeatedly: 314 occurrences across the 200 PBMC3k full-treatment
+   control sets, 325 across the sensitivity sets, and 29 across the 100 Tabula
+   Sapiens sets. Under the corrected pattern they compete only for the 13
+   ribosomal slots, so the eligible pool and therefore the null distributions
+   change. The net effect on balance is not
+   predictable in advance: the four leave the constrained and other pools but
+   enter the ribosomal pool, so matching may improve, worsen or be unaffected on
+   any given covariate. It will be measured, not assumed.
+
+   The reported deletion results were produced under the narrower pattern.
+   Until the controls are rebuilt and the ablations rerun, the manuscript states
+   this explicitly in the matched-control Methods rather than implying a single
+   definition throughout.
+
+   Effect on the analyses that were rerun (E1, E3, E6, E8), all small and none
+   changing a verdict. The deletion test is not included here and its exposure
+   to the correction is unresolved:
+   ribosomal enrichment OR 36.7 to 39.3; constrained (mutually exclusive) 1.59
+   to 1.53; adjusted ClinVar OR 1.05 to 1.06 (Geneformer), 1.22 to 1.23
+   (scGPT), 0.98 unchanged (scFoundation); exploratory shared set 1.45 to 1.47.
+   E3 remains MIXED and E1 remains DIVERGENT.
+
+---
+
+## Pre-commitments for the ribosomal rerun, recorded 2026-07-30 before any control was drawn
+
+The correction in item 4 changes the eligible control pool, so the matched nulls
+are being rebuilt. Because the current result is already known, the terms are
+fixed here and committed before the rerun starts. This section is written in
+advance and is not to be edited afterwards.
+
+1. **The pinned HGNC panel is primary.** Ribosomal membership is defined by
+   `data/ribosomal_panel.csv`, built from HGNC curated gene groups 728, 729 and
+   646, retrieved 2026-07-30, SHA-256 `acd2a7ad...5cf5842e`, 171 genes, all 171
+   present in `Table_S1` and agreeing on Ensembl and symbol keys. Membership is
+   resolved by Ensembl gene ID. This replaces the symbol regex entirely, in E2
+   as well as E1/E3/E6/E8. Relative to the interim four-gene regex fix it adds
+   AURKAIP1, CHCHD1, DAP3, FAU, GADD45GIP1, PTCD3 and UBA52, and removes ten
+   RPS6K* kinases, RPS19BP1 and the obsolete symbol MRPS36. The treatment set
+   is unchanged: no panel change falls inside the top 50, and UBA52 and FAU are
+   outliers ranking 119 and 304.
+2. **Nothing else changes.** The gate metric (retrained macro-F1), the treatment
+   sets, the matcher, the random seed and the draw counts (PBMC3k 200 full and
+   200 sensitivity, Tabula Sapiens 100 primary) are unchanged. Baselines and
+   treatment selection are not recomputed.
+3. **The corrected results replace the current ones regardless of direction or
+   significance.** If the treatment moves outside the matched-control band, the
+   paper reports that, with the same restraint it currently applies to the null.
+4. **The digit-anchored results are archived, not discarded.** They remain in
+   the repository as a disclosed provenance and sensitivity analysis.
+5. **No additional draws will be generated after the corrected result is seen.**
+   The criterion remains the 2.5th percentile of the matched-control
+   distribution.
+
+`E2_downstream_ablation.py` records the panel SHA-256 beside every control
+cache and refuses a cache drawn under a different panel or draw count; ablation
+checkpoints are bound to the SHA-256 of the control set they were written
+against. The old and new nulls cannot be mixed or spliced.
+
+Why a curated panel rather than a better regex: a regex on symbols does not
+track curation. The digit-anchored form missed four genuine members; correcting
+it to admit them still admitted ten kinases and an obsolete symbol. The failure
+was the method, not the expression, so the expression was replaced.
+
+---
+
+## Matching balance under the HGNC panel, recorded 2026-07-30 before any ablation completed
+
+Rebuilding the PBMC3k nulls under the pinned panel moved expression balance in
+the wrong direction, by a modest amount:
+
+| arm | v1 (digit-anchored) | v2 (HGNC panel) |
+|---|---:|---:|
+| PBMC3k full, 50 genes | SMD 0.2881 | SMD 0.3152 |
+| PBMC3k sensitivity, 36 genes | SMD 0.3585 | SMD 0.3982 |
+| Tabula Sapiens full, 50 genes | SMD 0.2828 | SMD 0.283 |
+| Tabula Sapiens sensitivity, 36 genes | SMD 0.3097 | SMD 0.313 |
+
+Class strata remain exact throughout, and breadth and length are unaffected
+(PBMC3k full: SMD 0.021 and 0.077; Tabula Sapiens full: 0.024 and 0.112).
+
+The degradation is specific to PBMC3k. Tabula Sapiens moved by less than 0.004
+on both arms, because the two datasets draw from different candidate pools
+after the gene-length filter (18,333 eligible for PBMC3k against 18,909 for
+Tabula Sapiens). Whatever the panel change costs in matching quality, it is not
+a general property of the panel.
+
+The mechanism is not the obvious one. Removing the ten RPS6K kinases cleans the
+ribosomal stratum, but those twelve removals move into the constrained, disease
+and other pools while the seven additions leave them. Those pools supply 19
+constrained and 9 other control slots per draw, so they lost their most highly
+expressed members and gained moderately expressed ones. Mean control expression
+fell from 3.92 to 3.74 on the full arm and from 2.04 to 1.79 on the sensitivity
+arm.
+
+**Direction of the resulting bias, stated before the result is known.** Controls
+now sit further below the treatment on expression. Lower-expression genes
+contribute fewer tokens per cell, so matched controls should damage annotation
+less than before, which makes the treatment appear relatively more damaging and
+drives the gate statistic more negative. The imbalance therefore biases *toward*
+exceeding the matched-control null, not toward it.
+
+Consequently: a null result under the corrected panel is stronger evidence than
+the v1 null, because it survives worse expression matching. A result that
+exceeds the null must be reported together with this imbalance as a candidate
+explanation, and not presented as clean evidence of a geometry effect. This
+paragraph is written while the ablation is still running and is not to be
+revised after the outcome is seen.
+
 ---
 
 ## Not done, deliberately

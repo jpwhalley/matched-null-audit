@@ -6,36 +6,36 @@
       "n_universe": 18911,
       "unadjusted_OR": 1.160379619,
       "unadjusted_p": 0.1481504778,
-      "adjusted_OR": 1.053302624,
+      "adjusted_OR": 1.046760938,
       "adjusted_CI": [
-        0.8225696676,
-        1.347435955
+        0.8158207513,
+        1.341820504
       ],
-      "adjusted_p": 0.6795067717
+      "adjusted_p": 0.71823968
     },
     "scGPT": {
       "n_outliers": 102,
       "n_universe": 18911,
       "unadjusted_OR": 2.954220568,
       "unadjusted_p": 1.846552853e-07,
-      "adjusted_OR": 1.220304266,
+      "adjusted_OR": 1.213828971,
       "adjusted_CI": [
-        0.761965377,
-        1.98911523
+        0.7578998219,
+        1.978925733
       ],
-      "adjusted_p": 0.4112264132
+      "adjusted_p": 0.4239856135
     },
     "scFoundation": {
       "n_outliers": 161,
       "n_universe": 18911,
       "unadjusted_OR": 0.801734971,
       "unadjusted_p": 0.1762250828,
-      "adjusted_OR": 0.9798219862,
+      "adjusted_OR": 0.9801105453,
       "adjusted_CI": [
-        0.6931297204,
-        1.376067697
+        0.6932946318,
+        1.376550141
       ],
-      "adjusted_p": 0.9047843431
+      "adjusted_p": 0.9061033498
     }
   },
   "sensitivity_by_model": {
@@ -44,36 +44,36 @@
       "n_universe": 18898,
       "unadjusted_OR": 1.097722023,
       "unadjusted_p": 0.373821956,
-      "adjusted_OR": 1.053038965,
+      "adjusted_OR": 1.04658011,
       "adjusted_CI": [
-        0.8225933069,
-        1.348042894
+        0.8158855587,
+        1.34250437
       ],
-      "adjusted_p": 0.6817046987
+      "adjusted_p": 0.7200749824
     },
     "scGPT": {
       "n_outliers": 93,
       "n_universe": 18898,
       "unadjusted_OR": 2.580998782,
       "unadjusted_p": 1.252362926e-05,
-      "adjusted_OR": 1.230012387,
+      "adjusted_OR": 1.223574265,
       "adjusted_CI": [
-        0.7601409114,
-        1.990328964
+        0.7560672991,
+        1.980159682
       ],
-      "adjusted_p": 0.3991679015
+      "adjusted_p": 0.4113491359
     },
     "scFoundation": {
       "n_outliers": 161,
       "n_universe": 18898,
       "unadjusted_OR": 0.8030044661,
       "unadjusted_p": 0.2016976343,
-      "adjusted_OR": 0.9773232708,
+      "adjusted_OR": 0.9776169138,
       "adjusted_CI": [
-        0.6933257752,
-        1.377650752
+        0.6934906579,
+        1.378150981
       ],
-      "adjusted_p": 0.8958133327
+      "adjusted_p": 0.8971888622
     }
   },
   "multiplicity": "The three model-specific p-values are uncorrected. All exceed 0.4, so no correction would change any conclusion.",
@@ -84,30 +84,30 @@
     "n_universe": 18911,
     "unadjusted_OR": 1.160379619,
     "unadjusted_p": 0.1481504778,
-    "adjusted_OR": 1.053302624,
+    "adjusted_OR": 1.046760938,
     "adjusted_CI": [
-      0.8225696676,
-      1.347435955
+      0.8158207513,
+      1.341820504
     ],
-    "adjusted_p": 0.6795067717
+    "adjusted_p": 0.71823968
   },
   "sensitivity_non_mito": {
-    "adjusted_OR": 1.053038965,
+    "adjusted_OR": 1.04658011,
     "adjusted_CI": [
-      0.8225933069,
-      1.348042894
+      0.8158855587,
+      1.34250437
     ],
-    "adjusted_p": 0.6817046987,
+    "adjusted_p": 0.7200749824,
     "n_universe": 18898
   },
   "exploratory_shared_set": {
     "note": "Cross-model subset selected post hoc as the set showing an apparent signal. Small (n=72). NOT a second headline test; report as exploratory only.",
-    "adjusted_OR": 1.451339763,
+    "adjusted_OR": 1.438847422,
     "adjusted_CI": [
-      0.802093961,
-      2.710645944
+      0.7949501101,
+      2.689506219
     ],
-    "adjusted_p": 0.2218636584
+    "adjusted_p": 0.2332426902
   },
   "specification_dependence": {
     "note": "The shared-set conclusion is specification-dependent. Report the full grid in E8_clinvar_adjusted.csv rather than a single number.",
@@ -119,6 +119,11 @@
   "provenance": {
     "table": "data/Table_S1.csv",
     "sha256_16": "57443b7225229e0b",
-    "gene_length_coverage": 0.9998
+    "gene_length_coverage": 0.9998,
+    "ribosomal_panel": "ribosomal_panel.csv",
+    "ribosomal_panel_sha256": "acd2a7adf03ad9b435785fd1f239d41faef8242a7068553f805e26465cf5842e",
+    "ribosomal_panel_n": 171,
+    "ribosomal_panel_source": "HGNC gene groups 728, 729, 646",
+    "ribosomal_panel_retrieved": "2026-07-30"
   }
 }

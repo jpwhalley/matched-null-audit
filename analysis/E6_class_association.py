@@ -20,13 +20,13 @@ as though it answered the direct question.
 
 This script tests every class BOTH ways -- mutually exclusive and overlapping
 (direct membership) -- so the difference is explicit and reproducible rather
-than an ad hoc check.
+than an ad hoc check. The headline precision-medicine result of the PSB paper
+depends on it.
 
 Outputs (revision/outputs/):
   E6_class_association.csv   -- every model x scheme x class test
-  E6_class_association.json  -- headline figures and shared-set context
-  E6_scfm_only_by_class.csv  -- mutually-exclusive and overlapping class
-                                counts for the ESM-2 comparison
+  E6_class_association.json  -- headline figures + reconciliation of the
+                                preprint's shared-set OR 3.7
 
 Usage:
   python E6_class_association.py
@@ -34,7 +34,6 @@ Usage:
 
 import json
 import sys
-import re
 from pathlib import Path
 
 import numpy as np
@@ -43,6 +42,7 @@ from scipy import stats
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _precision import clean  # documented serialisation precision
+from _ribosomal_panel import panel_provenance, ribosomal_symbols
 
 # Repository-relative paths. Scripts live in analysis/; everything they read
 # and write is inside this repository.
@@ -70,7 +70,7 @@ DISEASE = set(
     table_s1.loc[table_s1["clinvar_disease"] == True,  # noqa: E712
                  "gene_symbol"].str.upper()
 )
-RIBO_RE = re.compile(r"^(RPL|RPS|MRPL|MRPS)\d")
+RIBOSOMAL = frozenset(ribosomal_symbols(table_s1))
 
 
 def assign_gene_class(sym: str) -> str:
@@ -78,7 +78,7 @@ def assign_gene_class(sym: str) -> str:
     u = sym.upper()
     if u.startswith("MT-"):
         return "mitochondrial"
-    if RIBO_RE.match(u):
+    if u in RIBOSOMAL:
         return "ribosomal"
     if u in CONSTRAINED:
         return "constrained"
@@ -92,24 +92,10 @@ def membership_flags(symbols):
     u = [s.upper() for s in symbols]
     return {
         "mitochondrial": np.array([x.startswith("MT-") for x in u]),
-        "ribosomal": np.array([bool(RIBO_RE.match(x)) for x in u]),
+        "ribosomal": np.array([x in RIBOSOMAL for x in u]),
         "constrained": np.array([x in CONSTRAINED for x in u]),
         "disease": np.array([x in DISEASE for x in u]),
     }
-
-
-def is_class_member(sym: str, cls: str) -> bool:
-    """Direct, overlapping membership in one annotation panel."""
-    u = sym.upper()
-    if cls == "mitochondrial":
-        return u.startswith("MT-")
-    if cls == "ribosomal":
-        return bool(RIBO_RE.match(u))
-    if cls == "constrained":
-        return u in CONSTRAINED
-    if cls == "disease":
-        return u in DISEASE
-    raise ValueError(f"Unknown class: {cls}")
 
 
 def fisher(in_set, in_class, alternative="two-sided"):
@@ -133,10 +119,10 @@ def load_geneformer():
 
 
 def load_from_table_s1():
-    """Load cross-model outlier membership on the complete-case universe.
+    """outlier_class encodes the cross-model membership used in the preprint.
 
     Restricted to complete cases (gene length present), so this reproduces the
-    same 18,911-gene universe the manuscript's Table 1 and the covariate-adjusted
+    same 18,911-gene universe the manuscript's Table 2 and the covariate-adjusted
     analysis in E8 use. On the full 18,915 rows the odds ratios agree to every
     digit reported, but the universes should match exactly, not coincidentally.
     """
@@ -183,7 +169,7 @@ def main():
                                                    ("OR", "p")}))
             print(f"  {cls:<15} {scheme:<20} {r['OR']:>9.3f} {r['p']:>12.2e}")
 
-    # ---- Cross-model sets from Table_S1 -----------------------------------
+    # ---- Cross-model sets from Table_S1 (reconciles the preprint) ---------
     t = load_from_table_s1()
     syms_t = t["gene"].astype(str).tolist()
     over_t = membership_flags(syms_t)
@@ -206,6 +192,36 @@ def main():
                                  **{k: r[k] for k in ("OR", "p")}))
                 print(f"  {setname:<18} {cls:<14} {scheme:<20} "
                       f"{r['OR']:>9.3f} {r['p']:>12.2e}")
+
+    # ---- Per-model class association, all three models --------------------
+    # The manuscript's claim that ribosomal genes are over-represented in ALL
+    # THREE models is stated in the abstract, so it must be produced here
+    # rather than recalled. Direct membership (overlapping scheme); the
+    # mutually-exclusive scheme would ask a different question.
+    print(f"\n  Per-model class association (Table_S1, direct membership):")
+    print(f"  {'model':<14} {'class':<14} {'n set':>7} {'in class':>9} "
+          f"{'OR':>9} {'p (raw)':>12}")
+    print("  " + "-" * 70)
+    for model, col in (("Geneformer", "gf"), ("scGPT", "scgpt"),
+                       ("scFoundation", "sf")):
+        for cls in ("ribosomal", "mitochondrial"):
+            r = fisher(t[col].values, over_t[cls])
+            rows.append(dict(model=model, source="table_s1",
+                             gene_set=f"all_{model}_outliers", cls=cls,
+                             scheme="overlapping",
+                             n_set=int(t[col].sum()), n_in_class=r["a"],
+                             **{k: r[k] for k in ("OR", "p")}))
+            print(f"  {model:<14} {cls:<14} {int(t[col].sum()):>7} "
+                  f"{r['a']:>9} {r['OR']:>9.3f} {r['p']:>12.2e}")
+
+    n_tests = len(rows)
+    print(f"\n  Multiplicity: E6 reports {n_tests} association tests across "
+          f"four gene classes,")
+    print(f"  two annotation schemes, three models and two cross-model sets. "
+          f"All p values")
+    print(f"  are raw. No multiplicity family was pre-specified, so no "
+          f"corrected threshold")
+    print(f"  is claimed; the count is given so a reader can apply their own.")
 
     # ---- Per-class scFM-only breakdown vs ESM-2 (E1 reconciliation) ------
     # The "86 of 87 constrained outliers are scFM-specific" figure requires TWO
@@ -233,18 +249,9 @@ def main():
                         "disease"]:
                 members = {g for g in scfm_out if assign_gene_class(g) == cls}
                 ov = members & esm_out
-                overlapping_members = {
-                    g for g in scfm_out if is_class_member(g, cls)
-                }
-                overlapping_ov = overlapping_members & esm_out
                 scfm_only_rows.append(dict(
                     cls=cls, n_scfm_outliers=len(members),
                     n_also_esm2=len(ov), n_scfm_only=len(members) - len(ov),
-                    overlapping_n_scfm_outliers=len(overlapping_members),
-                    overlapping_n_also_esm2=len(overlapping_ov),
-                    overlapping_n_scfm_only=(
-                        len(overlapping_members) - len(overlapping_ov)
-                    ),
                     n_shared_genes=len(shared)))
                 print(f"  {cls:<16}{len(members):>6}{len(ov):>12}"
                       f"{len(members) - len(ov):>11}")
@@ -329,9 +336,9 @@ def main():
             "n_clinvar": n_clinvar, "n_also_constrained": n_both,
             "pct": round(pct, 1),
             "note": "this overlap is why the two schemes diverge"},
-        "shared_set_context": {
-            "claim": "The 72-gene Geneformer-scGPT intersection has a strong "
-                     "unadjusted direct-membership association with ClinVar.",
+        "preprint_reconciliation": {
+            "claim": "preprint reports disease enrichment OR 3.7 for shared "
+                     "Geneformer-scGPT outliers",
             "shared_set_disease_OR": (None if shared_dis is None
                                       else float(shared_dis["OR"])),
             "shared_set_disease_p": (None if shared_dis is None
@@ -341,12 +348,15 @@ def main():
             "all_GF_disease_OR": float(dis_over["OR"]),
             "all_GF_disease_p": float(dis_over["p"]),
             "interpretation": (
-                "The association is confined to a small, post-hoc cross-model "
-                "intersection that is itself strongly constraint-enriched. It "
-                "attenuates under simultaneous covariate adjustment in E8; no "
-                "nested models were fitted, so the attenuation is not assigned "
-                "to constraint specifically. Across all Geneformer outliers "
-                "there is no direct-membership disease association."),
+                "The preprint figure reproduces, but it is confined to the "
+                "small cross-model intersection, and that intersection is "
+                "itself strongly constraint-enriched (constrained OR is far "
+                "higher in the same set). The association attenuates under "
+                "simultaneous covariate adjustment in E8; no nested models "
+                "were fitted, so the attenuation is NOT attributed to "
+                "constraint specifically. Across ALL Geneformer outliers "
+                "there is no disease association. Report the contrast, not "
+                "the intersection alone."),
         },
         "scheme_flip_demonstration": {
             "gene_set": "shared_GF_scGPT",
@@ -386,16 +396,17 @@ def main():
             "Always state whether a class scheme is mutually exclusive or "
             "overlapping. The two give materially different answers here and "
             "the difference is not cosmetic."),
+        "panel_provenance": panel_provenance(),
     }
     with open(OUT / "E6_class_association.json", "w") as f:
         json.dump(clean(summary), f, indent=2)
 
     print("\n" + "=" * 74)
-    print("  SHARED-SET CONTEXT")
+    print("  PREPRINT RECONCILIATION")
     print("=" * 74)
     if shared_dis is not None:
         print(f"  shared GF n scGPT, disease     OR {shared_dis['OR']:.3f}  "
-              f"p {shared_dis['p']:.2e}")
+              f"p {shared_dis['p']:.2e}  (preprint says 3.7)")
         print(f"  shared GF n scGPT, constrained OR {shared_con['OR']:.3f}")
     print(f"  ALL GF outliers,   disease     OR {dis_over['OR']:.3f}  "
           f"p {dis_over['p']:.2e}  <- nothing here")

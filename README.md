@@ -1,12 +1,14 @@
-# Comparative geometry of gene embeddings in single-cell foundation models
+# Matched-null auditing of gene-embedding outliers in single-cell foundation models
 
 Code and reproducibility materials for:
 
 > **Comparative geometry of gene embeddings in single-cell foundation models:
-> model-specific outliers and limited predictive value in Geneformer**
+> model-specific outliers and matched validation in Geneformer**
 > Whalley, J.P. (2026). Submitted to *Pacific Symposium on Biocomputing 2027*.
 
 Preprint: [doi:10.64898/2026.06.22.733850](https://doi.org/10.64898/2026.06.22.733850)
+(v1 reported a different conclusion; see *Relationship to the earlier version*
+below.)
 
 ---
 
@@ -39,11 +41,11 @@ figures/            manuscript figures as PDF
 outputs/            saved result files (CSV/JSON) consumed by the notebooks
 ```
 
-The current release pipeline runs left to right:
+The pipeline runs left to right:
 
 ```
-D-series / P01  ->  analysis/E*.py  ->  outputs/*.{csv,json}  ->  analysis/make_psb_figures.py  ->  figures/
-(acquire/screen)    (compute)            (results)                  (display)
+D-series  ->  analysis/E*.py  ->  outputs/*.{csv,json}  ->  notebooks/0*  ->  figures/
+(acquire)     (compute)            (results)                (display)
 ```
 
 ---
@@ -57,6 +59,7 @@ falsify a claim independently.
 | Stage | Question | Implementation |
 |---|---|---|
 | 1. Geometry screen | Which genes are geometrically extreme? | `notebooks/P01_embedding_geometry.ipynb` |
+| 1b. Cross-model agreement | Do the three models flag the same genes? | `analysis/E10_cross_model_agreement.py` |
 | 2. Caller robustness | Is the outlier set an artefact of thresholding? | `analysis/E3_outlier_robustness.py` |
 | 3. Non-transcriptomic control | Are the same genes outliers in protein-sequence space? | `analysis/E1_stage1_mapping.py`, `analysis/E1_stage2_esm2.py` |
 | 4. Matched deletion test | Does removing them affect a downstream task more than matched controls? | `analysis/E2_downstream_ablation.py` |
@@ -66,7 +69,7 @@ Supporting diagnostics:
 
 | Script | Purpose |
 |---|---|
-| `E7_cluster_metric_diagnostic.py` | Quantifies outcome precision and documents why macro-F1, rather than clustering metrics, was retained as the headline measure. |
+| `E7_cluster_metric_diagnostic.py` | Tests whether clustering metrics are usable as outcome measures. They are not; the paper reports macro-F1 alone. |
 | `E9_token_occurrence_audit.py` | Measures token-level exposure of treatment vs control gene sets. The treatment genes are not under-represented, which rules out one route to the null but not others. |
 
 ---
@@ -139,11 +142,30 @@ Two things bite in practice, and both are guarded in code:
 
 ---
 
-## Archived analyses
+## Relationship to the earlier version
 
-Superseded scripts and notebooks are retained under `notebooks/superseded/`
-with a note explaining what replaced them. They are historical records, not
-parts of the current analysis pipeline; `run_all.sh` does not execute them.
+The bioRxiv v1 preprint reported that embedding geometry predicts functional
+fragility. That claim was tested here against expression-, breadth-, length- and
+class-matched control gene sets and was not supported; it is retired. The
+present work adds the non-transcriptomic control, the caller-robustness
+analysis, the matched deletion test and the covariate-adjusted disease analysis.
+
+Scripts and notebooks superseded by that revision are retained under
+`notebooks/superseded/` with a note explaining what replaced them, rather than
+deleted.
+
+### On the earlier terminology
+
+The v1 preprint framed these genes as "glitch genes", by analogy with glitch
+tokens in language models. The analogy imports an inverted mechanism, since NLP
+glitch tokens are *under*-trained whereas these are high-exposure genes, and the
+term was retired on 2026-07-07, before any of the deletion compute. See §2 and §6
+of the dated plan.
+
+The word therefore survives only in documents that are deliberately preserved
+unmodified: the dated analysis plan, which records the decision to drop it, and
+the superseded notebooks. It appears nowhere in the current analysis code or in
+the manuscript.
 
 ---
 
@@ -153,8 +175,8 @@ parts of the current analysis pipeline; `run_all.sh` does not execute them.
 @misc{whalley2026matchednull,
   author       = {Whalley, Justin P.},
   title        = {Comparative geometry of gene embeddings in single-cell
-                  foundation models: model-specific outliers and limited
-                  predictive value in Geneformer},
+                  foundation models: model-specific outliers and matched
+                  validation in Geneformer},
   year         = {2026},
   howpublished = {bioRxiv},
   doi          = {10.64898/2026.06.22.733850},

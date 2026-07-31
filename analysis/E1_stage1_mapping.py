@@ -23,8 +23,12 @@ from scipy import stats
 from pathlib import Path
 import json
 import mygene
+import sys
 import warnings
 import time
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _ribosomal_panel import panel_provenance, ribosomal_symbols
 
 # Repository-relative paths. Scripts live in analysis/; everything they read
 # and write is inside this repository.
@@ -42,6 +46,15 @@ OUT  = OUT
 
 # Load Table_S1 for gene class assignment
 table_s1 = pd.read_csv(DATA / "Table_S1.csv")
+RIBOSOMAL = frozenset(ribosomal_symbols(table_s1))
+CONSTRAINED = frozenset(
+    table_s1.loc[(table_s1["pLI"] > 0.9) | (table_s1["LOEUF"] < 0.35),
+                 "gene_symbol"].astype(str).str.upper()
+)
+DISEASE = frozenset(
+    table_s1.loc[table_s1["clinvar_disease"] == True,  # noqa: E712
+                 "gene_symbol"].astype(str).str.upper()
+)
 
 # Load E3 robust core for outlier definitions
 with open(OUT / "E3_robust_core.json") as f:
@@ -51,25 +64,14 @@ with open(OUT / "E3_robust_core.json") as f:
 # ── Gene class assignment (same as E3) ───────────────────────────────────────
 
 def assign_gene_class(sym: str) -> str:
-    sym_u = sym.upper()
+    sym_u = str(sym).upper()
     if sym_u.startswith("MT-"):
         return "mitochondrial"
-    if any(sym_u.startswith(p) for p in ["RPL", "RPS", "MRPL", "MRPS"]):
-        # Check it's actually ribosomal (e.g. RPS6KA1 is not)
-        import re
-        if re.match(r"^(RPL|RPS|MRPL|MRPS)\d", sym_u):
-            return "ribosomal"
-    constrained = set(
-        table_s1.loc[(table_s1["pLI"] > 0.9) | (table_s1["LOEUF"] < 0.35),
-                     "gene_symbol"].str.upper()
-    )
-    disease = set(
-        table_s1.loc[table_s1["clinvar_disease"] == True,
-                     "gene_symbol"].str.upper()
-    )
-    if sym_u in constrained:
+    if sym_u in RIBOSOMAL:
+        return "ribosomal"
+    if sym_u in CONSTRAINED:
         return "constrained"
-    if sym_u in disease:
+    if sym_u in DISEASE:
         return "disease"
     return "other"
 
@@ -444,6 +446,7 @@ for _, r in audit_df.iterrows():
 # Save gate verdict
 gate_verdict = {
     "overall": overall,
+    "panel_provenance": panel_provenance(),
     "per_model": {r["model"]: {
         "gate": r["gate"],
         "outlier_coding_mapping_rate": r["outlier_coding_mapping_rate"],

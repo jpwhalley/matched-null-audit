@@ -1,0 +1,29 @@
+{
+  "panel": "ribosomal proteins (cytoplasmic small and large subunit, mitochondrial)",
+  "source": "HGNC curated gene groups",
+  "source_group_ids": {
+    "728": "S ribosomal proteins",
+    "729": "L ribosomal proteins",
+    "646": "Mitochondrial ribosomal proteins"
+  },
+  "source_urls": [
+    "https://www.genenames.org/cgi-bin/genegroup/download?id=728&type=branch",
+    "https://www.genenames.org/cgi-bin/genegroup/download?id=729&type=branch",
+    "https://www.genenames.org/cgi-bin/genegroup/download?id=646&type=branch"
+  ],
+  "documentation": [
+    "https://www.genenames.org/download/gene-groups/",
+    "https://www.genenames.org/help/genegroup/"
+  ],
+  "retrieved_utc_date": "2026-07-30",
+  "n_genes": 171,
+  "n_matched_in_Table_S1": {
+    "by_ensembl": 171,
+    "by_symbol": 171,
+    "key_disagreements": 0
+  },
+  "panel_sha256": "acd2a7adf03ad9b435785fd1f239d41faef8242a7068553f805e26465cf5842e",
+  "matching_key": "ensembl_gene_id (symbol retained for readability only)",
+  "replaces": "regex ^(RPL|RPS|MRPL|MRPS)(\\d|P\\d)|^RPSA$, which admitted ten RPS6K* kinases, RPS19BP1 and the obsolete symbol MRPS36, and omitted AURKAIP1, CHCHD1, DAP3, FAU, GADD45GIP1, PTCD3 and UBA52",
+  "effect_on_treatment": "None. No panel change falls inside the 50-gene Geneformer treatment set; UBA52 and FAU are outliers but rank 119 and 304."
+}

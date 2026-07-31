@@ -1,6 +1,13 @@
 {
   "interpretation": "DIVERGENT",
-  "note": "Outlier sets are largely different between scFM and ESM-2 embeddings. Their geometry is principally model-specific rather than explained by protein-sequence geometry; this comparison does not isolate architecture or tokenisation from corpus, objective, vocabulary, or scale.",
+  "note": "Outlier sets are largely different between scFM and ESM-2 embeddings. Geometric outliers are model/tokenisation-specific, not intrinsic biological properties.",
+  "panel_provenance": {
+    "ribosomal_panel": "ribosomal_panel.csv",
+    "ribosomal_panel_sha256": "acd2a7adf03ad9b435785fd1f239d41faef8242a7068553f805e26465cf5842e",
+    "ribosomal_panel_n": 171,
+    "ribosomal_panel_source": "HGNC gene groups 728, 729, 646",
+    "ribosomal_panel_retrieved": "2026-07-30"
+  },
   "mean_jaccard": 0.02340506716,
   "mean_spearman": 0.04172534885,
   "n_esm2_outliers_total": 570,

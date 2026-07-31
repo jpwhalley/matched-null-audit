@@ -37,7 +37,6 @@ Outputs (in revision/outputs/ unless noted):
 """
 
 import argparse
-import re
 import json
 import sys
 import time
@@ -51,7 +50,8 @@ import pandas as pd
 from scipy import stats
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _precision import SIGFIGS, clean  # documented serialisation precision
+from _precision import clean  # documented serialisation precision
+from _ribosomal_panel import panel_provenance, ribosomal_symbols
 
 # Repository-relative paths. Scripts live in analysis/; everything they read
 # and write is inside this repository.
@@ -77,7 +77,7 @@ table_s1 = pd.read_csv(DATA / "Table_S1.csv")
 # Built once at import. Rebuilding these inside assign_gene_class rescanned an
 # 18,915-row frame on every one of ~19,000 calls; hoisting them takes the
 # verification path from minutes to ~1.5 s.
-RIBOSOMAL_RE = re.compile(r"^(RPL|RPS|MRPL|MRPS)\d")
+RIBOSOMAL_GENES = frozenset(ribosomal_symbols(table_s1))
 CONSTRAINED_GENES = frozenset(
     table_s1.loc[(table_s1["pLI"] > 0.9) | (table_s1["LOEUF"] < 0.35),
                  "gene_symbol"].astype(str).str.upper()
@@ -92,7 +92,7 @@ def assign_gene_class(sym: str) -> str:
     sym_u = str(sym).upper()
     if sym_u.startswith("MT-"):
         return "mitochondrial"
-    if RIBOSOMAL_RE.match(sym_u):
+    if sym_u in RIBOSOMAL_GENES:
         return "ribosomal"
     if sym_u in CONSTRAINED_GENES:
         return "constrained"
@@ -773,11 +773,7 @@ def compare_against_scfms(esm2_geom):
         })
 
     comp_df = pd.DataFrame(comparison_rows)
-    comp_df.to_csv(
-        OUT / "E1_esm2_comparison.csv",
-        index=False,
-        float_format=f"%.{SIGFIGS}g",
-    )
+    comp_df.to_csv(OUT / "E1_esm2_comparison.csv", index=False)
 
     # ── Verdict ──────────────────────────────────────────────────────────
     mean_jaccard = comp_df["jaccard"].mean()
@@ -786,26 +782,23 @@ def compare_against_scfms(esm2_geom):
     if mean_jaccard < 0.15 and mean_rho < 0.3:
         interpretation = "DIVERGENT"
         note = ("Outlier sets are largely different between scFM and ESM-2 "
-                "embeddings. Their geometry is principally model-specific rather "
-                "than explained by protein-sequence geometry; this comparison "
-                "does not isolate architecture or tokenisation from corpus, "
-                "objective, vocabulary, or scale.")
+                "embeddings. Geometric outliers are model/tokenisation-specific, "
+                "not intrinsic biological properties.")
     elif mean_jaccard > 0.5 and mean_rho > 0.6:
         interpretation = "CONVERGENT"
         note = ("Same genes are geometric outliers in both expression-trained "
-                "and sequence-trained embeddings. The recurrence is consistent "
-                "with a shared sequence-related component, but does not by itself "
-                "establish biological importance.")
+                "and sequence-trained embeddings. Outlier status reflects "
+                "intrinsic biological properties, not model-specific failure.")
     else:
         interpretation = "PARTIAL"
-        note = ("Partial overlap: some gene classes recur across the two "
-                "embedding sources while others remain scFM-specific. This "
-                "supports a mixed descriptive interpretation without assigning "
-                "a causal mechanism.")
+        note = ("Partial overlap: some gene classes (likely sequence-intrinsic) "
+                "are shared outliers, while expression-exposure-driven outliers "
+                "are scFM-specific. Supports a mixed interpretation.")
 
     verdict = {
         "interpretation": interpretation,
         "note": note,
+        "panel_provenance": panel_provenance(),
         "mean_jaccard": float(mean_jaccard),
         "mean_spearman": float(mean_rho),
         "n_esm2_outliers_total": int(len(esm2_outliers)),
