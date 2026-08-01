@@ -11,7 +11,7 @@ against the artefact.
 
 | Manuscript item | Script | Inputs | Outputs | Repro |
 |---|---|---|---|---|
-| Figure 1, model designs and shared screen | `make_psb_figures.py::fig1_workflow` | none (schematic) | `figures/F1_designs.pdf` | local |
+| Figure 1, model designs and shared screen | `make_psb_figures.py::fig1_designs` | none (schematic) | `figures/F1_designs.pdf` | local |
 | Figure 2, caller robustness | `make_psb_figures.py::fig2_stability` | `outputs/E3_calibrated_summary.csv` | `figures/F2_stability.pdf` | local |
 | Figure 3, ESM-2 comparison | `make_psb_figures.py::fig3_esm2` | `outputs/E6_scfm_only_by_class.csv` | `figures/F3_esm2.pdf` | local |
 | Figure 4, matched deletion nulls (3 panels) | `make_psb_figures.py::fig4_nullband` | `outputs/E2_ablation_<ds>.json`, `outputs/E2_baseline_<ds>.json` | `figures/F4_nullband.pdf` | local from shipped E2 outputs |
@@ -32,9 +32,8 @@ against the artefact.
 | §2.3 MANE mapping for ESM-2 | `E1_stage1_mapping.py` | MANE Select v1.3, UniProt | gene-to-protein mapping | checkpoint |
 | §2.4 treatment and control construction | `E2_downstream_ablation.py --setup` | `data/Table_S1.csv`, tokenised cells | `outputs/E2_treatment_genes.csv`, `outputs/E2_matched_controls_*_balance.csv`, `cache/E2_matched_controls_*.json` | checkpoint |
 | §2.4 pinned baseline and device | `E2_downstream_ablation.py --baseline` | tokenised cells, Geneformer | `outputs/E2_baseline_<ds>.json` | checkpoint |
-| §2.5 ribosomal panel definition | `_ribosomal_panel.py` | `data/ribosomal_panel.csv`, `..._provenance.json` | consumed by E2, E6, E11 | local |
+| §2.5 ribosomal panel definition | `_ribosomal_panel.py` | `data/ribosomal_panel.csv`, `..._provenance.json` | consumed by E1, E2, E3, E6 and E8 | local |
 | §2.5 class schemes, overlapping and exclusive | `E6_class_association.py` | `data/Table_S1.csv` | `outputs/E6_class_association.{csv,json}` | local |
-| §2.7 serialisation precision | `_precision.py` | — | consumed by E7, E10, E11 | local |
 
 ## Results
 
@@ -53,7 +52,6 @@ against the artefact.
 | §3.4 Tabula Sapiens replication | `E2_downstream_ablation.py --datasets tabula_sapiens` | as above | `outputs/E2_{ablation,verdict,baseline}_tabula_sapiens.json` | checkpoint |
 | §3.5 adjusted ClinVar association, all models | `E8_clinvar_adjusted.py` | `data/Table_S1.csv` | `outputs/E8_clinvar_adjusted.{csv,json}` | local |
 | §3.5 scheme dependence of class enrichment | `E6_class_association.py` | as Table 2b | `outputs/E6_class_association.{csv,json}`, `E6_scfm_only_by_class.csv` | local |
-| §3.5 exploratory dependency analysis | `E11_dependency.py` | `data/Table_S1.csv`, DepMap 25Q3 | `outputs/E11_dependency.{csv,json}` | local |
 
 ## Environment
 

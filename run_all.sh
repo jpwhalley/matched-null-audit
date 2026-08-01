@@ -9,7 +9,8 @@
 #   REGENERATE_ESM2=1   recompute ESM-2 embeddings from the checkpoint (~2 h)
 #   RUN_ABLATION=1      run the matched deletion test (~18 h)
 #
-# Data acquisition for those paths is in notebooks/D01-D04; see DATA_MANIFEST.md.
+# Data acquisition for those paths is in notebooks/D01, D02 and D04; see
+# DATA_MANIFEST.md.
 
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -42,9 +43,6 @@ fi
 echo "### Covariate-adjusted association — Table 2"
 run E8_clinvar_adjusted.py
 run E6_class_association.py
-
-echo "### Exploratory dependency analysis"
-run E11_dependency.py
 
 echo "### Matched deletion test — Figure 4  (expensive)"
 if [[ "${RUN_ABLATION:-0}" != "1" ]]; then

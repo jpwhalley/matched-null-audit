@@ -9,7 +9,7 @@ Verified against `data/CHECKSUMS.json` by `E1_stage2_esm2.py --verify-shipped`.
 
 | File | SHA-256 (16) | Size | Contents |
 |---|---|---|---|
-| `data/Table_S1.csv` | `57443b7225229e0b` | 5.9 MB | Per-gene annotation: geometry scores for all three models, cross-model outlier-set membership, gene class, constraint, ClinVar, dependency |
+| `data/Table_S1.csv` | `57443b7225229e0b` | 5.9 MB | Per-gene annotation: geometry scores, cross-model outlier-set membership, expression, gene class, constraint and ClinVar |
 | `data/gene_embedding_geometry.csv` | `94d814094f5a519c` | 4.4 MB | Geneformer per-gene geometry: four metrics with z-scores |
 | `data/scgpt_gene_embedding_geometry.csv` | `2c7ff95b71a5c237` | 12.3 MB | scGPT per-gene geometry |
 | `data/sf_gene_embedding_geometry.csv` | `d3a4924c156c8835` | 2.6 MB | scFoundation per-gene geometry |
@@ -50,8 +50,6 @@ The tokenised cell matrices they index are not shipped; rebuild those with
 | MANE Select | v1.3 (pinned) | `D02_external_databases.ipynb` | public domain |
 | gnomAD constraint | v4.1 | `D02_external_databases.ipynb` | ODbL |
 | ClinVar | as dated in the notebook | `D02_external_databases.ipynb` | public domain |
-| DepMap | Public 25Q3, `CRISPRGeneEffect.csv` | `D03_functional_datasets.ipynb` | CC-BY |
-| HGNC gene groups | 728, 729, 646 | `D03_functional_datasets.ipynb` | public |
 | PBMC3k | 10x Genomics, via scanpy | `D04_reference_datasets.ipynb` | CC-BY |
 | Tabula Sapiens Immune | CellxGene `78b60b70-129a-4a6d-b15f-825b241eec66` | `D04_reference_datasets.ipynb` | CC-BY |
 
@@ -67,7 +65,6 @@ Model weights are not redistributed here.
 | `outputs/E6_*.{csv,json}` | `E6_class_association.py` |
 | `outputs/E8_clinvar_adjusted.{csv,json}` | `E8_clinvar_adjusted.py` |
 | `outputs/E10_cross_model_agreement.{csv,json}` | `E10_cross_model_agreement.py` |
-| `outputs/E11_dependency.{csv,json}` | `E11_dependency.py` |
 | `outputs/E2_treatment_genes.csv`, `E2_matched_controls_*_balance.csv` | `E2_downstream_ablation.py --setup` |
 | `outputs/E2_baseline_<dataset>.json` | `E2_downstream_ablation.py --baseline` |
 | `outputs/E2_ablation_<dataset>.json` | `E2_downstream_ablation.py --ablation` |
@@ -85,7 +82,7 @@ across runs on the same rendering stack.
 
 | Stage | Time | Needs |
 |---|---|---|
-| E3, E6, E8, E10, E11 | seconds to minutes | shipped data only |
+| E3, E6, E8, E10 | seconds to minutes | shipped data only |
 | E1 stage 2 (`--verify-shipped`) | seconds | shipped data only |
 | E1 stage 1 | ~10 min | network (MyGene) |
 | E1 stage 2 (`--all`) | ~2 h | ESM-2 checkpoint, GPU helpful |

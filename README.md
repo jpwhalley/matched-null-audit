@@ -1,4 +1,4 @@
-# Matched-null auditing of gene-embedding outliers in single-cell foundation models
+# Comparative geometry of gene embeddings in single-cell foundation models
 
 Reproduction package for the PSB 2027 paper of the same name (J. Whalley).
 
@@ -61,7 +61,7 @@ data/               shipped inputs and checksums
 cache/              matched-control draws and their specification sidecars
 outputs/            saved results
 figures/            the four manuscript figures
-notebooks/          D01-D04 data acquisition, P01 the geometry screen
+notebooks/          D01, D02 and D04 data acquisition; P01 the geometry screen
 run_all.sh          the pipeline above
 DATA_MANIFEST.md    provenance, versions, licences, reproduction cost
 MANUSCRIPT_TRACEABILITY.md   reported result -> script -> input -> output
