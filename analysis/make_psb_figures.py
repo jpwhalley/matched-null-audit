@@ -126,58 +126,109 @@ def fig3_esm2():
 
 
 # ---------------------------------------------------------------- F4
-def fig4_nullband(dataset="pbmc3k"):
-    """THE figure. Treatment delta vs matched-control null. macro-F1 only."""
-    path = OUT / f"E2_ablation_{dataset}.json"
-    if not path.exists():
-        print(f"  (skipping F4: no {path.name})")
-        return
-    res = json.load(open(path))
+def fig4_nullband():
+    """THE figure. Treatment delta vs matched-control null. macro-F1 only.
 
-    canon_p = OUT / f"E2_baseline_{dataset}.json"
-    base = (json.load(open(canon_p))["baseline_retrained_f1"]
-            if canon_p.exists()
-            else res["baseline"]["baseline_retrained_f1"])
+    One float, three panels: PBMC3k primary, PBMC3k sensitivity, and the
+    Tabula Sapiens primary arm. The axes are deliberately NOT shared. The two
+    datasets have different baselines (0.924 against 0.635) and different
+    control counts (200 against 100), so a common x-axis would invite reading
+    the three histograms as one null distribution. Each panel therefore states
+    its own baseline and n.
 
-    panels = [("Full treatment\n(50 genes)", "control_results_full",
-               "treatment"),
-              ("Sensitivity\n(36 genes, no ribo/mito)",
-               "control_results_no_ribo_mito", "sensitivity")]
+    Values are plotted in units of 1e-3 so the tick labels fit a narrow panel.
+    """
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import Patch
 
-    fig, axes = plt.subplots(1, 2, figsize=(W, 2.15), sharex=True)
-    for ax, (title, ck, tk) in zip(axes, panels):
-        ctrls = res.get(ck) or []
-        if not ctrls:
-            ax.set_visible(False)
-            continue
-        cd = np.array([c["retrained_f1"] for c in ctrls]) - base
-        td = res[tk]["retrained_f1"] - base
+    # dataset, control key, treatment key, title, n genes, note
+    PANELS = [
+        ("pbmc3k", "control_results_full", "treatment",
+         "PBMC3k\nprimary", 50, None),
+        ("pbmc3k", "control_results_no_ribo_mito", "sensitivity",
+         "PBMC3k\nsensitivity", 36, "no ribo/mito"),
+        ("tabula_sapiens", "control_results_full", "treatment",
+         "Tabula Sapiens\nprimary only", 50, None),
+    ]
+
+    cache = {}
+
+    def load(ds):
+        if ds not in cache:
+            path = OUT / f"E2_ablation_{ds}.json"
+            if not path.exists():
+                return None
+            res = json.load(open(path))
+            bp = OUT / f"E2_baseline_{ds}.json"
+            base = (json.load(open(bp))["baseline_retrained_f1"]
+                    if bp.exists() else res["baseline"]["baseline_retrained_f1"])
+            cache[ds] = (res, base)
+        return cache[ds]
+
+    for ds, *_ in PANELS:
+        if load(ds) is None:
+            print(f"  (skipping F4: no E2_ablation_{ds}.json)")
+            return
+
+    fig, axes = plt.subplots(1, 3, figsize=(W, 2.05))
+    for ax, (ds, ck, tk, title, ngenes, note) in zip(axes, PANELS):
+        res, base = load(ds)
+        ctrls = res[ck]
+        cd = (np.array([c["retrained_f1"] for c in ctrls]) - base) * 1e3
+        td = (res[tk]["retrained_f1"] - base) * 1e3
         lo, hi = np.percentile(cd, [2.5, 97.5])
         z = (td - cd.mean()) / cd.std(ddof=1)
 
         ax.axvspan(lo, hi, color="0.88", zorder=0)
-        ax.hist(cd, bins=26, color=GREY, edgecolor="black", linewidth=0.35,
-                zorder=2)
-        ax.axvline(td, color=ACC, lw=1.6, zorder=4)
-        ax.axvline(lo, color=DARK, lw=0.8, ls="--", zorder=3)
-        ax.axvline(hi, color=DARK, lw=0.8, ls="--", zorder=3)
+        ax.hist(cd, bins=22 if len(ctrls) >= 200 else 16, color=GREY,
+                edgecolor="black", linewidth=0.3, zorder=2)
+        ax.axvline(td, color=ACC, lw=1.5, zorder=4)
+        for b in (lo, hi):
+            ax.axvline(b, color=DARK, lw=0.7, ls="--", zorder=3)
 
-        ymax = ax.get_ylim()[1]
-        ax.annotate("treatment", xy=(td, ymax * 0.94),
-                    xytext=(td - abs(td) * 0.9 - 0.0016, ymax * 0.94),
-                    fontsize=7, ha="right", va="center",
-                    arrowprops=dict(arrowstyle="->", lw=0.7))
-        ax.text(0.03, 0.86, f"$z$ = {z:+.2f}\nINSIDE", transform=ax.transAxes,
-                fontsize=7, va="top",
-                bbox=dict(boxstyle="round,pad=0.28", fc="white", ec="0.6",
-                          lw=0.5))
-        ax.set_title(title, fontsize=7.5)
-        ax.set_xlabel("$\\Delta$ macro-$F_1$ vs baseline")
-    axes[0].set_ylabel(f"matched control sets\n(n = {len(res['control_results_full'])})")
-    fig.tight_layout(pad=0.35)
-    fig.savefig(REPO / "figures" / f"F4_nullband_{dataset}.pdf", metadata=DETERMINISTIC_PDF)
+        ax.set_ylim(0, ax.get_ylim()[1] * 1.72)   # headroom for the annotation
+
+        lines = [f"$z$ = {z:+.2f}  INSIDE"]
+        if note:
+            lines.append(note)
+        lines += [f"{ngenes} genes, $n$ = {len(ctrls)}",
+                  f"baseline {base:.4f}"]
+        ax.text(0.05, 0.98, "\n".join(lines), transform=ax.transAxes,
+                fontsize=5.5, va="top", linespacing=1.4, zorder=6,
+                bbox=dict(boxstyle="round,pad=0.24", fc="white", ec="0.6",
+                          lw=0.45))
+
+        ax.set_title(title, fontsize=7.2)
+        ax.tick_params(axis="x", pad=1.5)
+        ax.locator_params(axis="x", nbins=4)
+
+    axes[0].set_ylabel("matched control sets", fontsize=7.2)
+    axes[1].set_xlabel("$\\Delta$ macro-$F_1$ vs baseline ($\\times 10^{-3}$)")
+
+    fig.legend(handles=[Line2D([], [], color=ACC, lw=1.5, label="treatment"),
+                        Patch(facecolor="0.88", label="central 95% of null"),
+                        Line2D([], [], color=DARK, lw=0.7, ls="--",
+                               label="2.5th / 97.5th percentile")],
+               loc="lower center", ncol=3, frameon=False, fontsize=6,
+               bbox_to_anchor=(0.5, -0.05), handlelength=1.5,
+               columnspacing=1.3, handletextpad=0.5)
+    fig.tight_layout(pad=0.3, w_pad=0.75, rect=(0, 0.05, 1, 1))
+    fig.savefig(REPO / "figures" / "F4_nullband.pdf",
+                metadata=DETERMINISTIC_PDF)
     plt.close(fig)
-    print(f"  F4_nullband_{dataset}.pdf")
+    print("  F4_nullband.pdf")
+
+    # The two-float version is superseded by the merged figure above. This
+    # release tree has no manuscript to check against, so remove them outright;
+    # leaving them is how a stale figure gets picked up later.
+    for old in ("F4_nullband_pbmc3k.pdf", "F4_nullband_tabula_sapiens.pdf"):
+        q = REPO / "figures" / old
+        if q.exists():
+            try:
+                q.unlink()
+                print(f"  removed superseded {old}")
+            except OSError as e:
+                print(f"  could not remove {old} ({e.strerror})")
 
 
 # ---------------------------------------------------------------- F1
@@ -406,6 +457,5 @@ if __name__ == "__main__":
     fig1_designs()
     fig2_stability()
     fig3_esm2()
-    fig4_nullband("pbmc3k")
-    fig4_nullband("tabula_sapiens")
+    fig4_nullband()
     print("Done.")

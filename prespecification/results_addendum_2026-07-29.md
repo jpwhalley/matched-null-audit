@@ -234,3 +234,44 @@ The empirical p of 0.0597 sits near 0.05. **No additional control draws were
 generated after seeing it.** The pre-specified criterion is the 2.5th percentile
 of the matched-control distribution and it was met; extending the null after
 observing a borderline p would be outcome-driven whichever way it moved.
+
+---
+
+## Outcome under the corrected HGNC panel (recorded 2026-07-31)
+
+Both datasets were re-run against matched nulls rebuilt from the pinned HGNC
+panel (groups 728, 729, 646; 171 genes; sha256 `acd2a7ad…`). The pre-specified
+rule was applied unchanged.
+
+| arm | treat − ctrl mean | z | at least as damaging | add-one p | band | verdict |
+|---|---|---|---|---|---|---|
+| PBMC3k primary | −0.002805 | −1.500 | 12 / 200 | 0.0647 | [−0.003586, +0.003022] | inside |
+| PBMC3k sensitivity | +0.001216 | +0.574 | 145 / 200 | 0.7264 | [−0.007645, +0.001089] | inside |
+| Tabula Sapiens primary | −0.007297 | −1.120 | 14 / 100 | 0.1485 | [−0.012209, +0.011704] | inside |
+
+Gate: NULL on every arm. The Tabula Sapiens sensitivity controls were drawn
+(100 draws of 36 genes) but the arm was not evaluated; the replication is
+primary-only and is labelled as such in the manuscript and in Figure 4.
+
+The prospectively recorded directional prediction did not hold for the
+standardised contrast: z moved from −1.562 to −1.500 and the add-one empirical
+p-value from 0.0597 to 0.0647. However, the absolute margin above the
+pre-specified 2.5th-percentile boundary narrowed from 0.00104 to 0.00044. The
+treatment remained inside the matched null under both specifications.
+
+The narrowing is driven by the null rather than the treatment: the treatment
+moved 0.00005, while the 2.5th percentile of the control distribution rose
+from −0.00419 to −0.00359. The rebuilt controls contain fewer extremely
+damaging draws. This does not establish that the proposed mechanism is wrong;
+it shows that token count alone did not predict the net macro-F1 effect once
+control composition changed.
+
+Under pre-commitment 5, no additional draws were generated after these results
+were seen. The v1 digit-anchored controls are retained under
+`archive/ribo_v1_digit_anchored/` and are labelled superseded, not current.
+
+**Scope of this record.** This comparison is provenance. The manuscript
+reports the corrected result and its bounded conclusion only; the bioRxiv
+changelog states that the corrected control definition changed the numerical
+estimates but not the verdict. Neither carries the v1 statistics, the boundary
+margin or the directional prediction.

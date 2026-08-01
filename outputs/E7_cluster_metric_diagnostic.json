@@ -8,15 +8,15 @@
     "usability_rests_on": "band_width_over_baseline only",
     "improve_fraction_status": "DESCRIPTIVE ONLY. Not a usability gate. It is sensitive to the baseline at a scale far below the metric's own, so at some baselines it would reject the retained gate metric. Live values are in improve_fraction_observed and the CSV.",
     "improve_fraction_observed": {
-      "pbmc3k/full/retrained_f1": 0.48,
+      "pbmc3k/full/retrained_f1": 0.465,
       "pbmc3k/full/cluster_ari": 0.47,
-      "pbmc3k/full/cluster_nmi": 0.45,
-      "pbmc3k/no_ribo_mito/retrained_f1": 0.115,
-      "pbmc3k/no_ribo_mito/cluster_ari": 0.425,
-      "pbmc3k/no_ribo_mito/cluster_nmi": 0.435,
-      "tabula_sapiens/full/retrained_f1": 0.57,
-      "tabula_sapiens/full/cluster_ari": 0.61,
-      "tabula_sapiens/full/cluster_nmi": 0.42
+      "pbmc3k/full/cluster_nmi": 0.465,
+      "pbmc3k/no_ribo_mito/retrained_f1": 0.08,
+      "pbmc3k/no_ribo_mito/cluster_ari": 0.405,
+      "pbmc3k/no_ribo_mito/cluster_nmi": 0.405,
+      "tabula_sapiens/full/retrained_f1": 0.48,
+      "tabula_sapiens/full/cluster_ari": 0.68,
+      "tabula_sapiens/full/cluster_nmi": 0.33
     },
     "rationale": "A test whose 95% null band spans a large fraction of its baseline value is too imprecise to resolve a plausible ablation effect. That is the sole usability criterion.",
     "rejected_criterion": "control range as a multiple of the treatment effect - tautological for a null result, since a treatment inside the band implies the band exceeds the effect."
@@ -24,30 +24,30 @@
   "per_metric": {
     "retrained_f1": {
       "usable_as_outcome": true,
-      "frac_controls_improving": 0.48,
-      "control_range": 0.01377533671,
-      "null_band_width": 0.007060714697,
-      "band_width_over_baseline": 0.0076,
-      "control_delta_mean": -0.0002051717465,
-      "control_delta_sd": 0.001886207882
+      "frac_controls_improving": 0.465,
+      "control_range": 0.01558886745,
+      "null_band_width": 0.006607787357,
+      "band_width_over_baseline": 0.0071,
+      "control_delta_mean": -0.0003463465805,
+      "control_delta_sd": 0.001870436758
     },
     "cluster_ari": {
       "usable_as_outcome": false,
       "frac_controls_improving": 0.47,
-      "control_range": 0.28333679,
-      "null_band_width": 0.2258722352,
-      "band_width_over_baseline": 0.423,
-      "control_delta_mean": 0.04576808595,
-      "control_delta_sd": 0.08286496238
+      "control_range": 0.3213677482,
+      "null_band_width": 0.2297403658,
+      "band_width_over_baseline": 0.4302,
+      "control_delta_mean": 0.04856153236,
+      "control_delta_sd": 0.08469846305
     },
     "cluster_nmi": {
       "usable_as_outcome": false,
-      "frac_controls_improving": 0.45,
-      "control_range": 0.1055267729,
-      "null_band_width": 0.07478562188,
-      "band_width_over_baseline": 0.1061,
-      "control_delta_mean": 0.006171021265,
-      "control_delta_sd": 0.02253997312
+      "frac_controls_improving": 0.465,
+      "control_range": 0.1228344985,
+      "null_band_width": 0.08256820286,
+      "band_width_over_baseline": 0.1171,
+      "control_delta_mean": 0.004252850757,
+      "control_delta_sd": 0.02358609869
     }
   },
   "conclusion": "Report retrained macro-F1 alone in the headline figure. Cluster ARI is excluded on PRECISION: its 95% null band spans ~42% of the baseline value against ~0.7% for macro-F1, roughly sixty times less precise, so it cannot resolve an effect of the size at issue. The earlier 'random deletion reliably improves ARI' argument does NOT survive the corrected controls and is not relied on. Move clustering metrics to supplementary with these numbers attached.",

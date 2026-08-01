@@ -1,0 +1,14 @@
+{
+  "ribosomal_panel_sha256": "acd2a7adf03ad9b435785fd1f239d41faef8242a7068553f805e26465cf5842e",
+  "n_bootstrap": 200,
+  "ribosomal_panel": "ribosomal_panel.csv",
+  "ribosomal_panel_n": 171,
+  "ribosomal_panel_source": "HGNC gene groups 728, 729, 646",
+  "ribosomal_panel_retrieved": "2026-07-30",
+  "dataset": "pbmc3k",
+  "arm": "sensitivity",
+  "n_draws": 200,
+  "genes_per_draw": 36,
+  "treatment_gene_list_sha256": "7d98c5c0c9959c682faab1a0d4a279f7b87f8f4385486eaceb2c72ad06ccafdb",
+  "control_cache_sha256": "3e2b124f34e1941a626bdf1567e9765afdcbb5d926c3b7192421266b2632536f"
+}

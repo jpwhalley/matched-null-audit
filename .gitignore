@@ -4,7 +4,10 @@ __pycache__/
 *.pyc
 
 # Large regenerable intermediates
-cache/
+# Bulk caches stay out. The matched-control draws are the evidentiary
+# basis for the deletion nulls and are released with the paper.
+cache/*
+!cache/E2_matched_controls_*.json
 outputs/E2_baseline_embs_*.npy
 outputs/E1_esm2_embeddings.npy
 
@@ -28,3 +31,8 @@ models/
 *([0-9]).*
 * [0-9].*
 *conflicted copy*
+
+# Google Drive conflict copies: stale duplicates, one of them a whole second
+# .git directory. Committing them would add ~35 MB of junk.
+*" (1)"/
+* (1)/

@@ -27,6 +27,19 @@ re-running the expensive steps.
 > display notebooks (one per figure) are **not yet written** — figures are built
 > directly by `analysis/make_psb_figures.py` in the meantime. All analysis
 > outputs, including the matched deletion test, are present and current.
+>
+> **Ribosomal panel, 2026-07-30.** The symbol-regex ribosomal definition was
+> replaced by a pinned panel built from HGNC gene groups 728, 729 and 646
+> (`data/ribosomal_panel.csv`, 171 genes). Because gene class is a matching
+> stratum, every matched null was rebuilt and both deletion datasets rerun.
+> PBMC3k and Tabula Sapiens outputs here are the corrected generation; the
+> superseded ones are in `archive/ribo_v1_digit_anchored/` with a manifest.
+> The verdict is unchanged — the treatment remains inside its matched null on
+> every arm — but the numerical estimates moved. See
+> `prespecification/results_addendum_2026-07-29.md`.
+>
+> The matched-control draws themselves are committed under `cache/`, so the
+> nulls can be recomputed without redrawing them.
 
 ---
 

@@ -93,20 +93,23 @@ outliers, 125 of them scFM-only; both versions are saved in
 ## Figure 4 — Matched-control deletion results
 
 **Built by:** `analysis/make_psb_figures.py::fig4_nullband`
-**Data:** `outputs/E2_ablation_pbmc3k.json` ← `analysis/E2_downstream_ablation.py`
+**Data:** `outputs/E2_ablation_pbmc3k.json`, `outputs/E2_ablation_tabula_sapiens.json`
+← `analysis/E2_downstream_ablation.py`. All values below are under the pinned
+HGNC ribosomal panel (groups 728, 729, 646; sha256 `acd2a7ad…`); the
+digit-anchored v1 values are superseded and kept in `archive/`.
 
 | Claim | Value | Source |
 |---|---|---|
 | Baseline macro-F1 (pinned, MPS) | 0.9242778046911788 | `outputs/E2_baseline_pbmc3k.json` |
 | Treatment retrained F1 | 0.9211266 | `E2_ablation_pbmc3k.json::treatment.retrained_f1` |
-| **Treatment − control mean** (baseline-invariant) | **−0.002946** | `E2_verdict_pbmc3k.json::full.treatment_minus_control_mean_f1` |
-| **Gate statistic z** | **−1.5619** | `full.gate_z` |
-| **Controls at least as damaging** | **11/200** | `full.n_controls_at_least_as_damaging` |
-| **One-sided empirical p** (add-one) | **0.0597** | `full.empirical_p_addone` |
+| **Treatment − control mean** (baseline-invariant) | **−0.002805** | `E2_verdict_pbmc3k.json::full.treatment_minus_control_mean_f1` |
+| **Gate statistic z** | **−1.4996** | `full.gate_z` |
+| **Controls at least as damaging** | **12/200** | `full.n_controls_at_least_as_damaging` |
+| **One-sided empirical p** (add-one) | **0.0647** | `full.empirical_p_addone` |
 | Treatment ΔF1 (vs pinned baseline) | −0.003151 | `full.treatment_delta_f1` |
-| Control Δ mean | −0.000205 | `full.control_mean_delta_f1` |
-| 95% null band | [−0.004186, +0.002874] | `full.null_band_2_5` / `null_band_97_5` |
-| Sensitivity: treatment − control mean | +0.000544 | `sensitivity.treatment_minus_control_mean_f1` |
+| Control Δ mean | −0.000346 | `full.control_mean_delta_f1` |
+| 95% null band | [−0.003586, +0.003022] | `full.null_band_2_5` / `null_band_97_5` |
+| Sensitivity: treatment − control mean | +0.001216 | `sensitivity.treatment_minus_control_mean_f1` |
 | Sensitivity z, p, rank | +0.3481, 0.6617, 132/200 | `sensitivity.*` |
 | Sensitivity ΔF1, control mean | −0.001274, −0.001817 | `sensitivity.*` |
 | k-sweep ΔF1 (k=25/50/100) | −0.001245 / −0.003151 / −0.004101 | `k_sensitivity`, rebased on the pinned baseline |
@@ -159,23 +162,24 @@ recorded in `prespecification/results_addendum_2026-07-29.md`.
 |---|---|---|
 | Baseline macro-F1 (pinned) | 0.6347886452386879 | `outputs/E2_baseline_tabula_sapiens.json` |
 | Treatment − control mean | **−0.007894** | `full.treatment_minus_control_mean_f1` |
-| Gate statistic z | **−1.2561** | `full.gate_z` |
-| Controls at least as damaging | **11/100** | `full.n_controls_at_least_as_damaging` |
-| Empirical p (add-one) | **0.1188** | `full.empirical_p_addone` |
-| Control SD | 0.006284 | `full.control_sd_delta_f1` |
+| Gate statistic z | **−1.1200** | `full.gate_z` |
+| Controls at least as damaging | **14/100** | `full.n_controls_at_least_as_damaging` |
+| Empirical p (add-one) | **0.1485** | `full.empirical_p_addone` |
+| Control SD | 0.006516 | `full.control_sd_delta_f1` |
 | Cells, cell types | 3,919 / 22 | `baseline.n_cells`, `n_types` |
-| Balance: expr / breadth / length | 0.283 / 0.020 / 0.112 | `E2_matched_controls_tabula_sapiens_balance.csv` |
-| Token exposure | 21.75 vs 21.43, z +1.29 | `outputs/E9_token_occurrence_TS.json` |
+| Balance: expr / breadth / length | 0.283 / 0.024 / 0.112 | `E2_matched_controls_tabula_sapiens_balance.csv` |
+| Token exposure | 21.75 vs 21.33, z +1.66 | `outputs/E9_token_occurrence_TS.json` |
 
 Primary arm only; the sensitivity arm was not replicated. Executed on separate
-Apple-silicon hardware under Python 3.11.14. `figures/F4_nullband_tabula_sapiens.pdf`
-is generated for traceability and is not referenced by the manuscript.
+Apple-silicon hardware under Python 3.11.14. The Tabula Sapiens panel is now the right-hand panel of the single
+`figures/F4_nullband.pdf`, which the manuscript references; the former
+per-dataset figures are superseded.
 
 Token-level exposure — `analysis/E9_token_occurrence_audit.py`:
 
 | Arm | Treatment | Controls | z |
 |---|---|---|---|
-| Full (50 genes) | 21.07 tokens/cell | 20.62 | +1.73 |
+| Full (50 genes) | 21.07 tokens/cell | 20.59 | +1.64 |
 | Sensitivity (36 genes) | 9.42 | 9.29 | +0.62 |
 
 Token occurrence does not indicate treatment underexposure.
