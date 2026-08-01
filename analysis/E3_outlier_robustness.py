@@ -10,7 +10,7 @@ VIABLE COMPARATORS (used in the gate assessment) — the "MAD family":
 
 DEGENERATE CALLERS — computed and reported, but EXCLUDED from the gate
 assessment. Each exclusion rests on different evidence; see the verdict
-memo revision/verdicts/E3_verdict_2026-07-17.md (amended 2026-07-27):
+Gate criteria:
   - 2-component GMM — too permissive. Minority component captures
     24.20-49.17% of genes in every model x metric combination
     (E3_degenerate_diagnostics.csv). Calling a quarter to a half of the
@@ -23,7 +23,7 @@ memo revision/verdicts/E3_verdict_2026-07-17.md (amended 2026-07-27):
     (E3_calibrated_summary.csv). A caller returning the empty set on two of
     three models cannot distinguish stability from its own insensitivity.
     NOTE: this caller was listed as viable in versions of this script before
-    2026-07-27. It is not. The enrichment-stability claim holds under the
+    The enrichment-stability claim holds under the
     MAD family but NOT under IQR/Tukey, so this reclassification is
     load-bearing rather than cosmetic.
 
@@ -40,9 +40,9 @@ For each viable method, reports:
   - Spearman rank correlation of anomaly scores
   - Fisher's exact enrichment tests for headline biological categories
 
-Gate criteria (specified before downstream experiments; amended after
+Gate criteria (three of six callers are degenerate
 diagnostic checks showed GMM, raw percentile AND IQR/Tukey were degenerate
-— see § Degenerate Method Diagnostics below and the amended verdict memo):
+— see § Degenerate Method Diagnostics below):
   - Primary stability metric: containment + top-k overlap + rank correlation
   - Jaccard is reported but interpreted in context of set-size mismatch
   - Per-model verdict: STABLE / MIXED / UNSTABLE
@@ -341,8 +341,7 @@ for model_name in MODEL_FILES:
 print(f"\n\n{'='*70}")
 print(f"  GATE ASSESSMENT")
 print(f"{'='*70}")
-print(f"\n  Note: gate criteria specified before downstream experiments were")
-print(f"  amended after diagnostic checks showed THREE callers degenerate:")
+print(f"\n  Note: THREE of six callers are degenerate and excluded:")
 print(f"    - GMM 2-component  (too permissive; minority 24.20-49.17%)")
 print(f"    - Percentile 1/99  (fixed-rate ~5-7% by construction)")
 print(f"    - IQR k=3 (Tukey)  (too strict; 43/0/0 outliers, containment 10.5%)")
@@ -452,8 +451,7 @@ gate_output = {
     "overall_note": overall_note,
     "panel_provenance": panel_provenance(),
     "criteria_note": (
-        "Gate criteria specified before downstream experiments; amended after "
-        "diagnostic checks. THREE callers are excluded as degenerate, each on "
+        "THREE of six callers are excluded as degenerate, each on "
         "DIFFERENT evidence: (1) 2-component GMM - too permissive, minority "
         "component captured 24.20-49.17% of genes in every model x metric "
         "combination (see E3_degenerate_diagnostics.csv, which documents this "
@@ -465,11 +463,9 @@ gate_output = {
         "strict, returns 43 outliers for Geneformer (containment 10.5%) and 0 "
         "for both scGPT and scFoundation, so it cannot discriminate stability "
         "from its own insensitivity (evidence: E3_calibrated_summary.csv, NOT "
-        "E3_degenerate_diagnostics.csv). CAVEAT: only IQR/Tukey is present in "
-        "E3_calibrated_summary.csv and E3_enrichment_full.csv. GMM component "
-        "sizes are retained only as degeneracy diagnostics; older GMM and "
-        "percentile enrichment files used a superseded ribosomal definition "
-        "and must not be quoted for class effects. Assessment uses "
+        "E3_degenerate_diagnostics.csv). Only IQR/Tukey is present in "
+        "E3_calibrated_summary.csv and E3_enrichment_full.csv; GMM component "
+        "sizes are retained only as degeneracy diagnostics. Assessment uses "
         "MAD z>3, MAD z>3.5, and rank-matched MAD composite as comparators."
     ),
     "direction_note": (

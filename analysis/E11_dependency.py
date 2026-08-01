@@ -1,45 +1,23 @@
-"""
-E11 — Broad cancer-cell dependency against ClinVar, on one common universe.
+"""Broad cancer-cell dependency against ClinVar, on one common universe.
 
-EXPLORATORY. Added 2026-07-31, after the E8 result was known. Not
-pre-specified, not a confirmatory test, and not to be promoted to one.
+Exploratory. Asks whether geometric outliers track genes that cancer cell lines
+depend on, as a counterpart to the ClinVar analysis in E8.
 
-WHY THIS EXISTS
----------------
-E8 finds no detectable ClinVar association for any model's outlier set. That is
-a negative, and on its own it does not say what the geometry does track. This
-script asks whether the outliers instead track genes that cancer cell lines
-depend on.
+CRISPRGeneEffect is a Chronos gene-effect score: the effect of knockout on
+proliferation and survival in cultured cancer cell lines, anchored at 0 for
+reference non-essential and -1 for reference common-essential genes. It
+measures broad cancer-cell dependency, not organismal essentiality.
 
-WHAT DepMap MEASURES, AND WHAT IT DOES NOT
-------------------------------------------
-CRISPRGeneEffect is a Chronos gene-effect score: the effect of knocking a gene
-out on proliferation and survival in cultured cancer cell lines. The scale is
-anchored at 0 for reference non-essential genes and -1 for reference
-common-essential genes. Averaging across lines and thresholding therefore
-identifies *broad cancer-cell dependency*. It is not organismal essentiality,
-not "centrality to life", and not a claim about development. The wording in
-this script and in the manuscript is kept to "dependency" for that reason.
+Every fit uses one universe of genes holding complete covariates, a ClinVar
+call and a dependency score, so the two outcomes are compared on identical
+rows. Two strata are reported: all genes, and excluding ribosomal and
+mitochondrial genes. A class-adjusted model is inestimable here because outlier
+ribosomal genes are almost all dependencies; exclusion is the estimable
+alternative. p values are uncorrected and the test count is stated.
 
-WHAT THIS SCRIPT FIXES RELATIVE TO ITS FIRST VERSION
-----------------------------------------------------
-1. One common universe. Genes must have complete covariates, a ClinVar call and
-   a dependency score, so dependency and ClinVar are compared on identical rows.
-2. Both strata. All genes, and excluding ribosomal and mitochondrial genes,
-   because a class-adjusted model is inestimable (outlier ribosomal genes are
-   almost all dependencies) and exclusion is the estimable alternative.
-3. A continuous outcome alongside the binary ones, so nothing rests on a
-   threshold.
-4. Multiplicity stated explicitly rather than left implicit.
-5. No claim that any association is independent of gene class. Where that model
-   cannot be fitted, no number is reported.
-
-Outputs (outputs/):
-  E11_dependency.csv   -- one row per model x outcome x stratum
-  E11_dependency.json  -- headline figures, caveats and provenance
-
-Usage:
-  python E11_dependency.py
+Inputs:   data/Table_S1.csv, DepMap CRISPRGeneEffect (see DATA_MANIFEST.md)
+Outputs:  outputs/E11_dependency.{csv,json}
+Usage:    python E11_dependency.py
 """
 
 import hashlib
@@ -83,6 +61,13 @@ DEPMAP = {
                          "or importance to a whole organism"),
 }
 CUT, CUT_STRICT = -0.5, -1.0
+
+# Serialised at eight significant figures rather than the repository default of
+# ten. These regression fits are the only outputs that disagree across
+# supported numerical stacks, and they agree to roughly eight or nine figures,
+# so ten would make the drift check fail on a clean run for no scientific
+# reason. Applied to the rows themselves so the CSV and the JSON match.
+E11_SIGFIGS = 8
 COVARIATES = ["logexpr", "expression_breadth", "loglen", "constrained"]
 SETS = {
     "Geneformer":   ["GF-only", "GF∩scGPT", "GF∩SF", "All three"],
@@ -185,9 +170,10 @@ def main() -> None:
                       f"{est:9.3f}  ({lo:.3f}, {hi:.3f})  p={p:.1e}")
 
     n_tests = len(SETS) * len(OUTCOMES) * len(STRATA)
-    pd.DataFrame(rows).to_csv(OUT / "E11_dependency.csv", index=False)
+    saved_rows = clean(rows, sig=E11_SIGFIGS)
+    pd.DataFrame(saved_rows).to_csv(OUT / "E11_dependency.csv", index=False)
     (OUT / "E11_dependency.json").write_text(json.dumps({
-        "status": "EXPLORATORY, not pre-specified, added 2026-07-31",
+        "status": "exploratory; added after the ClinVar result was known",
         "common_universe": int(len(U)),
         "multiplicity": (
             f"{n_tests} tests across 3 models, 4 outcomes and 2 strata. "
@@ -201,7 +187,7 @@ def main() -> None:
             "association is independent of gene class."),
         "what_depmap_measures": DEPMAP["measures"],
         "what_depmap_does_not_measure": DEPMAP["does_not_measure"],
-        "results": clean(rows),
+        "results": saved_rows,
         "provenance": {"table": TABLE.name, "sha256_16": sha[:16],
                        "depmap": DEPMAP, **panel_provenance()},
     }, indent=2, ensure_ascii=False))

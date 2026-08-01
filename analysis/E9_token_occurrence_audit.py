@@ -1,29 +1,15 @@
-"""
-E9 — Token-occurrence audit for the matched-deletion design.
+"""Token-level exposure of treatment genes against their matched controls.
 
-WHY THIS EXISTS
----------------
-Matching on global expression level, breadth and length does not guarantee that
-treatment and control genes are equally PRESENT in the cells actually analysed.
-A gene only influences a prediction if its token appears in that cell's
-rank-value encoding. If the treatment set were systematically less represented
-in the input than its controls, the deletion test would remove less signal and
-the observed null could be an exposure artefact rather than a result.
+Deleting genes removes tokens from each cell's rank-value encoding. If the
+treatment genes contributed systematically fewer tokens than their controls,
+a null result could reflect low exposure rather than low importance. This
+reports tokens per cell for the treatment set and for each control draw.
 
-This audit measures actual exposure: how many tokens are removed per cell by
-the treatment, and by each matched control set.
-
-Direction of concern:
-  treatment removes FEWER tokens than controls  -> null could be an artefact
-  treatment removes AS MANY OR MORE             -> design biases toward
-                                                   detecting harm, so a null
-                                                   is conservative
-
-Outputs (revision/outputs/):
-  E9_token_occurrence.csv    -- per control set
-  E9_token_occurrence.json   -- summary per treatment arm
-
-Usage:  python E9_token_occurrence_audit.py [--dataset pbmc3k]
+Inputs:   cache/E2_<dataset>_tokenized.json (rebuilt by E2 --setup),
+          cache/E2_matched_controls_<dataset>*.json,
+          outputs/E2_treatment_genes.csv
+Outputs:  outputs/E9_token_occurrence*.{csv,json}
+Usage:    python E9_token_occurrence_audit.py --dataset pbmc3k
 """
 
 import argparse

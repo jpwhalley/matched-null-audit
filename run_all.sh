@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 # Reproduce the analyses reported in the manuscript.
 #
-# Fails loudly on any missing script or non-zero exit. Does NOT silently skip.
+# Fails loudly on any missing script or non-zero exit. Does not silently skip.
 #
-# The default path needs only the SHIPPED inputs -- no model checkpoints, no
-# GPU, no network. Data acquisition (notebooks/D01-D04) is required only for
-# full regeneration: REGENERATE_ESM2=1 and the E2 ablation. See DATA_MANIFEST.md.
+# The default path needs only the shipped inputs: no model checkpoints, no GPU,
+# no network. It takes about a minute. Two stages are expensive and opt-in:
+#
+#   REGENERATE_ESM2=1   recompute ESM-2 embeddings from the checkpoint (~2 h)
+#   RUN_ABLATION=1      run the matched deletion test (~18 h)
+#
+# Data acquisition for those paths is in notebooks/D01-D04; see DATA_MANIFEST.md.
 
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -19,46 +23,43 @@ run () {
   $PY "$script" "$@"
 }
 
-echo "### Stage 1b — direct cross-model agreement"
+echo "### Cross-model agreement — Table 1"
 run E10_cross_model_agreement.py
 
-echo "### Stage 2 — caller robustness"
+echo "### Caller robustness — Figure 2"
 run E3_outlier_robustness.py
 
-echo "### Stage 3 — non-transcriptomic control"
-# E1 stage 2 regenerates ESM-2 embeddings from the checkpoint (~2 h, GPU
-# advisable). The resulting geometry table is SHIPPED, so by default we verify
-# against it rather than recompute. Set REGENERATE_ESM2=1 to recompute.
+echo "### Protein-sequence control — Figure 3"
+# The ESM-2 geometry table is shipped, so the default verifies it against
+# data/CHECKSUMS.json and recomputes the comparison from it.
 if [[ "${REGENERATE_ESM2:-0}" == "1" ]]; then
   run E1_stage1_mapping.py --all
   run E1_stage2_esm2.py --all
 else
-  # Verifies the shipped geometry against data/CHECKSUMS.json, then recomputes
-  # the scFM comparison and verdict from it. ~1.5 s.
   run E1_stage2_esm2.py --verify-shipped
 fi
 
-echo "### Stage 5 — covariate-aware annotation"
+echo "### Covariate-adjusted association — Table 2"
 run E8_clinvar_adjusted.py
 run E6_class_association.py
 
-echo "### Stage 4 — matched deletion test  (SLOW: ~18 h, checkpoints every 10 controls)"
-if [[ "${SKIP_ABLATION:-0}" == "1" ]]; then
-  echo "  SKIP_ABLATION=1 set; skipping the ablation and E9."
+echo "### Exploratory dependency analysis"
+run E11_dependency.py
+
+echo "### Matched deletion test — Figure 4  (expensive)"
+if [[ "${RUN_ABLATION:-0}" != "1" ]]; then
+  echo "  Skipped. Set RUN_ABLATION=1 to run the ablation and token audit."
 else
   run E2_downstream_ablation.py --setup --baseline --ablation --evaluate --datasets pbmc3k
-  # E9 reads the tokenised cells and matched-control sets from cache/, which is
-  # git-ignored and empty in a clean clone. It can only run after --setup has
-  # rebuilt them, so it stays inside this branch.
+  # The matched-control draws are shipped under cache/, but the tokenised cells
+  # they index (E2_<dataset>_tokenized.json) are not, so the token audit can
+  # only run after --setup has rebuilt them.
   run E9_token_occurrence_audit.py --dataset pbmc3k
 fi
 
-# E7 reads only shipped outputs (E2_ablation_*.json, E2_baseline_*.json) and
-# takes seconds, so it runs unconditionally. That puts it under the outputs
-# drift gate below on every invocation -- including SKIP_ABLATION=1, which is
-# how the default path is exercised. A script whose committed output is never
-# regenerated is a script whose output can silently stop matching it.
-echo "### Stage 4b — clustering-metric diagnostic"
+# Reads only shipped outputs and takes seconds, so it runs on every invocation
+# and stays under the drift gate below.
+echo "### Clustering-metric diagnostic"
 run E7_cluster_metric_diagnostic.py
 
 echo "### Figures"
@@ -68,10 +69,9 @@ echo; echo "Done. Outputs in outputs/, figures in figures/."
 echo
 echo "Verifying nothing drifted:"
 if command -v git >/dev/null && git rev-parse --git-dir >/dev/null 2>&1; then
-  # outputs/ is gated strictly: floats are serialised at a documented
-  # precision (analysis/_precision.py) so library-version noise cannot trip it.
-  # figures/ is advisory: PDF bytes depend on the font and rendering stack even
-  # with timestamps suppressed, so a difference there is reported, not fatal.
+  # outputs/ is gated strictly: floats are serialised at a documented precision
+  # (analysis/_precision.py) so library-version noise cannot trip it.
+  # figures/ is advisory: PDF bytes depend on the rendering stack.
   ok=0
   if git diff --exit-code --stat -- outputs; then
     echo "  outputs: clean."
@@ -80,8 +80,8 @@ if command -v git >/dev/null && git rev-parse --git-dir >/dev/null 2>&1; then
     ok=1
   fi
   if ! git diff --quiet -- figures; then
-    echo "  NOTE: figures/ differ byte-wise. Expected on a different font or"
-    echo "        rendering stack; check visually rather than by hash."
+    echo "  NOTE: figures/ differ byte-wise. Expected on a different rendering"
+    echo "        stack; check visually rather than by hash."
   fi
   exit $ok
 fi

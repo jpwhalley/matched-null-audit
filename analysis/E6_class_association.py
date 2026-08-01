@@ -1,35 +1,22 @@
-"""
-E6 — Class association of geometric outliers under BOTH class schemes.
+"""Gene-class association under both annotation schemes.
 
-WHY THIS EXISTS
----------------
-The project's `assign_gene_class` assigns ONE mutually-exclusive class per gene
-in precedence order: mitochondrial -> ribosomal -> constrained -> disease ->
-other. Under that scheme Geneformer's residual `disease` class shows OR 0.54
-(significant, two-sided Fisher), which was briefly written up as "ClinVar
-disease genes are depleted among geometric outliers".
+Reports class enrichment for each model's outlier set under two schemes:
+overlapping, where a gene may belong to several classes, and mutually
+exclusive, where a precedence order assigns each gene to one class. The two
+estimate different quantities and can point in opposite directions, so both
+are reported and the scheme is always stated.
 
-That reading does not mean what it appears to. Constrained genes are removed
-from the pool before the disease class is formed; constrained genes are enriched
-among outliers; and ~22% of ClinVar genes are also constrained. So the residual
-`disease` class is not the set of ClinVar genes -- it is the set of ClinVar
-genes that are NOT also constrained, ribosomal or mitochondrial, and OR 0.54 is
-the correct association for THAT set. It is a DIFFERENT ESTIMAND from direct
-membership, not a wrong answer to the same question. The error is reporting it
-as though it answered the direct question.
+Also reports the per-class breakdown of scFM-specific outliers against ESM-2,
+and the per-model class associations used in the abstract.
 
-This script tests every class BOTH ways -- mutually exclusive and overlapping
-(direct membership) -- so the difference is explicit and reproducible rather
-than an ad hoc check. The headline precision-medicine result of the PSB paper
-depends on it.
+p values are raw. No multiplicity family was fixed in advance, so no corrected
+threshold is claimed; the test count is printed so a reader can apply their own.
 
-Outputs (revision/outputs/):
-  E6_class_association.csv   -- every model x scheme x class test
-  E6_class_association.json  -- headline figures + reconciliation of the
-                                preprint's shared-set OR 3.7
-
-Usage:
-  python E6_class_association.py
+Inputs:   data/Table_S1.csv, data/gene_embedding_geometry.csv,
+          data/ribosomal_panel.csv
+Outputs:  outputs/E6_class_association.{csv,json},
+          outputs/E6_scfm_only_by_class.csv
+Usage:    python E6_class_association.py
 """
 
 import json
@@ -119,7 +106,7 @@ def load_geneformer():
 
 
 def load_from_table_s1():
-    """outlier_class encodes the cross-model membership used in the preprint.
+    """outlier_class encodes cross-model outlier-set membership.
 
     Restricted to complete cases (gene length present), so this reproduces the
     same 18,911-gene universe the manuscript's Table 2 and the covariate-adjusted
@@ -169,7 +156,7 @@ def main():
                                                    ("OR", "p")}))
             print(f"  {cls:<15} {scheme:<20} {r['OR']:>9.3f} {r['p']:>12.2e}")
 
-    # ---- Cross-model sets from Table_S1 (reconciles the preprint) ---------
+    # ---- Cross-model sets from Table_S1 -----------------------------------
     t = load_from_table_s1()
     syms_t = t["gene"].astype(str).tolist()
     over_t = membership_flags(syms_t)
@@ -219,7 +206,7 @@ def main():
           f"four gene classes,")
     print(f"  two annotation schemes, three models and two cross-model sets. "
           f"All p values")
-    print(f"  are raw. No multiplicity family was pre-specified, so no "
+    print(f"  are raw. No multiplicity family was fixed in advance, so no "
           f"corrected threshold")
     print(f"  is claimed; the count is given so a reader can apply their own.")
 
@@ -336,28 +323,6 @@ def main():
             "n_clinvar": n_clinvar, "n_also_constrained": n_both,
             "pct": round(pct, 1),
             "note": "this overlap is why the two schemes diverge"},
-        "preprint_reconciliation": {
-            "claim": "preprint reports disease enrichment OR 3.7 for shared "
-                     "Geneformer-scGPT outliers",
-            "shared_set_disease_OR": (None if shared_dis is None
-                                      else float(shared_dis["OR"])),
-            "shared_set_disease_p": (None if shared_dis is None
-                                     else float(shared_dis["p"])),
-            "shared_set_constrained_OR": (None if shared_con is None
-                                          else float(shared_con["OR"])),
-            "all_GF_disease_OR": float(dis_over["OR"]),
-            "all_GF_disease_p": float(dis_over["p"]),
-            "interpretation": (
-                "The preprint figure reproduces, but it is confined to the "
-                "small cross-model intersection, and that intersection is "
-                "itself strongly constraint-enriched (constrained OR is far "
-                "higher in the same set). The association attenuates under "
-                "simultaneous covariate adjustment in E8; no nested models "
-                "were fitted, so the attenuation is NOT attributed to "
-                "constraint specifically. Across ALL Geneformer outliers "
-                "there is no disease association. Report the contrast, not "
-                "the intersection alone."),
-        },
         "scheme_flip_demonstration": {
             "gene_set": "shared_GF_scGPT",
             "disease_overlapping_OR": (None if shared_dis is None
@@ -400,16 +365,6 @@ def main():
     }
     with open(OUT / "E6_class_association.json", "w") as f:
         json.dump(clean(summary), f, indent=2)
-
-    print("\n" + "=" * 74)
-    print("  PREPRINT RECONCILIATION")
-    print("=" * 74)
-    if shared_dis is not None:
-        print(f"  shared GF n scGPT, disease     OR {shared_dis['OR']:.3f}  "
-              f"p {shared_dis['p']:.2e}  (preprint says 3.7)")
-        print(f"  shared GF n scGPT, constrained OR {shared_con['OR']:.3f}")
-    print(f"  ALL GF outliers,   disease     OR {dis_over['OR']:.3f}  "
-          f"p {dis_over['p']:.2e}  <- nothing here")
     print("\n  Saved:")
     print(f"    {OUT / 'E6_class_association.csv'}")
     print(f"    {OUT / 'E6_class_association.json'}")

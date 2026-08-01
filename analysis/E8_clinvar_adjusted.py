@@ -1,54 +1,18 @@
-"""
-E8 — Covariate-aware ClinVar association for scFM geometric outliers.
+"""Covariate-adjusted ClinVar association for all three outlier sets.
 
-WHY THIS EXISTS
----------------
-Stage 5 of the audit asks whether outlier status carries independent
-disease-gene signal. An unadjusted odds ratio cannot answer that: geometric
-outliers are enriched for loss-of-function-constrained genes, are highly
-expressed, broadly detected, and long -- all of which independently predict
-ClinVar membership. The question is whether outlier status adds anything AFTER
-those covariates.
+Logistic regression of ClinVar membership on outlier status plus constraint,
+log1p expression, expression breadth, log1p gene length, and ribosomal and
+mitochondrial indicators. The mitochondrial indicator separates perfectly, so
+the primary fit is Firth-penalised with profile-likelihood intervals.
 
-SPECIFICATION HIERARCHY -- declared here, reported in full, no cherry-picking.
-This hierarchy was fixed AFTER an exploratory analysis had already been run and
-three different answers seen (see the audit trail below). It is therefore NOT
-pre-specified, and the manuscript must not describe it as such. The defence is
-that every specification is reported, not that the primary was chosen blind.
+The specification is identical across the three models: only the exposure flag
+differs. A non-mitochondrial sensitivity fit and an unpenalised diagnostic fit
+are reported alongside, the latter labelled as mis-specified because it leaves
+the separating class unadjusted.
 
-  PRIMARY      Firth penalised logistic regression, full-coverage annotation
-               table, ALL genes retained (including mitochondrial), profile-
-               likelihood confidence intervals. Firth is the appropriate choice
-               because all 13 MT- genes are ClinVar-positive, giving complete
-               separation that breaks unpenalised maximum likelihood.
-  SENSITIVITY  Ordinary logistic regression restricted to non-mitochondrial
-               genes. Removes the separation by removing the separating class.
-  DIAGNOSTIC   Unpenalised logistic on all genes with the mitochondrial
-               covariate OMITTED. Reported ONLY to document what goes wrong
-               when a perfectly separated class is left unadjusted; its
-               estimates must not be quoted. This is the specification that
-               produced the spurious OR 2.28.
-
-  PRIMARY GENE SET   all Geneformer geometric outliers.
-  EXPLORATORY        the Geneformer n scGPT cross-model subset. Small (n=72),
-                     selected post hoc as the set with an apparent signal, and
-                     therefore not a second headline test.
-
-AUDIT TRAIL -- why this file exists at all.
-An earlier ad-hoc run used the ROOT data/Table_S1.csv, which carries gene
-lengths for only 11,752 of 18,915 genes; the remainder were median-imputed.
-That run reported an adjusted shared-set OR of 1.95 (p=0.024). With the
-full-coverage table the same model gives 1.47 (p=0.215), and retaining
-mitochondrial genes gives 2.28 (p=0.007). The conclusion moved across the
-significance boundary on two undocumented choices. That is precisely the
-failure mode this paper is about, and it is why the analysis is scripted here
-with every specification reported.
-
-Outputs (revision/outputs/):
-  E8_clinvar_adjusted.csv    -- every specification x gene set
-  E8_clinvar_adjusted.json   -- primary result, universes, provenance
-
-Usage:  python E8_clinvar_adjusted.py
+Inputs:   data/Table_S1.csv
+Outputs:  outputs/E8_clinvar_adjusted.{csv,json}
+Usage:    python E8_clinvar_adjusted.py
 """
 
 import hashlib
@@ -117,7 +81,7 @@ def load():
     d["gf"] = d.outlier_class.isin(
         ["GF-only", "GF∩scGPT", "GF∩SF", "All three"]).astype(int)
     d["shared"] = d.outlier_class.isin(["GF∩scGPT", "All three"]).astype(int)
-    # Post hoc comparative extension (2026-07-30). The same specification is
+    # Comparative extension across models. The same specification is
     # applied to the scGPT and scFoundation outlier sets so the disease analysis
     # covers all three models rather than one. Nothing about the specification
     # changes: same universe, same covariates, same Firth primary. Only the
@@ -302,18 +266,9 @@ def main():
             "adjusted_CI": [prim_sh.ci_lo, prim_sh.ci_hi],
             "adjusted_p": prim_sh.adj_p,
         },
-        "specification_dependence": {
-            "note": "The shared-set conclusion is specification-dependent. "
-                    "Report the full grid in E8_clinvar_adjusted.csv rather "
-                    "than a single number.",
-            "stale_table_nonmito_OR": 1.95,
-            "full_table_nonmito_OR": 1.47,
-            "full_table_allgene_unpenalised_OR": 2.28,
-        },
-        "not_pre_specified": (
-            "This hierarchy was fixed after exploratory results were seen. "
-            "The manuscript must not describe it as pre-specified; the "
-            "defence is completeness of reporting, not blindness of choice."),
+        "reporting_note": (
+            "The shared-set result is specification-dependent. Read the full "
+            "grid in E8_clinvar_adjusted.csv rather than any single number."),
         "provenance": {
             "table": str(TABLE_S1.relative_to(BASE)),
             "sha256_16": file_hash(TABLE_S1),

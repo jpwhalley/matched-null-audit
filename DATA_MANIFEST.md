@@ -1,38 +1,43 @@
 # Data manifest
 
-Every input the analyses need, and where it comes from. Three categories:
-**shipped** (in this repository), **downloaded** (fetched by the D-series
-notebooks from the original source), and **generated** (produced by scripts
-here).
+What is shipped, what must be downloaded, what is generated, and what each
+step costs.
 
-Checksums for shipped files are in `data/CHECKSUMS.json` and are also recorded
-inside the output JSONs of any script that reads them.
+## Shipped inputs
 
----
-
-## Shipped
+Verified against `data/CHECKSUMS.json` by `E1_stage2_esm2.py --verify-shipped`.
 
 | File | SHA-256 (16) | Size | Contents |
 |---|---|---|---|
-| `data/Table_S1.csv` | `57443b7225229e0b` | 5.9 MB | Per-gene annotation: geometry scores for all three models, pLI, LOEUF, ClinVar status, expression, breadth, gene length, cross-model outlier class. 18,915 genes. |
-| `data/gene_embedding_geometry.csv` | `94d814094f5a519c` | 4.4 MB | Geneformer per-gene geometry: four metrics, z-scores, composite anomaly score, outlier flag. 20,275 rows including four special tokens. |
-| `outputs/E1_esm2_geometry.csv` | `cc3741ad4a65bde4` | 2.7 MB | ESM-2 protein-embedding geometry, same four metrics. Shipped because regenerating it requires the ESM-2 checkpoint and several GPU-hours. |
+| `data/Table_S1.csv` | `57443b7225229e0b` | 5.9 MB | Per-gene annotation: geometry scores for all three models, cross-model outlier-set membership, gene class, constraint, ClinVar, dependency |
+| `data/gene_embedding_geometry.csv` | `94d814094f5a519c` | 4.4 MB | Geneformer per-gene geometry: four metrics with z-scores |
+| `data/scgpt_gene_embedding_geometry.csv` | `2c7ff95b71a5c237` | 12.3 MB | scGPT per-gene geometry |
+| `data/sf_gene_embedding_geometry.csv` | `d3a4924c156c8835` | 2.6 MB | scFoundation per-gene geometry |
+| `data/ribosomal_panel.csv` | `acd2a7adf03ad9b4` | 7 KB | Pinned ribosomal panel, HGNC groups 728, 729, 646 |
+| `data/ribosomal_panel_provenance.json` | `13e36ef7e78f80eb` | 1 KB | Panel source, retrieval date and hash |
+| `outputs/E1_esm2_geometry.csv` | `cc3741ad4a65bde4` | 2.7 MB | ESM-2 protein-embedding geometry, same four metrics |
 
-### ⚠️ On `Table_S1.csv`
+`Table_S1.csv` is the single annotation table behind Tables 1 and 2 and the
+class analyses. Its `outlier_class` column records which models call each gene an
+outlier — cross-model set membership, not a biological gene class. Scripts
+read the outlier sets from it rather than recalling them, so the sets cannot
+drift between analyses. Biological gene class is a separate assignment, made
+from the ribosomal panel, mitochondrial symbols, constraint and ClinVar.
 
-**Use only this copy.** An earlier copy elsewhere in the project carried gene
-lengths for 11,752 of 18,915 genes; the rest were median-imputed downstream.
-That silently broke the length-matched design. Three numbers tell the story:
-the old controls *appeared* balanced at SMD **0.070**; evaluating those same
-controls against complete lengths gave **0.334**; rebuilding the controls with
-complete lengths restored balance to **0.077**. The same table also moved an
-adjusted odds ratio across the significance boundary.
+`data/ribosomal_panel.csv` is loaded through `analysis/_ribosomal_panel.py`,
+which refuses to run if the file's hash disagrees with its provenance record.
 
-This copy has 18,911/18,915 lengths (99.98%). Scripts assert ≥99% coverage and
-refuse to run below it. If you substitute your own annotation table, that
-assertion is the thing protecting you.
+## Matched-control draws
 
----
+`cache/E2_matched_controls_<dataset>[_no_ribo_mito].json` hold the control gene
+sets behind the deletion nulls, with a `_spec.json` sidecar recording the panel
+hash, draw count, dataset, arm, genes per draw and treatment-list hash.
+`E2_downstream_ablation.py` refuses a cache whose sidecar disagrees with the
+specification in force.
+
+These are shipped so the null bands can be recomputed without redrawing them.
+The tokenised cell matrices they index are not shipped; rebuild those with
+`E2_downstream_ablation.py --setup`.
 
 ## Downloaded (D-series notebooks; not redistributed)
 
@@ -45,51 +50,45 @@ assertion is the thing protecting you.
 | MANE Select | v1.3 (pinned) | `D02_external_databases.ipynb` | public domain |
 | gnomAD constraint | v4.1 | `D02_external_databases.ipynb` | ODbL |
 | ClinVar | as dated in the notebook | `D02_external_databases.ipynb` | public domain |
+| DepMap | Public 25Q3, `CRISPRGeneEffect.csv` | `D03_functional_datasets.ipynb` | CC-BY |
+| HGNC gene groups | 728, 729, 646 | `D03_functional_datasets.ipynb` | public |
 | PBMC3k | 10x Genomics, via scanpy | `D04_reference_datasets.ipynb` | CC-BY |
 | Tabula Sapiens Immune | CellxGene `78b60b70-129a-4a6d-b15f-825b241eec66` | `D04_reference_datasets.ipynb` | CC-BY |
 
-Model weights and single-cell matrices are **not** redistributed here. Pin
-versions when re-downloading: MANE Select in particular is versioned, and a
-different release changes the gene-to-protein mapping in stage 3.
-
----
+Model weights are not redistributed here.
 
 ## Generated
 
-| File | Produced by | Notes |
-|---|---|---|
-| `outputs/E3_*.{csv,json}` | `E3_outlier_robustness.py` | Caller robustness; includes all six callers, three of them degenerate and excluded with reasons. |
-| `outputs/E1_stage2_verdict.json` | `E1_stage2_esm2.py` | ESM-2 comparison verdict. |
-| `outputs/E6_*.{csv,json}` | `E6_class_association.py` | Class associations under both schemes; per-class scFM-only breakdown. |
-| `outputs/E8_clinvar_adjusted.{csv,json}` | `E8_clinvar_adjusted.py` | Covariate-adjusted disease association, full specification grid. |
-| `outputs/E2_treatment_genes.csv` | `E2_downstream_ablation.py --setup` | The top-50 treatment set with class assignments. |
-| `outputs/E2_ablation_pbmc3k.json` | `E2_downstream_ablation.py --ablation` | 200 draws against the corrected length-matched controls. |
-| `outputs/E2_baseline_pbmc3k.json` | `E2_downstream_ablation.py --baseline` | Pinned MPS baseline, device-matched to the ablation; carries an `environment` fingerprint. `_cpu` and `_mps` copies retained alongside. |
-| `outputs/E2_verdict_pbmc3k.json` | `E2_downstream_ablation.py --evaluate` | Gate z, tail count and add-one empirical p, recomputed from absolute F1 against the pinned baseline. |
-| `outputs/E7_*`, `outputs/E9_*` | `E7_*.py`, `E9_*.py` | Regenerated against the corrected control sets. |
-| `figures/F1_designs.pdf` | `make_psb_figures.py` | Comparative model-design schematic used as Figure 1. |
-| `figures/F2_stability.pdf` | `make_psb_figures.py` | Caller-robustness results used as Figure 2. |
-| `figures/F3_esm2.pdf` | `make_psb_figures.py` | ESM-2 comparison used as Figure 3. |
-| `figures/F4_nullband_pbmc3k.pdf` | `make_psb_figures.py` | Corrected controls; shows z = −1.56 and z = +0.35, both inside. |
-| `figures/F4_nullband_tabula_sapiens.pdf` | `make_psb_figures.py` | Tabula Sapiens primary-arm replication; generated for traceability and not displayed in the manuscript. |
-| `cache/` | various | Regenerable intermediates; git-ignored. |
+| File | Produced by |
+|---|---|
+| `data/gene_embedding_geometry.csv` and the two companions | `P01_embedding_geometry.ipynb` |
+| `outputs/E1_esm2_comparison.csv`, `E1_stage2_verdict.json` | `E1_stage2_esm2.py` |
+| `outputs/E3_*.{csv,json}` | `E3_outlier_robustness.py` |
+| `outputs/E6_*.{csv,json}` | `E6_class_association.py` |
+| `outputs/E8_clinvar_adjusted.{csv,json}` | `E8_clinvar_adjusted.py` |
+| `outputs/E10_cross_model_agreement.{csv,json}` | `E10_cross_model_agreement.py` |
+| `outputs/E11_dependency.{csv,json}` | `E11_dependency.py` |
+| `outputs/E2_treatment_genes.csv`, `E2_matched_controls_*_balance.csv` | `E2_downstream_ablation.py --setup` |
+| `outputs/E2_baseline_<dataset>.json` | `E2_downstream_ablation.py --baseline` |
+| `outputs/E2_ablation_<dataset>.json` | `E2_downstream_ablation.py --ablation` |
+| `outputs/E2_verdict_<dataset>.json` | `E2_downstream_ablation.py --evaluate` |
+| `outputs/E7_cluster_metric_diagnostic.{csv,json}` | `E7_cluster_metric_diagnostic.py` |
+| `outputs/E9_token_occurrence*.{csv,json}` | `E9_token_occurrence_audit.py` |
+| `figures/F1_designs.pdf` … `figures/F4_nullband.pdf` | `make_psb_figures.py` |
 
-**E2, E7, E9 and Figure 4 form one consistent set and were added together.**
-While the corrected rerun was outstanding they were deliberately absent rather
-than stale: a repository containing a mixture of generations is worse than one
-that is visibly incomplete.
-
----
+Floats in `outputs/` are serialised at the fixed precision defined in
+`analysis/_precision.py`, so the drift check in `run_all.sh` is not tripped by
+library-version noise. Figures suppress PDF timestamps and are byte-identical
+across runs on the same rendering stack.
 
 ## Reproduction cost
 
 | Stage | Time | Needs |
 |---|---|---|
-| E3, E6, E8 | seconds to minutes | shipped data only |
+| E3, E6, E8, E10, E11 | seconds to minutes | shipped data only |
+| E1 stage 2 (`--verify-shipped`) | seconds | shipped data only |
 | E1 stage 1 | ~10 min | network (MyGene) |
-| E1 stage 2 | ~2 h | ESM-2 checkpoint, GPU helpful |
+| E1 stage 2 (`--all`) | ~2 h | ESM-2 checkpoint, GPU helpful |
 | E2 setup | ~5 min | tokenised PBMC3k |
 | **E2 ablation** | **~18 h** | Geneformer checkpoint; MPS or CUDA advisable |
 | E7, E9, figures | seconds | E2 outputs |
-
-`SKIP_ABLATION=1 ./run_all.sh` reproduces everything except the deletion test.

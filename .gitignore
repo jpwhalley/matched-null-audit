@@ -8,6 +8,9 @@ __pycache__/
 # basis for the deletion nulls and are released with the paper.
 cache/*
 !cache/E2_matched_controls_*.json
+# Per-draw gene listings are written for local inspection but are read
+# by nothing; the compact draw files are what reproduce the nulls.
+cache/*_detail.json
 outputs/E2_baseline_embs_*.npy
 outputs/E1_esm2_embeddings.npy
 

@@ -1,39 +1,16 @@
-"""
-E10 — Direct cross-model agreement between geometric outlier sets.
+"""Cross-model agreement between the three geometric outlier sets.
 
-WHY THIS EXISTS
----------------
-The manuscript's central claim is that the three models produce model-specific
-outlier profiles, and that a gene which is geometrically exceptional in one
-model is largely not exceptional in another. Until now that claim rested on
-indirect evidence: different outlier counts, different class enrichments, and
-different behaviour under re-calling. None of those is the direct measurement.
+On the vocabulary shared by all three models, reports for each model pair the
+observed and expected overlap, the Jaccard index, the Spearman correlation
+between the continuous anomaly scores, and a one-sided hypergeometric p.
 
-This script supplies the direct measurement. On the shared vocabulary in
-Table_S1.csv it reports, for each model pair:
+Set membership is read from the committed `outlier_class` column of
+data/Table_S1.csv. Comparisons are restricted to the shared vocabulary, since
+the three models have vocabularies of different sizes.
 
-  * the observed overlap of the two outlier sets
-  * the overlap expected under independence
-  * the Jaccard index
-  * the Spearman correlation between the two continuous anomaly scores
-  * a one-sided hypergeometric p for the observed overlap
-
-The set-level and score-level views answer different questions and are both
-reported: Jaccard asks whether the called sets coincide, the correlation asks
-whether the underlying orderings agree genome-wide. A pair can overlap far
-above chance and still have a low Jaccard, which is exactly what Geneformer
-and scGPT do.
-
-Comparisons are restricted to the shared vocabulary. The three models have
-vocabularies of 20,271, 60,694 and 19,264 genes, so a raw comparison would
-confound genuine disagreement with vocabulary coverage.
-
-Outputs (outputs/):
-  E10_cross_model_agreement.csv   -- one row per model pair
-  E10_cross_model_agreement.json  -- headline figures and provenance
-
-Usage:
-  python E10_cross_model_agreement.py
+Inputs:   data/Table_S1.csv
+Outputs:  outputs/E10_cross_model_agreement.{csv,json}
+Usage:    python E10_cross_model_agreement.py
 """
 
 import hashlib

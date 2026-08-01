@@ -1,205 +1,77 @@
 # Matched-null auditing of gene-embedding outliers in single-cell foundation models
 
-Code and reproducibility materials for:
+Reproduction package for the PSB 2027 paper of the same name (J. Whalley).
 
-> **Comparative geometry of gene embeddings in single-cell foundation models:
-> model-specific outliers and matched validation in Geneformer**
-> Whalley, J.P. (2026). Submitted to *Pacific Symposium on Biocomputing 2027*.
+This repository exists to re-run the analyses reported in the paper. It holds
+the code, the versioned inputs and their checksums, the saved outputs, and a
+table mapping each reported result to the script and file that produced it.
+It is not a general supplement and carries no findings or project history.
 
-Preprint: [doi:10.64898/2026.06.22.733850](https://doi.org/10.64898/2026.06.22.733850)
-(v1 reported a different conclusion; see *Relationship to the earlier version*
-below.)
+## Install
 
----
+Requires Python 3.11 and [uv](https://docs.astral.sh/uv/).
 
-## What this repository is for
+```bash
+git clone https://github.com/jpwhalley/matched-null-audit
+cd matched-null-audit
+uv sync
+```
 
-Every figure, table and in-text statistic in the manuscript maps to a specific
-script or notebook cell here, and to the saved output it came from. `MANUSCRIPT_TRACEABILITY.md` is that mapping. A
-reader who wants to check a number should be able to find it in one lookup
-without running anything.
+## Reproduce
 
-Notebooks in `notebooks/` are committed **with their outputs executed**, so the
-analysis can be read without a GPU, without the model checkpoints, and without
-re-running the expensive steps.
+```bash
+./run_all.sh
+```
 
-> **Status.** The D-series and `P01` are executed and current. The numbered
-> display notebooks (one per figure) are **not yet written** — figures are built
-> directly by `analysis/make_psb_figures.py` in the meantime. All analysis
-> outputs, including the matched deletion test, are present and current.
->
-> **Ribosomal panel, 2026-07-30.** The symbol-regex ribosomal definition was
-> replaced by a pinned panel built from HGNC gene groups 728, 729 and 646
-> (`data/ribosomal_panel.csv`, 171 genes). Because gene class is a matching
-> stratum, every matched null was rebuilt and both deletion datasets rerun.
-> PBMC3k and Tabula Sapiens outputs here are the corrected generation; the
-> superseded ones are in `archive/ribo_v1_digit_anchored/` with a manifest.
-> The verdict is unchanged — the treatment remains inside its matched null on
-> every arm — but the numerical estimates moved. See
-> `prespecification/results_addendum_2026-07-29.md`.
->
-> The matched-control draws themselves are committed under `cache/`, so the
-> nulls can be recomputed without redrawing them.
+About a minute. Needs only the shipped inputs: no model checkpoints, no GPU,
+no network. It rebuilds all four figures and regenerates every analysis except
+two, then checks the regenerated outputs against the committed ones and exits
+non-zero on any difference.
 
----
+The two it skips are the matched deletion test, which needs the Geneformer
+checkpoint and about 18 hours, and the token-exposure audit, which reads the
+tokenised cell matrices that are too large to ship. Their outputs are committed
+so the reported numbers can be checked against them.
+
+## Reproduce the expensive stages
+
+Both need model checkpoints; see `DATA_MANIFEST.md` and the `D`-series
+notebooks for acquisition.
+
+```bash
+RUN_ABLATION=1 ./run_all.sh        # matched deletion test and token audit, ~18 h
+REGENERATE_ESM2=1 ./run_all.sh     # recompute ESM-2 embeddings, ~2 h
+```
+
+The deletion test checkpoints every ten control sets and resumes on restart.
+The matched-control draws are shipped under `cache/`, so the null bands can be
+recomputed without redrawing them; `E2_downstream_ablation.py` refuses any
+cache whose specification sidecar disagrees with the settings in force.
+
+Results depend on the compute device. The supervised probe baseline differs by
+5.1e-4 macro-F1 between CPU and Metal Performance Shaders on an otherwise
+identical stack, so each result records a full environment fingerprint and the
+baseline is pinned to the device the ablation ran on.
 
 ## Layout
 
 ```
-prespecification/   dated analysis plan, fixed before the deletion compute
-analysis/           canonical implementations (the scripts that produced results)
-notebooks/          executed notebooks: D-series acquire, P-series analyse,
-                    numbered series display results and build figures
-figures/            manuscript figures as PDF
-outputs/            saved result files (CSV/JSON) consumed by the notebooks
+analysis/           analysis scripts, one per reported experiment
+data/               shipped inputs and checksums
+cache/              matched-control draws and their specification sidecars
+outputs/            saved results
+figures/            the four manuscript figures
+notebooks/          D01-D04 data acquisition, P01 the geometry screen
+run_all.sh          the pipeline above
+DATA_MANIFEST.md    provenance, versions, licences, reproduction cost
+MANUSCRIPT_TRACEABILITY.md   reported result -> script -> input -> output
 ```
-
-The pipeline runs left to right:
-
-```
-D-series  ->  analysis/E*.py  ->  outputs/*.{csv,json}  ->  notebooks/0*  ->  figures/
-(acquire)     (compute)            (results)                (display)
-```
-
----
-
-## The five audit stages
-
-The same screen is applied to Geneformer, scGPT and scFoundation, and the
-resulting outlier sets are then tested for what they support. Each stage can
-falsify a claim independently.
-
-| Stage | Question | Implementation |
-|---|---|---|
-| 1. Geometry screen | Which genes are geometrically extreme? | `notebooks/P01_embedding_geometry.ipynb` |
-| 1b. Cross-model agreement | Do the three models flag the same genes? | `analysis/E10_cross_model_agreement.py` |
-| 2. Caller robustness | Is the outlier set an artefact of thresholding? | `analysis/E3_outlier_robustness.py` |
-| 3. Non-transcriptomic control | Are the same genes outliers in protein-sequence space? | `analysis/E1_stage1_mapping.py`, `analysis/E1_stage2_esm2.py` |
-| 4. Matched deletion test | Does removing them affect a downstream task more than matched controls? | `analysis/E2_downstream_ablation.py` |
-| 5. Covariate-aware annotation | Does outlier status carry independent disease signal? Run for all three models under one specification. | `analysis/E8_clinvar_adjusted.py`, `analysis/E6_class_association.py` |
-
-Supporting diagnostics:
-
-| Script | Purpose |
-|---|---|
-| `E7_cluster_metric_diagnostic.py` | Tests whether clustering metrics are usable as outcome measures. They are not; the paper reports macro-F1 alone. |
-| `E9_token_occurrence_audit.py` | Measures token-level exposure of treatment vs control gene sets. The treatment genes are not under-represented, which rules out one route to the null but not others. |
-
----
-
-## Pre-specification
-
-`prespecification/analysis_plan_2026-07-07.md` predates all deletion compute. It
-fixes class-stratified matching on expression, breadth and length; a minimum of
-100 matched-control draws; the matched-control band as the gate criterion; and
-the stop-on-null rule that a result inside the band would not be expanded in
-search of significance.
-
-It does **not** designate macro-F1 as the gate metric, fix the treatment-set size
-*k*, or set the final draw counts of 200 and 100. Those were decided after the
-plan was written. `prespecification/results_addendum_2026-07-29.md` records every
-such departure next to what was executed, and is the file to read second. The
-plan itself is preserved unmodified, because a plan edited after seeing results
-is not a plan.
-
-The design was **not** lodged with an external registry, so the paper describes
-it as *pre-specified* rather than pre-registered. A Git commit created now cannot
-independently establish the 2026-07-07 date; the claim rests on the document
-itself and on its use in the analysis scripts, not on repository history.
-
-Note the contrast with the disease analysis: the specification hierarchy in
-`E8_clinvar_adjusted.py` was fixed *after* exploratory results were seen, and
-the script says so explicitly. Every specification is reported rather than the
-primary being chosen blind.
-
----
-
-## Reproducing
-
-```bash
-uv sync
-```
-
-Data acquisition (D-series) downloads model checkpoints and external databases
-from their original sources. Model weights are not redistributed here.
-
-Cost, on a single Apple Silicon workstation:
-
-| Stage | Approximate time |
-|---|---|
-| Geometry screen, caller robustness, ESM-2 control | minutes to ~1 h |
-| Covariate-aware annotation, diagnostics | seconds |
-| **Matched deletion test (400 forward-pass sets)** | **~18 h** |
-
-The deletion test is the only expensive step. It checkpoints every 10 control
-sets and resumes on restart. `--primary-only` runs the treatment arm and its
-matched null alone, skipping the sensitivity arm and k-sweep.
-
-### Reproducibility notes
-
-Two things bite in practice, and both are guarded in code:
-
-- **Annotation table coverage.** `data/Table_S1.csv` at the repository root of
-  the original project carried gene lengths for only 11,752 of 18,915 genes.
-  Matching on median-imputed lengths made the controls *appear* balanced at
-  SMD 0.070; the true figure for those controls was 0.334, and rebuilding them
-  with complete lengths gave 0.077. Scripts now assert >=99% coverage and record the
-  table's SHA-256 in every output.
-- **Environment sensitivity.** The supervised probe baseline differs by 5.1e-4
-  macro-F1 between CPU and MPS on the same machine and library stack. The pinned
-  baseline is MPS, matching the device the ablations ran on, and reproduces
-  bit-identically across two independent runs with the embedding cache cleared.
-  BLAS threads are pinned and a full environment fingerprint is written
-  alongside every result. The matched-null gate statistic compares treatment and
-  control F1 directly and is invariant to this.
-
----
-
-## Relationship to the earlier version
-
-The bioRxiv v1 preprint reported that embedding geometry predicts functional
-fragility. That claim was tested here against expression-, breadth-, length- and
-class-matched control gene sets and was not supported; it is retired. The
-present work adds the non-transcriptomic control, the caller-robustness
-analysis, the matched deletion test and the covariate-adjusted disease analysis.
-
-Scripts and notebooks superseded by that revision are retained under
-`notebooks/superseded/` with a note explaining what replaced them, rather than
-deleted.
-
-### On the earlier terminology
-
-The v1 preprint framed these genes as "glitch genes", by analogy with glitch
-tokens in language models. The analogy imports an inverted mechanism, since NLP
-glitch tokens are *under*-trained whereas these are high-exposure genes, and the
-term was retired on 2026-07-07, before any of the deletion compute. See §2 and §6
-of the dated plan.
-
-The word therefore survives only in documents that are deliberately preserved
-unmodified: the dated analysis plan, which records the decision to drop it, and
-the superseded notebooks. It appears nowhere in the current analysis code or in
-the manuscript.
-
----
 
 ## Citation
 
-```bibtex
-@misc{whalley2026matchednull,
-  author       = {Whalley, Justin P.},
-  title        = {Comparative geometry of gene embeddings in single-cell
-                  foundation models: model-specific outliers and matched
-                  validation in Geneformer},
-  year         = {2026},
-  howpublished = {bioRxiv},
-  doi          = {10.64898/2026.06.22.733850},
-  note         = {Under consideration at Pacific Symposium on Biocomputing 2027}
-}
-```
+See `CITATION.cff`.
 
-Update to `@inproceedings` only on acceptance. See also `CITATION.cff`.
+## Licence
 
-## License
-
-See `LICENSE`. Model checkpoints and external databases retain their own
-licences and are not redistributed here.
+MIT, see `LICENSE`. Model weights and external databases are not
+redistributed here and carry their own terms; see `DATA_MANIFEST.md`.

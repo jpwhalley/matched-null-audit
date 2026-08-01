@@ -1,5 +1,5 @@
 {
-  "status": "EXPLORATORY, not pre-specified, added 2026-07-31",
+  "status": "exploratory; added after the ClinVar result was known",
   "common_universe": 18138,
   "multiplicity": "24 tests across 3 models, 4 outcomes and 2 strata. p values are uncorrected; a Bonferroni threshold would be 0.0021. Interpret accordingly.",
   "class_adjusted_model": "Not fitted. Adding ribosomal and mitochondrial indicators separates, because outlier ribosomal genes are almost all dependencies. The estimable alternative is the exclusion stratum, which is reported instead. No claim is made that any association is independent of gene class.",
@@ -13,10 +13,10 @@
       "n": 18138,
       "n_outliers": 364,
       "estimate_kind": "OR",
-      "estimate": 4.14430205279,
-      "ci_low": 3.02150913795,
-      "ci_high": 5.65838915141,
-      "p": 1.87462456122e-17
+      "estimate": 4.1443021,
+      "ci_low": 3.0215091,
+      "ci_high": 5.6583892,
+      "p": 1.8746246e-17
     },
     {
       "stratum": "all genes",
@@ -25,10 +25,10 @@
       "n": 18138,
       "n_outliers": 92,
       "estimate_kind": "OR",
-      "estimate": 3.50987335026,
-      "ci_low": 2.0099244746,
-      "ci_high": 6.02021633874,
-      "p": 1.89232522309e-05
+      "estimate": 3.5098734,
+      "ci_low": 2.0099245,
+      "ci_high": 6.0202163,
+      "p": 1.8923252e-05
     },
     {
       "stratum": "all genes",
@@ -37,10 +37,10 @@
       "n": 18138,
       "n_outliers": 149,
       "estimate_kind": "OR",
-      "estimate": 1.14999137394,
-      "ci_low": 0.643176818193,
-      "ci_high": 1.93825572688,
-      "p": 0.617397142115
+      "estimate": 1.1499914,
+      "ci_low": 0.64317682,
+      "ci_high": 1.9382557,
+      "p": 0.61739714
     },
     {
       "stratum": "all genes",
@@ -49,10 +49,10 @@
       "n": 18138,
       "n_outliers": 364,
       "estimate_kind": "OR",
-      "estimate": 5.70210604291,
-      "ci_low": 3.99310408867,
-      "ci_high": 8.09869873604,
-      "p": 4.47235936328e-20
+      "estimate": 5.702106,
+      "ci_low": 3.9931041,
+      "ci_high": 8.0986987,
+      "p": 4.4723594e-20
     },
     {
       "stratum": "all genes",
@@ -61,10 +61,10 @@
       "n": 18138,
       "n_outliers": 92,
       "estimate_kind": "OR",
-      "estimate": 3.4268055615,
-      "ci_low": 1.84300944655,
-      "ci_high": 6.17922125635,
-      "p": 0.000167157511342
+      "estimate": 3.4268056,
+      "ci_low": 1.8430094,
+      "ci_high": 6.1792213,
+      "p": 0.00016715751
     },
     {
       "stratum": "all genes",
@@ -73,10 +73,10 @@
       "n": 18138,
       "n_outliers": 149,
       "estimate_kind": "OR",
-      "estimate": 1.66688589637,
-      "ci_low": 0.854470680792,
-      "ci_high": 2.99617724258,
-      "p": 0.126170746329
+      "estimate": 1.6668859,
+      "ci_low": 0.85447068,
+      "ci_high": 2.9961772,
+      "p": 0.12617075
     },
     {
       "stratum": "all genes",
@@ -85,10 +85,10 @@
       "n": 18138,
       "n_outliers": 364,
       "estimate_kind": "beta",
-      "estimate": -0.3575160273,
-      "ci_low": -0.397829122581,
-      "ci_high": -0.31720293202,
-      "p": 3.9387967145e-67
+      "estimate": -0.35751603,
+      "ci_low": -0.39782912,
+      "ci_high": -0.31720293,
+      "p": 3.9387967e-67
     },
     {
       "stratum": "all genes",
@@ -97,10 +97,10 @@
       "n": 18138,
       "n_outliers": 92,
       "estimate_kind": "beta",
-      "estimate": -0.279533670917,
-      "ci_low": -0.358995065195,
-      "ci_high": -0.200072276639,
-      "p": 5.56404759621e-12
+      "estimate": -0.27953367,
+      "ci_low": -0.35899507,
+      "ci_high": -0.20007228,
+      "p": 5.5640476e-12
     },
     {
       "stratum": "all genes",
@@ -109,10 +109,10 @@
       "n": 18138,
       "n_outliers": 149,
       "estimate_kind": "beta",
-      "estimate": -0.0596047205347,
-      "ci_low": -0.121657236595,
-      "ci_high": 0.00244779552545,
-      "p": 0.0597592603196
+      "estimate": -0.059604721,
+      "ci_low": -0.12165724,
+      "ci_high": 0.0024477955,
+      "p": 0.05975926
     },
     {
       "stratum": "all genes",
@@ -121,10 +121,10 @@
       "n": 18138,
       "n_outliers": 364,
       "estimate_kind": "OR",
-      "estimate": 0.97220417217,
-      "ci_low": 0.763921441948,
-      "ci_high": 1.23571721805,
-      "p": 0.817165147163
+      "estimate": 0.97220417,
+      "ci_low": 0.76392144,
+      "ci_high": 1.2357172,
+      "p": 0.81716515
     },
     {
       "stratum": "all genes",
@@ -133,10 +133,10 @@
       "n": 18138,
       "n_outliers": 92,
       "estimate_kind": "OR",
-      "estimate": 1.13075808462,
-      "ci_low": 0.708748201598,
-      "ci_high": 1.83475973974,
-      "p": 0.609661081182
+      "estimate": 1.1307581,
+      "ci_low": 0.7087482,
+      "ci_high": 1.8347597,
+      "p": 0.60966108
     },
     {
       "stratum": "all genes",
@@ -145,10 +145,10 @@
       "n": 18138,
       "n_outliers": 149,
       "estimate_kind": "OR",
-      "estimate": 0.933890933043,
-      "ci_low": 0.654936785331,
-      "ci_high": 1.32299324342,
-      "p": 0.70130542817
+      "estimate": 0.93389093,
+      "ci_low": 0.65493679,
+      "ci_high": 1.3229932,
+      "p": 0.70130543
     },
     {
       "stratum": "excluding ribosomal and mitochondrial",
@@ -157,10 +157,10 @@
       "n": 17970,
       "n_outliers": 293,
       "estimate_kind": "OR",
-      "estimate": 1.39959043759,
-      "ci_low": 0.84918555253,
-      "ci_high": 2.20989966217,
-      "p": 0.179565591173
+      "estimate": 1.3995904,
+      "ci_low": 0.84918555,
+      "ci_high": 2.2098997,
+      "p": 0.17956559
     },
     {
       "stratum": "excluding ribosomal and mitochondrial",
@@ -169,10 +169,10 @@
       "n": 17970,
       "n_outliers": 79,
       "estimate_kind": "OR",
-      "estimate": 2.57706679608,
-      "ci_low": 1.27055467336,
-      "ci_high": 4.89162806428,
-      "p": 0.010102874504
+      "estimate": 2.5770668,
+      "ci_low": 1.2705547,
+      "ci_high": 4.8916281,
+      "p": 0.010102875
     },
     {
       "stratum": "excluding ribosomal and mitochondrial",
@@ -181,10 +181,10 @@
       "n": 17970,
       "n_outliers": 143,
       "estimate_kind": "OR",
-      "estimate": 0.897427923359,
-      "ci_low": 0.452378940023,
-      "ci_high": 1.62288157678,
-      "p": 0.727009263868
+      "estimate": 0.89742792,
+      "ci_low": 0.45237894,
+      "ci_high": 1.6228816,
+      "p": 0.72700926
     },
     {
       "stratum": "excluding ribosomal and mitochondrial",
@@ -193,10 +193,10 @@
       "n": 17970,
       "n_outliers": 293,
       "estimate_kind": "OR",
-      "estimate": 1.21562413381,
-      "ci_low": 0.60882889787,
-      "ci_high": 2.21413121685,
-      "p": 0.549945591483
+      "estimate": 1.2156241,
+      "ci_low": 0.6088289,
+      "ci_high": 2.2141312,
+      "p": 0.54994559
     },
     {
       "stratum": "excluding ribosomal and mitochondrial",
@@ -205,10 +205,10 @@
       "n": 17970,
       "n_outliers": 79,
       "estimate_kind": "OR",
-      "estimate": 2.0814678868,
-      "ci_low": 0.801277451608,
-      "ci_high": 4.62224452981,
-      "p": 0.122181213825
+      "estimate": 2.0814679,
+      "ci_low": 0.80127745,
+      "ci_high": 4.6222445,
+      "p": 0.12218121
     },
     {
       "stratum": "excluding ribosomal and mitochondrial",
@@ -217,10 +217,10 @@
       "n": 17970,
       "n_outliers": 143,
       "estimate_kind": "OR",
-      "estimate": 1.33085946157,
-      "ci_low": 0.598847902206,
-      "ci_high": 2.59538761211,
-      "p": 0.448770374403
+      "estimate": 1.3308595,
+      "ci_low": 0.5988479,
+      "ci_high": 2.5953876,
+      "p": 0.44877037
     },
     {
       "stratum": "excluding ribosomal and mitochondrial",
@@ -229,10 +229,10 @@
       "n": 17970,
       "n_outliers": 293,
       "estimate_kind": "beta",
-      "estimate": -0.00593754674046,
-      "ci_low": -0.0482537260201,
-      "ci_high": 0.0363786325392,
-      "p": 0.783307739581
+      "estimate": -0.0059375467,
+      "ci_low": -0.048253726,
+      "ci_high": 0.036378633,
+      "p": 0.78330774
     },
     {
       "stratum": "excluding ribosomal and mitochondrial",
@@ -241,10 +241,10 @@
       "n": 17970,
       "n_outliers": 79,
       "estimate_kind": "beta",
-      "estimate": -0.0544111160875,
-      "ci_low": -0.135322897977,
-      "ci_high": 0.0265006658015,
-      "p": 0.187503661692
+      "estimate": -0.054411116,
+      "ci_low": -0.1353229,
+      "ci_high": 0.026500666,
+      "p": 0.18750366
     },
     {
       "stratum": "excluding ribosomal and mitochondrial",
@@ -253,10 +253,10 @@
       "n": 17970,
       "n_outliers": 143,
       "estimate_kind": "beta",
-      "estimate": -0.01065369263,
-      "ci_low": -0.0704421675118,
-      "ci_high": 0.0491347822517,
-      "p": 0.726904310595
+      "estimate": -0.010653693,
+      "ci_low": -0.070442168,
+      "ci_high": 0.049134782,
+      "p": 0.72690431
     },
     {
       "stratum": "excluding ribosomal and mitochondrial",
@@ -265,10 +265,10 @@
       "n": 17970,
       "n_outliers": 293,
       "estimate_kind": "OR",
-      "estimate": 1.11065237481,
-      "ci_low": 0.847050649135,
-      "ci_high": 1.45522713716,
-      "p": 0.446947011565
+      "estimate": 1.1106524,
+      "ci_low": 0.84705065,
+      "ci_high": 1.4552271,
+      "p": 0.44694701
     },
     {
       "stratum": "excluding ribosomal and mitochondrial",
@@ -277,10 +277,10 @@
       "n": 17970,
       "n_outliers": 79,
       "estimate_kind": "OR",
-      "estimate": 1.30795844992,
-      "ci_low": 0.777247989839,
-      "ci_high": 2.2699968839,
-      "p": 0.31754516865
+      "estimate": 1.3079584,
+      "ci_low": 0.77724799,
+      "ci_high": 2.2699969,
+      "p": 0.31754517
     },
     {
       "stratum": "excluding ribosomal and mitochondrial",
@@ -289,10 +289,10 @@
       "n": 17970,
       "n_outliers": 143,
       "estimate_kind": "OR",
-      "estimate": 0.946549804503,
-      "ci_low": 0.658705057893,
-      "ci_high": 1.35125179524,
-      "p": 0.762804960136
+      "estimate": 0.9465498,
+      "ci_low": 0.65870506,
+      "ci_high": 1.3512518,
+      "p": 0.76280496
     }
   ],
   "provenance": {

@@ -218,18 +218,6 @@ def fig4_nullband():
     plt.close(fig)
     print("  F4_nullband.pdf")
 
-    # The two-float version is superseded by the merged figure above. This
-    # release tree has no manuscript to check against, so remove them outright;
-    # leaving them is how a stale figure gets picked up later.
-    for old in ("F4_nullband_pbmc3k.pdf", "F4_nullband_tabula_sapiens.pdf"):
-        q = REPO / "figures" / old
-        if q.exists():
-            try:
-                q.unlink()
-                print(f"  removed superseded {old}")
-            except OSError as e:
-                print(f"  could not remove {old} ({e.strerror})")
-
 
 # ---------------------------------------------------------------- F1
 def fig1_designs():

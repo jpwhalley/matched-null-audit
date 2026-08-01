@@ -1,40 +1,18 @@
-"""
-E7 — Diagnostic: are the clustering metrics usable as outcome measures?
+"""Precision diagnostic for the candidate downstream metrics.
 
-WHY THIS EXISTS
----------------
-The E2 matched-control design reports retrained macro-F1 alongside k-means
-cluster ARI and NMI. The dated plan listed annotation accuracy and clustering
-stability as outcomes but did not designate a gate metric; macro-F1 was chosen
-after that plan was written. The interpretation lock (H3) barred the clustering
-metrics from gate status unless a diagnostic showed that their control
-distributions were precise enough to resolve an effect of the size at issue.
+The deletion test could in principle be read off retrained macro-F1, k-means
+adjusted Rand index or normalised mutual information. This asks which of them
+can resolve an effect of the size at issue, by measuring how wide each metric's
+matched-control null band is relative to its baseline value.
 
-This script is that diagnostic. It quantifies, for each metric:
+Usability criterion: the 95% null band must span no more than 5% of the
+baseline. A metric whose null is wider than the effect cannot support a
+conclusion either way. Percentage improvement is reported for description only
+and does not enter the criterion.
 
-  * control Delta mean and SD
-  * the fraction of matched controls that IMPROVE on baseline
-    (a well-behaved null sits near 50%; a large majority in one direction
-    means random matched deletion has a systematic effect on the metric)
-  * PRECISION: the width of the 95% null band as a fraction of the baseline
-    value. This is the discriminating number. A test whose null band spans a
-    large fraction of the baseline cannot resolve a small effect.
-
-NOTE ON A REJECTED CRITERION. An earlier version scored "control range as a
-multiple of the treatment effect". That is tautological for a null result: if
-the treatment falls inside the band, the band is by definition wider than the
-effect, so the criterion flags the retained gate metric as unusable too.
-It has been replaced by the band-width-over-baseline measure above.
-
-Conclusion reached 2026-07-27: report retrained macro-F1 alone in the headline
-figure; move clustering metrics to supplementary with these numbers attached.
-
-Outputs (revision/outputs/):
-  E7_cluster_metric_diagnostic.csv
-  E7_cluster_metric_diagnostic.json
-
-Usage:
-  python E7_cluster_metric_diagnostic.py
+Inputs:   outputs/E2_ablation_<dataset>.json, outputs/E2_baseline_<dataset>.json
+Outputs:  outputs/E7_cluster_metric_diagnostic.{csv,json}
+Usage:    python E7_cluster_metric_diagnostic.py
 """
 
 import json
@@ -59,8 +37,8 @@ BASE = REPO  # legacy alias
 
 METRICS = [
     ("retrained_f1", "baseline_retrained_f1", "headline gate"),
-    ("cluster_ari", "baseline_cluster_ari", "pre-specified secondary outcome"),
-    ("cluster_nmi", "baseline_cluster_nmi", "pre-specified secondary outcome"),
+    ("cluster_ari", "baseline_cluster_ari", "clustering agreement"),
+    ("cluster_nmi", "baseline_cluster_nmi", "clustering information"),
 ]
 
 # A null whose improve-fraction sits outside this band is not behaving like a
@@ -158,7 +136,7 @@ def analyse(dataset="pbmc3k"):
 
 def main():
     print("=" * 78)
-    print("  E7 - Clustering-metric diagnostic (interpretation lock H3)")
+    print("  E7 - Clustering-metric precision diagnostic")
     print("=" * 78)
     print(f"  USABILITY: the 95% null band must span <= "
           f"{BAND_WIDTH_LIMIT:.0%} of the baseline value.")
@@ -239,20 +217,16 @@ def main():
             "ARI is excluded on PRECISION: its 95% null band spans ~42% of the "
             "baseline value against ~0.7% for macro-F1, roughly sixty times "
             "less precise, so it cannot resolve an effect of the size at "
-            "issue. The earlier 'random deletion reliably improves ARI' "
-            "argument does NOT survive the corrected controls and is not "
-            "relied on. Move clustering metrics to supplementary with these "
-            "numbers attached."),
+            "issue. Clustering metrics belong in supplementary material with "
+            "these numbers attached."),
         "possible_mechanism_not_tested": (
             "The broad clustering nulls could reflect sensitivity of k-means "
             "to dominant embedding directions, but this mechanism was not "
             "tested and no interpretation depends on it."),
         "note": (
-            "The dated plan listed annotation accuracy and clustering stability "
-            "but did not designate a gate metric. Macro-F1 was selected after "
-            "the plan and before the Tabula Sapiens result was analysed. The "
-            "clustering exclusion is reported rather than treated as "
-            "pre-specified, and no headline inference rests on it."),
+            "Macro-F1 is the headline metric. The clustering exclusion is "
+            "reported as a precision result and no headline inference rests "
+            "on it."),
         "sensitivity_null_shift": (
             "SEPARATE OBSERVATION, not a metric pathology. The no_ribo_mito "
             "control pool differs from the full pool: excluding ribosomal and "

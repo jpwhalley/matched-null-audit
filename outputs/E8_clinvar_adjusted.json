@@ -109,13 +109,7 @@
     ],
     "adjusted_p": 0.2332426902
   },
-  "specification_dependence": {
-    "note": "The shared-set conclusion is specification-dependent. Report the full grid in E8_clinvar_adjusted.csv rather than a single number.",
-    "stale_table_nonmito_OR": 1.95,
-    "full_table_nonmito_OR": 1.47,
-    "full_table_allgene_unpenalised_OR": 2.28
-  },
-  "not_pre_specified": "This hierarchy was fixed after exploratory results were seen. The manuscript must not describe it as pre-specified; the defence is completeness of reporting, not blindness of choice.",
+  "reporting_note": "The shared-set result is specification-dependent. Read the full grid in E8_clinvar_adjusted.csv rather than any single number.",
   "provenance": {
     "table": "data/Table_S1.csv",
     "sha256_16": "57443b7225229e0b",

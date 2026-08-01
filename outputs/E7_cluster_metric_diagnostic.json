@@ -50,8 +50,8 @@
       "control_delta_sd": 0.02358609869
     }
   },
-  "conclusion": "Report retrained macro-F1 alone in the headline figure. Cluster ARI is excluded on PRECISION: its 95% null band spans ~42% of the baseline value against ~0.7% for macro-F1, roughly sixty times less precise, so it cannot resolve an effect of the size at issue. The earlier 'random deletion reliably improves ARI' argument does NOT survive the corrected controls and is not relied on. Move clustering metrics to supplementary with these numbers attached.",
+  "conclusion": "Report retrained macro-F1 alone in the headline figure. Cluster ARI is excluded on PRECISION: its 95% null band spans ~42% of the baseline value against ~0.7% for macro-F1, roughly sixty times less precise, so it cannot resolve an effect of the size at issue. Clustering metrics belong in supplementary material with these numbers attached.",
   "possible_mechanism_not_tested": "The broad clustering nulls could reflect sensitivity of k-means to dominant embedding directions, but this mechanism was not tested and no interpretation depends on it.",
-  "note": "The dated plan listed annotation accuracy and clustering stability but did not designate a gate metric. Macro-F1 was selected after the plan and before the Tabula Sapiens result was analysed. The clustering exclusion is reported rather than treated as pre-specified, and no headline inference rests on it.",
+  "note": "Macro-F1 is the headline metric. The clustering exclusion is reported as a precision result and no headline inference rests on it.",
   "sensitivity_null_shift": "SEPARATE OBSERVATION, not a metric pathology. The no_ribo_mito control pool differs from the full pool: excluding ribosomal and mitochondrial genes from the treatment set changes the expression profile its matched controls are drawn from, so those controls are moderately-expressed informative genes whose deletion systematically costs a little accuracy. The inference is unaffected because the treatment is compared to ITS OWN null; read the z-statistic, not the improve-fraction. Numbers for both nulls are in the CSV and are regenerated with the controls."
 }

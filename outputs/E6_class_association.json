@@ -21,15 +21,6 @@
     "pct": 21.5,
     "note": "this overlap is why the two schemes diverge"
   },
-  "preprint_reconciliation": {
-    "claim": "preprint reports disease enrichment OR 3.7 for shared Geneformer-scGPT outliers",
-    "shared_set_disease_OR": 3.594259884,
-    "shared_set_disease_p": 4.971448521e-07,
-    "shared_set_constrained_OR": 7.362325581,
-    "all_GF_disease_OR": 1.160379619,
-    "all_GF_disease_p": 0.1481504778,
-    "interpretation": "The preprint figure reproduces, but it is confined to the small cross-model intersection, and that intersection is itself strongly constraint-enriched (constrained OR is far higher in the same set). The association attenuates under simultaneous covariate adjustment in E8; no nested models were fitted, so the attenuation is NOT attributed to constraint specifically. Across ALL Geneformer outliers there is no disease association. Report the contrast, not the intersection alone."
-  },
   "scheme_flip_demonstration": {
     "gene_set": "shared_GF_scGPT",
     "disease_overlapping_OR": 3.594259884,

@@ -1,30 +1,10 @@
-"""
-Pinned ribosomal-protein panel, shared by every script that assigns gene class.
+"""Shared loader for the pinned ribosomal gene panel.
 
-WHY THIS EXISTS
----------------
-The panel was previously a regular expression. Regexes on gene symbols do not
-track curation: `^(RPL|RPS|MRPL|MRPS)\\d` silently admitted ten RPS6K* kinases
-(ribosomal protein S6 kinases, which are signalling enzymes) and RPS19BP1,
-carried the obsolete symbol MRPS36, and omitted seven genuine members whose
-approved symbols do not start with a ribosomal prefix at all: AURKAIP1, CHCHD1,
-DAP3, FAU, GADD45GIP1, PTCD3 and UBA52. Patching the exceptions one at a time
-was replacing a curation problem with a maintenance problem.
+Resolves genes by Ensembl ID with a reported-symbol fallback, and refuses to
+load if the panel CSV's hash disagrees with its provenance file, so an analysis
+cannot silently run against an edited panel.
 
-The panel is now a static committed CSV built from three HGNC curated gene
-groups, with retrieval date, source URLs and a SHA-256 recorded alongside. The
-SHA-256 is written into every matched-control cache so a null can be tied to
-the exact panel it was drawn under.
-
-Membership is resolved by **Ensembl gene ID**, not symbol. MRPS36 is the reason:
-a stale symbol matches nothing and disappears silently, whereas a stale
-identifier can be detected. Symbols are retained in the CSV for readability and
-are cross-checked on load.
-
-Usage:
-    from _ribosomal_panel import ribosomal_symbols, panel_provenance
-    RIBO = ribosomal_symbols(table_s1)      # set of upper-case symbols
-    if sym.upper() in RIBO: ...
+Inputs:   data/ribosomal_panel.csv, data/ribosomal_panel_provenance.json
 """
 
 import hashlib

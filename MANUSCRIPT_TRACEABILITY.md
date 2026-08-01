@@ -1,262 +1,62 @@
-# Manuscript–Code Traceability Matrix
+# Traceability
 
-> **AI-assisted documentation.** This matrix and the cross-references between
-> manuscript claims and code outputs were assembled with the assistance of
-> Claude (Anthropic) via Cowork. All scientific analyses, interpretations and
-> editorial decisions were made by the author. Readers can use this document to
-> verify any claim in the manuscript against the code and saved output that
-> produced it.
+Each reported analysis, the script that produces it, the inputs it reads and
+the files it writes. Values are not repeated here; read them from the outputs.
 
-Every figure panel, table entry and in-text statistic maps to a script, its
-saved output file, and the script or notebook that displays it. (Numbered
-display notebooks are not yet written; figures are currently built directly by
-`analysis/make_psb_figures.py`.)
+`local` regenerates from shipped inputs alone. `checkpoint` needs model weights
+or the ~18 h ablation and is shipped so the reported numbers can be checked
+against the artefact.
 
-**Status:** all figures and sections are final. The §3.4 values below come from
-the corrected length-matched deletion run (200 draws, `Table_S1.csv`
-`57443b7225229e0b`, 99.98% length coverage) evaluated against the pinned MPS
-baseline.
+## Figures
 
-All numbers below are produced from the **shipped** `data/Table_S1.csv`
-(SHA-256 `57443b7225229e0b`, 18,911/18,915 gene lengths). Earlier drafts of this
-matrix quoted counts from a length-sparse copy of the same table; those are
-superseded.
+| Manuscript item | Script | Inputs | Outputs | Repro |
+|---|---|---|---|---|
+| Figure 1, model designs and shared screen | `make_psb_figures.py::fig1_workflow` | none (schematic) | `figures/F1_designs.pdf` | local |
+| Figure 2, caller robustness | `make_psb_figures.py::fig2_stability` | `outputs/E3_calibrated_summary.csv` | `figures/F2_stability.pdf` | local |
+| Figure 3, ESM-2 comparison | `make_psb_figures.py::fig3_esm2` | `outputs/E6_scfm_only_by_class.csv` | `figures/F3_esm2.pdf` | local |
+| Figure 4, matched deletion nulls (3 panels) | `make_psb_figures.py::fig4_nullband` | `outputs/E2_ablation_<ds>.json`, `outputs/E2_baseline_<ds>.json` | `figures/F4_nullband.pdf` | local from shipped E2 outputs |
 
----
+## Tables
 
-## Figure 1 — Model designs and the shared screen
+| Manuscript item | Script | Inputs | Outputs | Repro |
+|---|---|---|---|---|
+| Table 1, cross-model agreement | `E10_cross_model_agreement.py` | `data/Table_S1.csv` | `outputs/E10_cross_model_agreement.{csv,json}` | local |
+| Table 2a, covariate-adjusted ClinVar | `E8_clinvar_adjusted.py` | `data/Table_S1.csv` | `outputs/E8_clinvar_adjusted.{csv,json}` | local |
+| Table 2b, unadjusted class association | `E6_class_association.py` | `data/Table_S1.csv`, `data/gene_embedding_geometry.csv`, `data/ribosomal_panel.csv` | `outputs/E6_class_association.{csv,json}` | local |
 
-**Built by:** `analysis/make_psb_figures.py::fig1_designs`
-**Output:** `figures/F1_designs.pdf`
+## Methods
 
-The architecture, expression-encoding and vocabulary descriptions come from the
-three model methods. The displayed outlier counts (410, 188 and 164) come from
-`outputs/E3_calibrated_summary.csv`. The schematic distinguishes analyses run
-for all three models from the matched deletion follow-up run only in
-Geneformer; it does not attribute between-model differences to architecture
-alone.
+| Manuscript item | Script | Inputs | Outputs | Repro |
+|---|---|---|---|---|
+| §2.1 geometry screen, four metrics | `notebooks/P01_embedding_geometry.ipynb` | model checkpoints | `data/*gene_embedding_geometry.csv` | checkpoint |
+| §2.3 MANE mapping for ESM-2 | `E1_stage1_mapping.py` | MANE Select v1.3, UniProt | gene-to-protein mapping | checkpoint |
+| §2.4 treatment and control construction | `E2_downstream_ablation.py --setup` | `data/Table_S1.csv`, tokenised cells | `outputs/E2_treatment_genes.csv`, `outputs/E2_matched_controls_*_balance.csv`, `cache/E2_matched_controls_*.json` | checkpoint |
+| §2.4 pinned baseline and device | `E2_downstream_ablation.py --baseline` | tokenised cells, Geneformer | `outputs/E2_baseline_<ds>.json` | checkpoint |
+| §2.5 ribosomal panel definition | `_ribosomal_panel.py` | `data/ribosomal_panel.csv`, `..._provenance.json` | consumed by E2, E6, E11 | local |
+| §2.5 class schemes, overlapping and exclusive | `E6_class_association.py` | `data/Table_S1.csv` | `outputs/E6_class_association.{csv,json}` | local |
+| §2.7 serialisation precision | `_precision.py` | — | consumed by E7, E10, E11 | local |
 
----
+## Results
 
-## Figure 2 — Caller robustness
+| Manuscript item | Script | Inputs | Outputs | Repro |
+|---|---|---|---|---|
+| §3.1 outlier counts per model | `E10_cross_model_agreement.py` | `data/Table_S1.csv` | `outputs/E10_cross_model_agreement.json` | local |
+| §3.1 pairwise overlap, Jaccard, score correlation | `E10_cross_model_agreement.py` | as above | as above | local |
+| §3.2 caller stability and robust cores | `E3_outlier_robustness.py` | the three geometry CSVs, `data/Table_S1.csv` | `outputs/E3_calibrated_summary.csv`, `E3_enrichment_full.csv`, `E3_robust_core.json`, `E3_degenerate_diagnostics.csv`, `E3_gate_verdict.json` | local |
+| §3.3 ESM-2 recurrence and per-class breakdown | `E1_stage2_esm2.py --verify-shipped` | `outputs/E1_esm2_geometry.csv`, `data/Table_S1.csv` | `outputs/E1_esm2_comparison.csv`, `E1_stage2_verdict.json` | local |
+| §3.3 ESM-2 geometry itself | `E1_stage2_esm2.py --all` | ESM-2 checkpoint | `outputs/E1_esm2_geometry.csv` | checkpoint |
+| §3.4 deletion contrast, gate statistic, null band | `E2_downstream_ablation.py --evaluate` | `outputs/E2_ablation_<ds>.json`, `cache/E2_matched_controls_<ds>*.json` | `outputs/E2_verdict_<ds>.json` | checkpoint |
+| §3.4 sensitivity arm | as above, `no_ribo_mito` cache and `sensitivity` key | as above | as above | checkpoint |
+| §3.4 exclusion of clustering metrics | `E7_cluster_metric_diagnostic.py` | `outputs/E2_ablation_<ds>.json`, `E2_baseline_<ds>.json` | `outputs/E7_cluster_metric_diagnostic.{csv,json}` | local |
+| §3.4 token-level exposure | `E9_token_occurrence_audit.py` | `cache/E2_<ds>_tokenized.json`, `cache/E2_matched_controls_<ds>*.json`, `outputs/E2_treatment_genes.csv` | `outputs/E9_token_occurrence*.{csv,json}` | checkpoint |
+| §3.4 matching balance, standardised mean differences | `E2_downstream_ablation.py --setup` | as §2.4 | `outputs/E2_matched_controls_*_balance.csv` | checkpoint |
+| §3.4 Tabula Sapiens replication | `E2_downstream_ablation.py --datasets tabula_sapiens` | as above | `outputs/E2_{ablation,verdict,baseline}_tabula_sapiens.json` | checkpoint |
+| §3.5 adjusted ClinVar association, all models | `E8_clinvar_adjusted.py` | `data/Table_S1.csv` | `outputs/E8_clinvar_adjusted.{csv,json}` | local |
+| §3.5 scheme dependence of class enrichment | `E6_class_association.py` | as Table 2b | `outputs/E6_class_association.{csv,json}`, `E6_scfm_only_by_class.csv` | local |
+| §3.5 exploratory dependency analysis | `E11_dependency.py` | `data/Table_S1.csv`, DepMap 25Q3 | `outputs/E11_dependency.{csv,json}` | local |
 
-**Built by:** `analysis/make_psb_figures.py::fig2_stability`
-**Data:** `outputs/E3_calibrated_summary.csv` ← `analysis/E3_outlier_robustness.py`
+## Environment
 
-| Claim | Value | Source column |
-|---|---|---|
-| Geneformer containment under MAD z>3 | 410/410 = 1.000 | `containment` |
-| Geneformer Spearman ρ | 0.956 | `spearman_rho` |
-| Geneformer top-50 overlap | 50/50 | `top50_overlap` |
-| Geneformer Jaccard (set-size artefact) | 0.492 | `jaccard` |
-| scFoundation containment | 159/164 = 0.970 | `containment` |
-| scFoundation ρ | 0.999 | `spearman_rho` |
-| scGPT containment | 156/188 = 0.830 | `containment` |
-| scGPT top-50 overlap | 22/50 | `top50_overlap` |
-| scFoundation MAD z>3.5 containment saturated | 27/164 = 0.165 | `n_outliers`, `containment` |
-| Geneformer IQR containment saturated | 43/410 = 0.105 | `n_outliers`, `containment` |
-| Degenerate: GMM minority component | 24.20–49.17% | `outputs/E3_degenerate_diagnostics.csv` |
-| Degenerate: percentile 1/99 union rates | 4.96 / 6.77 / 5.92% | `outputs/E3_jaccard_results.csv` |
-
----
-
-## Figure 3 — Non-transcriptomic (ESM-2) control
-
-**Built by:** `analysis/make_psb_figures.py::fig3_esm2`
-**Data:** `outputs/E6_scfm_only_by_class.csv` ← `analysis/E6_class_association.py`
-**Upstream:** `analysis/E1_stage2_esm2.py` → `outputs/E1_esm2_geometry.csv`
-
-| Claim | Value | Source |
-|---|---|---|
-| Mean Jaccard, scFM vs ESM-2 | 0.023 | `outputs/E1_stage2_verdict.json` |
-| Mean Spearman | 0.042 | `outputs/E1_stage2_verdict.json` |
-| Geneformer ∩ ESM-2 | 49 of 389/570 | `E1_stage2_verdict.json::per_model` |
-| Expected Geneformer overlap / excess | 11.7 / 4.2-fold | derived from `n_shared`, `n_scfm_outliers`, `n_esm2_outliers`, `n_intersection` |
-| Geneformer anomaly-score ρ / p | 0.072 / 1.8e-23 | `E1_stage2_verdict.json::per_model` |
-| Geneformer top-50 overlap | 4 | `E1_stage2_verdict.json::top50_overlap` |
-| Shared gene universe | 19,017 | `E6_scfm_only_by_class.csv::n_shared_genes` |
-| scGPT / scFoundation shared universes | 18,748 / 18,788 | `E1_stage2_verdict.json::per_model.n_shared` |
-| Ribosomal scFM-only | 47/68 | `E6_scfm_only_by_class.csv` |
-| Mitochondrial scFM-only | 2/10 | `E6_scfm_only_by_class.csv` |
-| Constrained scFM-only | 86/87 | `E6_scfm_only_by_class.csv` |
-| Disease scFM-only | 79/82 | `E6_scfm_only_by_class.csv` |
-
-**Two restrictions are required** to reproduce the constrained figure: the
-19,017-gene shared universe, and mutually-exclusive class precedence
-(mitochondrial → ribosomal → constrained → disease → other). Under direct,
-overlapping membership the shared universe contains 138 constrained Geneformer
-outliers, 125 of them scFM-only; both versions are saved in
-`E6_scfm_only_by_class.csv`.
-
----
-
-## Figure 4 — Matched-control deletion results
-
-**Built by:** `analysis/make_psb_figures.py::fig4_nullband`
-**Data:** `outputs/E2_ablation_pbmc3k.json`, `outputs/E2_ablation_tabula_sapiens.json`
-← `analysis/E2_downstream_ablation.py`. All values below are under the pinned
-HGNC ribosomal panel (groups 728, 729, 646; sha256 `acd2a7ad…`); the
-digit-anchored v1 values are superseded and kept in `archive/`.
-
-| Claim | Value | Source |
-|---|---|---|
-| Baseline macro-F1 (pinned, MPS) | 0.9242778046911788 | `outputs/E2_baseline_pbmc3k.json` |
-| Treatment retrained F1 | 0.9211266 | `E2_ablation_pbmc3k.json::treatment.retrained_f1` |
-| **Treatment − control mean** (baseline-invariant) | **−0.002805** | `E2_verdict_pbmc3k.json::full.treatment_minus_control_mean_f1` |
-| **Gate statistic z** | **−1.4996** | `full.gate_z` |
-| **Controls at least as damaging** | **12/200** | `full.n_controls_at_least_as_damaging` |
-| **One-sided empirical p** (add-one) | **0.0647** | `full.empirical_p_addone` |
-| Treatment ΔF1 (vs pinned baseline) | −0.003151 | `full.treatment_delta_f1` |
-| Control Δ mean | −0.000346 | `full.control_mean_delta_f1` |
-| 95% null band | [−0.003586, +0.003022] | `full.null_band_2_5` / `null_band_97_5` |
-| Sensitivity: treatment − control mean | +0.001216 | `sensitivity.treatment_minus_control_mean_f1` |
-| Sensitivity z, p, rank | +0.3481, 0.6617, 132/200 | `sensitivity.*` |
-| Sensitivity ΔF1, control mean | −0.001274, −0.001817 | `sensitivity.*` |
-| k-sweep ΔF1 (k=25/50/100) | −0.001245 / −0.003151 / −0.004101 | `k_sensitivity`, rebased on the pinned baseline |
-
-**On the baseline.** Descriptive deltas use the pinned MPS baseline, matching
-the device on which the treatment and control ablations were evaluated. It
-reproduces bit-identically across two independent runs with the embedding cache
-cleared. A CPU baseline on the same machine and library stack gives 0.9247927, a
-difference of 5.1e-04. That figure is a diagnostic recorded here for provenance;
-it is not shipped as an artefact and nothing in the manuscript depends on it.
-The gate statistic, rank and empirical p are unchanged by a common baseline
-shift because they compare treatment and control F1 directly.
-| Treatment composition | 19 constrained · 13 ribosomal · 9 other · 8 disease · 1 mitochondrial | `outputs/E2_treatment_genes.csv` |
-
-Matching balance — `outputs/E2_matched_controls_pbmc3k_balance.csv`:
-
-| Variable | Treatment | Control | SMD |
-|---|---|---|---|
-| expr_mean | 6.4263 | 3.9514 | **0.288** |
-| expr_breadth | 0.4215 | 0.4123 | 0.019 |
-| gene_length | 528,680 | 474,122 | 0.077 |
-| class proportions | — | — | 0.000 (exact) |
-
-Expression shows **limited common support**: only 28 of 18,283 eligible
-candidates reach the treatment's 75th expression percentile, and 10 reach the
-90th, against a treatment maximum of 46.1 versus a pool 99.9th percentile of
-13.0. This is limited common support: the imbalance reflects scarcity of comparable candidates, not matcher failure.
-
-Excluded from the headline figure — `analysis/E7_cluster_metric_diagnostic.py`:
-
-| Metric | % of controls improving | 95% band as % of baseline | Usable |
-|---|---|---|---|
-| retrained macro-F1 | 48% | **0.8%** | yes |
-| cluster NMI | 45% | **10.6%** | no |
-| cluster ARI | 47% | **42.3%** | no |
-
-Usability rests on the band-width column alone. The improve-fraction is
-descriptive: it shifts by more than ten points on a baseline change of ~5e-4, so
-it is not a stable property of the metric and is not used as a gate.
-Tabula Sapiens cluster NMI later met the same precision criterion (3.9% of
-baseline) but remained secondary because macro-F1 had already been designated
-as the gate before that replication was analysed; the result and timing are
-recorded in `prespecification/results_addendum_2026-07-29.md`.
-
-### Tabula Sapiens replication (primary arm only)
-
-**Data:** `outputs/E2_verdict_tabula_sapiens.json` ← `outputs/E2_ablation_tabula_sapiens.json`
-
-| Claim | Value | Source |
-|---|---|---|
-| Baseline macro-F1 (pinned) | 0.6347886452386879 | `outputs/E2_baseline_tabula_sapiens.json` |
-| Treatment − control mean | **−0.007894** | `full.treatment_minus_control_mean_f1` |
-| Gate statistic z | **−1.1200** | `full.gate_z` |
-| Controls at least as damaging | **14/100** | `full.n_controls_at_least_as_damaging` |
-| Empirical p (add-one) | **0.1485** | `full.empirical_p_addone` |
-| Control SD | 0.006516 | `full.control_sd_delta_f1` |
-| Cells, cell types | 3,919 / 22 | `baseline.n_cells`, `n_types` |
-| Balance: expr / breadth / length | 0.283 / 0.024 / 0.112 | `E2_matched_controls_tabula_sapiens_balance.csv` |
-| Token exposure | 21.75 vs 21.33, z +1.66 | `outputs/E9_token_occurrence_TS.json` |
-
-Primary arm only; the sensitivity arm was not replicated. Executed on separate
-Apple-silicon hardware under Python 3.11.14. The Tabula Sapiens panel is now the right-hand panel of the single
-`figures/F4_nullband.pdf`, which the manuscript references; the former
-per-dataset figures are superseded.
-
-Token-level exposure — `analysis/E9_token_occurrence_audit.py`:
-
-| Arm | Treatment | Controls | z |
-|---|---|---|---|
-| Full (50 genes) | 21.07 tokens/cell | 20.59 | +1.64 |
-| Sensitivity (36 genes) | 9.42 | 9.29 | +0.62 |
-
-Token occurrence does not indicate treatment underexposure.
-
----
-
-## Table 1 / §3.5 — Covariate-aware disease association
-
-**Data:** `outputs/E8_clinvar_adjusted.{csv,json}` ← `analysis/E8_clinvar_adjusted.py`
-
-Universe: 18,911 complete cases (388 Geneformer outliers, 72 shared).
-Non-mitochondrial sensitivity: 18,898 (378, 64).
-
-| Tier | Gene set | Unadjusted OR | Adjusted OR | 95% CI | p |
-|---|---|---|---|---|---|
-| **PRIMARY** Firth, all genes | Geneformer ($n$=388) | 1.16 | **1.05** | 0.82–1.35 | 0.680 |
-| **PRIMARY** Firth, all genes | scGPT ($n$=102) | 2.95 | **1.22** | 0.76–1.99 | 0.411 |
-| **PRIMARY** Firth, all genes | scFoundation ($n$=161) | 0.80 | **0.98** | 0.69–1.38 | 0.905 |
-| **PRIMARY** Firth, all genes | shared (exploratory, $n$=72) | 3.59 | 1.45 | 0.80–2.71 | 0.222 |
-| SENSITIVITY logistic, non-mito | Geneformer | 1.10 | 1.05 | 0.82–1.35 | 0.682 |
-| SENSITIVITY logistic, non-mito | scGPT | 2.58 | 1.23 | 0.76–1.99 | 0.399 |
-| SENSITIVITY logistic, non-mito | scFoundation | 0.80 | 0.98 | 0.69–1.38 | 0.896 |
-| DIAGNOSTIC mito covariate omitted | shared | 3.59 | 2.28 | 1.26–4.13 | 0.007 |
-
-The three model-specific tests use an identical specification: same universe,
-same covariates, same Firth primary, only the exposure flag differs. Their
-p-values are uncorrected; all exceed 0.4. scGPT's unadjusted p is
-1.847×10⁻⁷, so the adjustment is what removes the association rather than a
-weak signal being absent throughout. Source: `outputs/E8_clinvar_adjusted.json`
-keys `primary_by_model` and `sensitivity_by_model`.
-
-The DIAGNOSTIC row is **mis-specified** and reported only to document what
-happens when a perfectly separated class (all 13 MT- genes are ClinVar-positive)
-is left unadjusted. Its estimates must not be quoted.
-
-Class-scheme comparison — `outputs/E6_class_association.csv`:
-
-| Gene set | Scheme | Disease OR | p |
-|---|---|---|---|
-| shared GF∩scGPT | overlapping | 3.594 | 5.0e-07 |
-| shared GF∩scGPT | mutually exclusive | 0.385 | 1.6e-03 |
-| all GF outliers | overlapping | 1.160 | 0.148 |
-| all GF outliers | mutually exclusive | 0.519 | 3.8e-08 |
-
-The two schemes estimate **different quantities**, not the same quantity two
-ways: the mutually-exclusive `disease` class excludes genes already assigned to
-constrained, ribosomal or mitochondrial. 1,784 of 8,285 ClinVar genes (22%) are
-also constrained. The all-Geneformer rows use the 18,911 complete-case
-`table_s1` universe, matching Table 1 in the manuscript; the full-vocabulary
-geometry rows remain available in the same CSV and are not quoted there.
-
-Geneformer class associations (original |z|>3 call) —
-`outputs/E3_enrichment_full.csv`:
-
-| Class | OR | Direction |
-|---|---|---|
-| mitochondrial | 165.48 | enriched |
-| ribosomal | 36.71 | enriched |
-| constrained | 1.59 | enriched |
-| disease (residual class) | 0.54 | negative — **depends on mutually exclusive class precedence** |
-
----
-
-## Methods statistics
-
-| Claim | Value | Source |
-|---|---|---|
-| Geneformer vocabulary | 20,271 genes | `E3_degenerate_diagnostics.csv::total_n` |
-| scGPT vocabulary | 60,694 | same |
-| scFoundation vocabulary | 19,264 | same |
-| Geneformer outliers | 410 | `E3_calibrated_summary.csv` |
-| Annotation table coverage | 18,911/18,915 lengths | `E8_clinvar_adjusted.json::provenance` |
-| Annotation table SHA-256 | `57443b7225229e0b` | same |
-| Canonical pinned environment | Python 3.11.15, numpy 1.26.4, sklearn 1.8.0, threads=1 | `E2_baseline_pbmc3k.json::environment` |
-
-**On special-token exclusion.** The raw geometry file contains 412 Geneformer
-outliers across 20,275 vocabulary entries. The analysis contains 410 across
-20,271 genes after excluding four special tokens (`<pad>`, `<mask>`, `<cls>`,
-`<eos>`), two of which were geometric outliers. Special tokens are not genes
-and are excluded from every analysis here.
+Every result file carries an environment fingerprint recording library
+versions, thread settings and compute device. `pyproject.toml` and `uv.lock`
+pin the environment; `data/CHECKSUMS.json` pins the shipped inputs.

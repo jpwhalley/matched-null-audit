@@ -216,11 +216,11 @@ _DISEASE_GENES = set(
 
 
 # Ribosomal panel: pinned HGNC gene groups 728, 729 and 646, resolved by
-# Ensembl gene ID. Replaces the earlier symbol regex, which admitted RPS6K*
-# kinases and RPS19BP1, carried the obsolete symbol MRPS36, and omitted seven
-# genuine members. See analysis/_ribosomal_panel.py and
-# data/ribosomal_panel_provenance.json. Every matched-control cache records
-# the panel SHA-256 and is refused if it differs.
+# Ensembl gene ID rather than by symbol, since symbol matching admits RPS6K
+# signalling kinases and misses members carrying obsolete symbols. See
+# analysis/_ribosomal_panel.py and data/ribosomal_panel_provenance.json.
+# Every matched-control cache records the panel SHA-256 and is refused if it
+# differs.
 from _ribosomal_panel import (ribosomal_symbols, panel_provenance,  # noqa: E402
                               PANEL_SHA256 as RIBOSOMAL_PANEL_SHA256)
 _RIBOSOMAL = ribosomal_symbols(table_s1)
@@ -842,7 +842,7 @@ def _prepare_candidate_pool(gene_stats_df):
 
     # EXCLUDE rather than impute. Genes with no annotation row cannot be
     # matched on length, and median-imputing them would let the matcher treat
-    # an unknown value as an average one -- which is how the earlier run
+    # an unknown value as an average one, which silently biases the null
     # reported an SMD of 0.070 when the true figure was 0.334. A gene missing
     # a matching covariate is simply not an eligible control.
     _n_before = len(all_genes)
@@ -923,8 +923,8 @@ def _controls_fingerprint(cache_path):
 def _assert_control_spec(cache_path):
     """Refuse a matched-control cache built under a different specification.
 
-    Control caches have stable filenames, so a cache drawn under the old
-    digit-anchored ribosomal pattern, or at a different draw count, would
+    Control caches have stable filenames, so a cache drawn under a different
+    ribosomal panel, or at a different draw count, would
     otherwise be reused silently and the null would not correspond to the
     specification in force. Every field written by build_matched_controls is
     checked, not just the pattern.
@@ -933,7 +933,6 @@ def _assert_control_spec(cache_path):
     spec_path = cache_path.with_name(cache_path.stem + "_spec.json")
     hint = (f"Archive and remove the control caches and ablation checkpoints, "
             f"then re-run --setup:\n"
-            f"  python revision/notebooks/archive_controls.py\n"
             f"  rm -f {CACHE}/E2_matched_controls_*.json "
             f"{CACHE}/E2_matched_controls_*_spec.json "
             f"{CACHE}/E2_ablation_ckpt_*.json\n"
@@ -941,7 +940,7 @@ def _assert_control_spec(cache_path):
     if not spec_path.exists():
         raise RuntimeError(
             f"{cache_path.name} has no _spec.json sidecar, so it predates the "
-            f"2026-07-30 ribosomal correction and was drawn under the old "
+            f"current ribosomal panel and was drawn under a different "
             f"panel.\n{hint}")
     spec = json.loads(spec_path.read_text())
     expected = {"ribosomal_panel_sha256": RIBOSOMAL_PANEL_SHA256,
@@ -1727,7 +1726,7 @@ def _run_control_null(model, tokenized, cell_types, ctrl_path,
         _ck = json.loads(ckpt_path.read_text())
         if not isinstance(_ck, dict) or "controls_sha256" not in _ck:
             raise RuntimeError(
-                f"{ckpt_path.name} is in the pre-2026-07-30 format and is not "
+                f"{ckpt_path.name} is in an older checkpoint format and is not "
                 f"bound to a control set, so resuming could mix results from "
                 f"different nulls. Delete it and restart this band.")
         if _ck["controls_sha256"] != ctrl_fp:
@@ -1934,7 +1933,7 @@ def evaluate(datasets=None):
                   f"{a['empirical_p_addone']:.4f} (add-one; "
                   f"raw {a['empirical_p_raw']:.4f})")
 
-        # Gate is the pre-specified 2.5th-percentile rule, nothing else.
+        # Gate is the 2.5th-percentile rule of the matched-control band.
         treat_below = full is not None and not full["inside_band"]
         sens_below = sens is not None and not sens["inside_band"]
 
@@ -1971,8 +1970,7 @@ def evaluate(datasets=None):
         else:
             gate = "NULL"
             note = ("The treatment did not show excess disruption relative to "
-                    "its matched-control null in this dataset. This does not "
-                    "alter the pre-specified pivot to characterisation.")
+                    "its matched-control null in this dataset.")
             if results.get("primary_only"):
                 note += (" Only the primary arm was run: the "
                          "ribosomal/mitochondrial sensitivity arm was not "
@@ -2045,8 +2043,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--n-bootstrap", type=int, default=None, metavar="N",
         help=f"Override bootstrap draws (default {N_BOOTSTRAP}). "
-             "Interpretation lock sets a floor of 100 - fewer widens the "
-             "null band and is how a false null gets manufactured.")
+             "A floor of 100 applies; fewer widens the null band.")
     parser.add_argument(
         "--datasets", nargs="+", default=None,
         metavar="NAME",
@@ -2064,8 +2061,8 @@ if __name__ == "__main__":
     if args.n_bootstrap is not None:
         if args.n_bootstrap < 100:
             print(f"REFUSED: --n-bootstrap {args.n_bootstrap} is below the "
-                  f"floor of 100 set in the interpretation lock (§3). "
-                  f"A widened null band is how a false null is manufactured.")
+                  f"floor of 100. A widened null band is how a false null "
+                    f"is manufactured.")
             sys.exit(2)
         N_BOOTSTRAP = args.n_bootstrap
         print(f"  N_BOOTSTRAP overridden to {N_BOOTSTRAP}")
