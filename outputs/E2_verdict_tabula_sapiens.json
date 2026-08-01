@@ -1,7 +1,7 @@
 {
   "dataset": "tabula_sapiens",
   "gate": "NULL",
-  "note": "The treatment did not show excess disruption relative to its matched-control null in this dataset. This does not alter the pre-specified pivot to characterisation. Only the primary arm was run: the ribosomal/mitochondrial sensitivity arm was not replicated for this dataset.",
+  "note": "The treatment did not show excess disruption relative to its matched-control null in this dataset. Only the primary arm was run: the ribosomal/mitochondrial sensitivity arm was not replicated for this dataset.",
   "baseline": {
     "pinned_retrained_f1": 0.6347886452386879,
     "pinned_source": "E2_baseline_tabula_sapiens.json",

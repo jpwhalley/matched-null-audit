@@ -1,7 +1,7 @@
 {
   "dataset": "pbmc3k",
   "gate": "NULL",
-  "note": "The treatment did not show excess disruption relative to its matched-control null in this dataset. This does not alter the pre-specified pivot to characterisation.",
+  "note": "The treatment did not show excess disruption relative to its matched-control null in this dataset.",
   "baseline": {
     "pinned_retrained_f1": 0.9242778046911788,
     "pinned_source": "E2_baseline_pbmc3k.json",

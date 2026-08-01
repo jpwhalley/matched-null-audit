@@ -217,8 +217,8 @@ def main():
             "ARI is excluded on PRECISION: its 95% null band spans ~42% of the "
             "baseline value against ~0.7% for macro-F1, roughly sixty times "
             "less precise, so it cannot resolve an effect of the size at "
-            "issue. Clustering metrics belong in supplementary material with "
-            "these numbers attached."),
+            "issue. Clustering metrics are retained in this diagnostic output "
+            "but excluded from the headline figure."),
         "possible_mechanism_not_tested": (
             "The broad clustering nulls could reflect sensitivity of k-means "
             "to dominant embedding directions, but this mechanism was not "
