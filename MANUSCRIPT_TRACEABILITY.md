@@ -16,8 +16,8 @@ row below is only meaningful together with the universe it uses.
 
 | Universe | Size | Outliers | Where used |
 |---|---|---|---|
-| Full model vocabulary, per model | 20,271 / 60,694 / 19,264 | 410 / 188 / 164 | §2.1, §3.1 first paragraph, §3.1 class ORs, Figure 1, Figure 2 |
-| Shared by all three vocabularies | 18,915 | 388 / 102 / 161 | Table 1, Table 2b |
+| Full model vocabulary, per model | 20,271 / 60,694 / 19,264 | 410 / 188 / 164 | §3.1 first paragraph (counts and vocabulary sizes), Figure 1, Figure 2 |
+| Shared by all three vocabularies | 18,915 | 388 / 102 / 161 | Table 1, Table 2b, §3.1 class enrichment |
 | ClinVar complete cases | 18,911 | 388 / 102 / 161 | §3.5, Table 2a |
 | Shared with ESM-2 (Geneformer) | 19,017 | 389 | §3.3, Figure 3 |
 
@@ -43,7 +43,6 @@ row below is only meaningful together with the universe it uses.
 | Manuscript item | Script | Inputs | Outputs | Repro |
 |---|---|---|---|---|
 | §2.1 geometry screen, four metrics | `notebooks/P01_embedding_geometry.ipynb` | static gene-embedding matrices and gene identifiers extracted from model checkpoints | `data/gene_embedding_geometry.csv`, `data/scgpt_gene_embedding_geometry.csv`, `data/sf_gene_embedding_geometry.csv` | checkpoint |
-| §2.1 Geneformer vocabulary 20,271 and 410 outliers | `analysis/E3_outlier_robustness.py` | the three geometry CSVs | `outputs/E3_calibrated_summary.csv` (`n_outliers`), `outputs/E3_degenerate_diagnostics.csv` (`total_n`) | local |
 | §2.2 three robust callers and three degenerate exclusions | `analysis/E3_outlier_robustness.py` | the three geometry CSVs | `outputs/E3_calibrated_summary.csv`, `E3_enrichment_full.csv`, `E3_degenerate_diagnostics.csv`, `E3_gate_verdict.json` | local |
 | §2.2 GMM minority-component sizes (24.2--49.2%) | as above | as above | `outputs/E3_degenerate_diagnostics.csv` | local |
 | §2.2 percentile 1/99 union rates (4.96 / 5.92 / 6.77%) | as above | as above | recorded in `outputs/E3_gate_verdict.json` (`criteria_note`); this caller produces no separate table | local |
@@ -71,7 +70,7 @@ row below is only meaningful together with the universe it uses.
 |---|---|---|---|---|
 | §3.1 outlier counts and vocabulary sizes per model (410/188/164 over 20,271/60,694/19,264) | `analysis/E3_outlier_robustness.py` | the three geometry CSVs | `outputs/E3_calibrated_summary.csv` (`n_outliers`, rows `\|z\|>3 (original)`), `outputs/E3_degenerate_diagnostics.csv` (`total_n`) | local |
 | §3.1 pairwise overlap, expected overlap, Jaccard, score correlation, three-way intersection | `analysis/E10_cross_model_agreement.py` | `data/Table_S1.csv` | `outputs/E10_cross_model_agreement.{csv,json}` | local |
-| §3.1 Geneformer class enrichment (mitochondrial 165.5, ribosomal 44.9, constrained 1.48) | `analysis/E6_class_association.py` | `data/gene_embedding_geometry.csv`, `data/Table_S1.csv`, `data/ribosomal_panel.csv` | `outputs/E6_class_association.csv`, rows with `source=geometry_csv` (**full-vocabulary universe, n=410** — not the `source=table_s1` rows behind Table 2b, n=388) | local |
+| §3.1 class enrichment, all three models (mitochondrial 163 / 455 / none; ribosomal 44.8 / 18.9 / 4.4; Geneformer constrained 1.46) | `analysis/E6_class_association.py` | `data/Table_S1.csv`, `data/ribosomal_panel.csv` | `outputs/E6_class_association.csv`, rows with `source=table_s1` — the per-model `overlapping` rows for ribosomal and mitochondrial, and `all_GF_outliers` / `constrained` / `mutually_exclusive` for the constraint OR. All in the 18,915-gene shared universe, matching Tables 1 and 2 | local |
 | §3.1 top-50 expression comparison (median 1,813 against 42 nTPM) | no released script; computed directly from the two shipped files | `outputs/E2_treatment_genes.csv` (the 50 highest-anomaly genes) joined to `data/Table_S1.csv` on `ensembl_id`, comparing the median of `max_tpm` for those 50 against the median over the whole table | none — recomputable in two lines from the shipped inputs | local |
 | §3.2 caller stability, containment against ceiling, robust cores | `analysis/E3_outlier_robustness.py` | the three geometry CSVs, `data/Table_S1.csv` | `outputs/E3_calibrated_summary.csv`, `E3_enrichment_full.csv`, `E3_robust_core.json`, `E3_degenerate_diagnostics.csv`, `E3_gate_verdict.json` | local |
 | §3.3 ESM-2 recurrence: Jaccard, score correlation, 49 vs 11.7 expected, top-50 overlap, overlap gene list | `analysis/E1_stage2_esm2.py --verify-shipped` | `outputs/E1_esm2_geometry.csv`, `data/Table_S1.csv` | `outputs/E1_esm2_comparison.csv`, `outputs/E1_stage2_verdict.json` | local |
