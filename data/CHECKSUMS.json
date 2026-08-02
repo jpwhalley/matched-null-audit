@@ -1,22 +1,30 @@
 {
   "data/Table_S1.csv": {
-    "sha256_16": "57443b7225229e0b",
-    "bytes": 5908419
+    "bytes": 5908419,
+    "sha256_16": "57443b7225229e0b"
   },
   "data/gene_embedding_geometry.csv": {
-    "sha256_16": "94d814094f5a519c",
-    "bytes": 4382747
+    "bytes": 4382747,
+    "sha256_16": "94d814094f5a519c"
+  },
+  "data/ribosomal_panel.csv": {
+    "bytes": 6632,
+    "sha256_16": "acd2a7adf03ad9b4"
+  },
+  "data/ribosomal_panel_provenance.json": {
+    "bytes": 1343,
+    "sha256_16": "13e36ef7e78f80eb"
   },
   "data/scgpt_gene_embedding_geometry.csv": {
-    "sha256_16": "2c7ff95b71a5c237",
-    "bytes": 12266309
+    "bytes": 12266309,
+    "sha256_16": "2c7ff95b71a5c237"
   },
   "data/sf_gene_embedding_geometry.csv": {
-    "sha256_16": "d3a4924c156c8835",
-    "bytes": 2606441
+    "bytes": 2606441,
+    "sha256_16": "d3a4924c156c8835"
   },
   "outputs/E1_esm2_geometry.csv": {
-    "sha256_16": "cc3741ad4a65bde4",
-    "bytes": 2690890
+    "bytes": 2690890,
+    "sha256_16": "cc3741ad4a65bde4"
   }
 }

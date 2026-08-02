@@ -39,17 +39,19 @@ These are shipped so the null bands can be recomputed without redrawing them.
 The tokenised cell matrices they index are not shipped; rebuild those with
 `E2_downstream_ablation.py --setup`.
 
-## Downloaded (D-series notebooks; not redistributed)
+## External sources (not redistributed)
 
-| Resource | Version / accession | Notebook | Licence |
+| Resource | Version / accession | Acquired by | Licence |
 |---|---|---|---|
 | Geneformer | `Geneformer-V2-104M` | `D01_model_acquisition.ipynb` | Apache-2.0, via Hugging Face |
 | scGPT | whole-human checkpoint | `D01_model_acquisition.ipynb` | MIT |
 | scFoundation | released checkpoint | `D01_model_acquisition.ipynb` | per authors |
 | ESM-2 | `esm2_t33_650M_UR50D` | `D01_model_acquisition.ipynb` | MIT |
-| MANE Select | v1.3 (pinned) | `D02_external_databases.ipynb` | public domain |
+| MANE Select | v1.3 (pinned) | `analysis/E1_stage2_esm2.py` (downloads and filters to MANE Select) | public domain |
 | gnomAD constraint | v4.1 | `D02_external_databases.ipynb` | ODbL |
-| ClinVar | as dated in the notebook | `D02_external_databases.ipynb` | public domain |
+| ClinVar | gene-specific summary, 4 April 2026; membership = pathogenic or likely pathogenic allele count > 0 | `D02_external_databases.ipynb` | public domain |
+| Human Protein Atlas | RNA consensus tissue data, source file dated 5 November 2025; 51 tissues; `max_tpm` = maximum consensus nTPM, `expression_breadth` = fraction of tissues with nTPM $\geq$ 1 | `D02_external_databases.ipynb` | CC BY-SA 3.0 |
+| Ensembl BioMart | gene spans; `gene_length_bp` = longest annotated span per gene. The released package contains the resulting column in `data/Table_S1.csv` but not the workflow that built it | not released | public domain |
 | PBMC3k | 10x Genomics, via scanpy | `D04_reference_datasets.ipynb` | CC-BY |
 | Tabula Sapiens Immune | CellxGene `78b60b70-129a-4a6d-b15f-825b241eec66` | `D04_reference_datasets.ipynb` | CC-BY |
 

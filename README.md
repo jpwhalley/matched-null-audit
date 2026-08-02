@@ -1,6 +1,6 @@
-# Comparative geometry of gene embeddings in single-cell foundation models
+# Do Geometric Outliers Identify Important Genes in Single-Cell Foundation Models?
 
-Reproduction package for the PSB 2027 paper of the same name (J. Whalley).
+Reproduction package for the PSB 2027 paper of the same name (J. P. Whalley).
 
 This repository exists to re-run the analyses reported in the paper. It holds
 the code, the versioned inputs and their checksums, the saved outputs, and a
@@ -39,9 +39,24 @@ Both need model checkpoints; see `DATA_MANIFEST.md` and the `D`-series
 notebooks for acquisition.
 
 ```bash
-RUN_ABLATION=1 ./run_all.sh        # matched deletion test and token audit, ~18 h
+RUN_ABLATION=1 ./run_all.sh        # PBMC3k matched deletion and token audit, ~18 h
 REGENERATE_ESM2=1 ./run_all.sh     # recompute ESM-2 embeddings, ~2 h
 ```
+
+`RUN_ABLATION=1` covers PBMC3k only. The Tabula Sapiens replication is a
+separate run with its own settings and is not reached by any environment
+variable:
+
+```bash
+uv run python analysis/E2_downstream_ablation.py \
+    --setup --baseline --ablation --evaluate \
+    --datasets tabula_sapiens --primary-only --subsample 4000 --n-bootstrap 100
+uv run python analysis/E9_token_occurrence_audit.py --dataset tabula_sapiens
+```
+
+`--primary-only` runs the top-*k* treatment and its matched null and skips the
+sensitivity arm and the *k*-sweep, which is what the paper reports for this
+dataset.
 
 The deletion test checkpoints every ten control sets and resumes on restart.
 The matched-control draws are shipped under `cache/`, so the null bands can be

@@ -3,55 +3,115 @@
 Each reported analysis, the script that produces it, the inputs it reads and
 the files it writes. Values are not repeated here; read them from the outputs.
 
+All scripts live in `analysis/`; all paths below are repository-relative.
+
 `local` regenerates from shipped inputs alone. `checkpoint` needs model weights
 or the ~18 h ablation and is shipped so the reported numbers can be checked
 against the artefact.
+
+## Gene universes
+
+Three universes appear in the manuscript. They are not interchangeable, and a
+row below is only meaningful together with the universe it uses.
+
+| Universe | Size | Outliers | Where used |
+|---|---|---|---|
+| Full model vocabulary, per model | 20,271 / 60,694 / 19,264 | 410 / 188 / 164 | §2.1, §3.1 first paragraph, §3.1 class ORs, Figure 1, Figure 2 |
+| Shared by all three vocabularies | 18,915 | 388 / 102 / 161 | Table 1, Table 2b |
+| ClinVar complete cases | 18,911 | 388 / 102 / 161 | §3.5, Table 2a |
+| Shared with ESM-2 (Geneformer) | 19,017 | 389 | §3.3, Figure 3 |
 
 ## Figures
 
 | Manuscript item | Script | Inputs | Outputs | Repro |
 |---|---|---|---|---|
-| Figure 1, model designs and shared screen | `make_psb_figures.py::fig1_designs` | none (schematic) | `figures/F1_designs.pdf` | local |
-| Figure 2, caller robustness | `make_psb_figures.py::fig2_stability` | `outputs/E3_calibrated_summary.csv` | `figures/F2_stability.pdf` | local |
-| Figure 3, ESM-2 comparison | `make_psb_figures.py::fig3_esm2` | `outputs/E6_scfm_only_by_class.csv` | `figures/F3_esm2.pdf` | local |
-| Figure 4, matched deletion nulls (3 panels) | `make_psb_figures.py::fig4_nullband` | `outputs/E2_ablation_<ds>.json`, `outputs/E2_baseline_<ds>.json` | `figures/F4_nullband.pdf` | local from shipped E2 outputs |
+| Figure 1, model designs and shared screen | `analysis/make_psb_figures.py::fig1_designs` | none (schematic; the printed counts are the full-vocabulary values above) | `figures/F1_designs.pdf` | local |
+| Figure 2, caller robustness | `analysis/make_psb_figures.py::fig2_stability` | `outputs/E3_calibrated_summary.csv` | `figures/F2_stability.pdf` | local |
+| Figure 3, ESM-2 comparison | `analysis/make_psb_figures.py::fig3_esm2` | `outputs/E6_scfm_only_by_class.csv` | `figures/F3_esm2.pdf` | local |
+| Figure 4, matched deletion nulls (3 panels) | `analysis/make_psb_figures.py::fig4_nullband` | `outputs/E2_ablation_<ds>.json`, `outputs/E2_baseline_<ds>.json` | `figures/F4_nullband.pdf` | local from shipped E2 outputs |
 
 ## Tables
 
 | Manuscript item | Script | Inputs | Outputs | Repro |
 |---|---|---|---|---|
-| Table 1, cross-model agreement | `E10_cross_model_agreement.py` | `data/Table_S1.csv` | `outputs/E10_cross_model_agreement.{csv,json}` | local |
-| Table 2a, covariate-adjusted ClinVar | `E8_clinvar_adjusted.py` | `data/Table_S1.csv` | `outputs/E8_clinvar_adjusted.{csv,json}` | local |
-| Table 2b, unadjusted class association | `E6_class_association.py` | `data/Table_S1.csv`, `data/gene_embedding_geometry.csv`, `data/ribosomal_panel.csv` | `outputs/E6_class_association.{csv,json}` | local |
+| Table 1, cross-model agreement | `analysis/E10_cross_model_agreement.py` | `data/Table_S1.csv` | `outputs/E10_cross_model_agreement.{csv,json}` | local |
+| Table 2a, covariate-adjusted ClinVar (18,911 complete cases; Firth primary, unpenalised non-mitochondrial sensitivity, mis-specified diagnostic) | `analysis/E8_clinvar_adjusted.py` | `data/Table_S1.csv`, `data/ribosomal_panel.csv` | `outputs/E8_clinvar_adjusted.{csv,json}` | local |
+| Table 2b, unadjusted class association under both schemes | `analysis/E6_class_association.py` | `data/Table_S1.csv`, `data/gene_embedding_geometry.csv`, `data/ribosomal_panel.csv` | `outputs/E6_class_association.{csv,json}` | local |
 
 ## Methods
 
 | Manuscript item | Script | Inputs | Outputs | Repro |
 |---|---|---|---|---|
-| §2.1 geometry screen, four metrics | `notebooks/P01_embedding_geometry.ipynb` | model checkpoints | `data/*gene_embedding_geometry.csv` | checkpoint |
-| §2.3 MANE mapping for ESM-2 | `E1_stage1_mapping.py` | MANE Select v1.3, UniProt | gene-to-protein mapping | checkpoint |
-| §2.4 treatment and control construction | `E2_downstream_ablation.py --setup` | `data/Table_S1.csv`, tokenised cells | `outputs/E2_treatment_genes.csv`, `outputs/E2_matched_controls_*_balance.csv`, `cache/E2_matched_controls_*.json` | checkpoint |
-| §2.4 pinned baseline and device | `E2_downstream_ablation.py --baseline` | tokenised cells, Geneformer | `outputs/E2_baseline_<ds>.json` | checkpoint |
-| §2.5 ribosomal panel definition | `_ribosomal_panel.py` | `data/ribosomal_panel.csv`, `..._provenance.json` | consumed by E1, E2, E3, E6 and E8 | local |
-| §2.5 class schemes, overlapping and exclusive | `E6_class_association.py` | `data/Table_S1.csv` | `outputs/E6_class_association.{csv,json}` | local |
+| §2.1 geometry screen, four metrics | `notebooks/P01_embedding_geometry.ipynb` | static gene-embedding matrices and gene identifiers extracted from model checkpoints | `data/gene_embedding_geometry.csv`, `data/scgpt_gene_embedding_geometry.csv`, `data/sf_gene_embedding_geometry.csv` | checkpoint |
+| §2.1 Geneformer vocabulary 20,271 and 410 outliers | `analysis/E3_outlier_robustness.py` | the three geometry CSVs | `outputs/E3_calibrated_summary.csv` (`n_outliers`), `outputs/E3_degenerate_diagnostics.csv` (`total_n`) | local |
+| §2.2 three robust callers and three degenerate exclusions | `analysis/E3_outlier_robustness.py` | the three geometry CSVs | `outputs/E3_calibrated_summary.csv`, `E3_enrichment_full.csv`, `E3_degenerate_diagnostics.csv`, `E3_gate_verdict.json` | local |
+| §2.2 GMM minority-component sizes (24.2--49.2%) | as above | as above | `outputs/E3_degenerate_diagnostics.csv` | local |
+| §2.2 percentile 1/99 union rates (4.96 / 5.92 / 6.77%) | as above | as above | recorded in `outputs/E3_gate_verdict.json` (`criteria_note`); this caller produces no separate table | local |
+| §2.2 Tukey IQR *k*=3 returns 43 / 0 / 0 | as above | as above | `outputs/E3_calibrated_summary.csv` | local |
+| §2.3 MANE mapping for ESM-2 | `analysis/E1_stage2_esm2.py` (downloads `MANE.GRCh38.v1.3.summary.txt.gz` from NCBI and filters to MANE Select) | MANE Select v1.3, reviewed UniProt entries as fallback | gene-to-protein mapping cached under `cache/`; not shipped | checkpoint |
+| — feasibility and bias audit for the ESM-2 comparison (not a reported result) | `analysis/E1_stage1_mapping.py` | model vocabularies, mygene.info | `E1_feasibility_table.csv`, `E1_bias_audit.csv`, `E1_mapping_cache.json`; not shipped | checkpoint |
+| §2.3 ESM-2 embedding: residue means excluding BOS/EOS, 50%-overlap windows averaged within then unweighted across | `analysis/E1_stage2_esm2.py --all` | ESM-2 checkpoint | `outputs/E1_esm2_geometry.csv` | checkpoint |
+| §2.4 treatment and control construction (five nearest same-class candidates in pool-*z* space, no reuse within a draw) | `analysis/E2_downstream_ablation.py --setup` | `data/Table_S1.csv`, tokenised cells (not shipped; generated by `--setup`) | `outputs/E2_treatment_genes.csv`, `outputs/E2_matched_controls_*_balance.csv`, `cache/E2_matched_controls_*.json` | checkpoint |
+| §2.4 pinned baseline and device | `analysis/E2_downstream_ablation.py --baseline` | tokenised cells (not shipped; generated by `--setup`), Geneformer | `outputs/E2_baseline_<ds>.json` | checkpoint |
+| §2.4 probe: balanced class weights, five-fold stratified CV, macro-F1 | `analysis/E2_downstream_ablation.py` (`evaluate_embeddings`) | as above | `outputs/E2_ablation_<ds>.json` | checkpoint |
+| §2.4 dataset construction: PBMC3k 2,638 cells / 8 types; Tabula Sapiens 19,984 → 4,000 stratified → 3,919 cells across 22 of 43 types | `notebooks/D04_reference_datasets.ipynb`; subsampling by `analysis/E2_downstream_ablation.py --subsample 4000` (`MIN_CELLS_PER_TYPE = 10`) | see `DATA_MANIFEST.md` | `outputs/E2_baseline_<ds>.json` records the post-filter `n_cells` and `n_types` | checkpoint |
+| §2.5 ribosomal panel definition | `analysis/_ribosomal_panel.py` | `data/ribosomal_panel.csv`, `data/ribosomal_panel_provenance.json` | consumed by E1, E2, E3, E6 and E8 | local |
+| §2.5 mitochondrial, constraint and ClinVar panels; gnomAD v4.1 pLI > 0.9 or LOEUF < 0.35, and the LOEUF < 0.45 equivalence | `notebooks/D02_external_databases.ipynb` (downloads and version-checks gnomAD, ClinVar and HPA; does not write the table) | gnomAD v4.1; ClinVar gene-specific summary, 4 April 2026, pathogenic or likely pathogenic count > 0; see `DATA_MANIFEST.md` | consumed as columns of `data/Table_S1.csv` | checkpoint |
+| §2.5 class schemes, overlapping and exclusive | `analysis/E6_class_association.py` | `data/Table_S1.csv` | `outputs/E6_class_association.{csv,json}` | local |
+| §2.5 ClinVar/constraint overlap, 1,784 of 8,285 | `analysis/E6_class_association.py` | as above | `outputs/E6_class_association.json` (`clinvar_constrained_overlap`) | local |
+| §2.6 Fisher tests, Bonferroni over four panels | `analysis/E3_outlier_robustness.py` (`enrichment_test`) | as §2.2 | `outputs/E3_enrichment_full.csv` | local |
+| §2.6 regression specification and covariate definitions (HPA max consensus nTPM over 51 tissues; fraction of tissues with nTPM $\geq$ 1; longest Ensembl BioMart gene span), Firth fits, profile-likelihood intervals | `analysis/E8_clinvar_adjusted.py` | `data/Table_S1.csv` columns `max_tpm`, `expression_breadth`, `gene_length_bp`, `clinvar_disease` | `outputs/E8_clinvar_adjusted.csv` (the `spec` column gives the full grid) | local |
+| §2.6 matching balance, standardised mean differences | `analysis/E2_downstream_ablation.py --setup` (`_write_balance_table`) | as §2.4 | `outputs/E2_matched_controls_*_balance.csv` | checkpoint |
+| §2.6 null bands, one-sided lower-tail empirical *p* | `analysis/E2_downstream_ablation.py --evaluate` | `outputs/E2_ablation_<ds>.json` | `outputs/E2_verdict_<ds>.json` | checkpoint |
+| §2.6 environment fingerprints and output precision policy | `analysis/E2_downstream_ablation.py --pin-env`, `analysis/_precision.py` | — | `environment_*` blocks in every result file | local |
 
 ## Results
 
 | Manuscript item | Script | Inputs | Outputs | Repro |
 |---|---|---|---|---|
-| §3.1 outlier counts per model | `E10_cross_model_agreement.py` | `data/Table_S1.csv` | `outputs/E10_cross_model_agreement.json` | local |
-| §3.1 pairwise overlap, Jaccard, score correlation | `E10_cross_model_agreement.py` | as above | as above | local |
-| §3.2 caller stability and robust cores | `E3_outlier_robustness.py` | the three geometry CSVs, `data/Table_S1.csv` | `outputs/E3_calibrated_summary.csv`, `E3_enrichment_full.csv`, `E3_robust_core.json`, `E3_degenerate_diagnostics.csv`, `E3_gate_verdict.json` | local |
-| §3.3 ESM-2 recurrence and per-class breakdown | `E1_stage2_esm2.py --verify-shipped` | `outputs/E1_esm2_geometry.csv`, `data/Table_S1.csv` | `outputs/E1_esm2_comparison.csv`, `E1_stage2_verdict.json` | local |
-| §3.3 ESM-2 geometry itself | `E1_stage2_esm2.py --all` | ESM-2 checkpoint | `outputs/E1_esm2_geometry.csv` | checkpoint |
-| §3.4 deletion contrast, gate statistic, null band | `E2_downstream_ablation.py --evaluate` | `outputs/E2_ablation_<ds>.json`, `cache/E2_matched_controls_<ds>*.json` | `outputs/E2_verdict_<ds>.json` | checkpoint |
-| §3.4 sensitivity arm | as above, `no_ribo_mito` cache and `sensitivity` key | as above | as above | checkpoint |
-| §3.4 exclusion of clustering metrics | `E7_cluster_metric_diagnostic.py` | `outputs/E2_ablation_<ds>.json`, `E2_baseline_<ds>.json` | `outputs/E7_cluster_metric_diagnostic.{csv,json}` | local |
-| §3.4 token-level exposure | `E9_token_occurrence_audit.py` | `cache/E2_<ds>_tokenized.json`, `cache/E2_matched_controls_<ds>*.json`, `outputs/E2_treatment_genes.csv` | `outputs/E9_token_occurrence*.{csv,json}` | checkpoint |
-| §3.4 matching balance, standardised mean differences | `E2_downstream_ablation.py --setup` | as §2.4 | `outputs/E2_matched_controls_*_balance.csv` | checkpoint |
-| §3.4 Tabula Sapiens replication | `E2_downstream_ablation.py --datasets tabula_sapiens` | as above | `outputs/E2_{ablation,verdict,baseline}_tabula_sapiens.json` | checkpoint |
-| §3.5 adjusted ClinVar association, all models | `E8_clinvar_adjusted.py` | `data/Table_S1.csv` | `outputs/E8_clinvar_adjusted.{csv,json}` | local |
-| §3.5 scheme dependence of class enrichment | `E6_class_association.py` | as Table 2b | `outputs/E6_class_association.{csv,json}`, `E6_scfm_only_by_class.csv` | local |
+| §3.1 outlier counts and vocabulary sizes per model (410/188/164 over 20,271/60,694/19,264) | `analysis/E3_outlier_robustness.py` | the three geometry CSVs | `outputs/E3_calibrated_summary.csv` (`n_outliers`, rows `\|z\|>3 (original)`), `outputs/E3_degenerate_diagnostics.csv` (`total_n`) | local |
+| §3.1 pairwise overlap, expected overlap, Jaccard, score correlation, three-way intersection | `analysis/E10_cross_model_agreement.py` | `data/Table_S1.csv` | `outputs/E10_cross_model_agreement.{csv,json}` | local |
+| §3.1 Geneformer class enrichment (mitochondrial 165.5, ribosomal 44.9, constrained 1.48) | `analysis/E6_class_association.py` | `data/gene_embedding_geometry.csv`, `data/Table_S1.csv`, `data/ribosomal_panel.csv` | `outputs/E6_class_association.csv`, rows with `source=geometry_csv` (**full-vocabulary universe, n=410** — not the `source=table_s1` rows behind Table 2b, n=388) | local |
+| §3.1 top-50 expression comparison (median 1,813 against 42 nTPM) | no released script; computed directly from the two shipped files | `outputs/E2_treatment_genes.csv` (the 50 highest-anomaly genes) joined to `data/Table_S1.csv` on `ensembl_id`, comparing the median of `max_tpm` for those 50 against the median over the whole table | none — recomputable in two lines from the shipped inputs | local |
+| §3.2 caller stability, containment against ceiling, robust cores | `analysis/E3_outlier_robustness.py` | the three geometry CSVs, `data/Table_S1.csv` | `outputs/E3_calibrated_summary.csv`, `E3_enrichment_full.csv`, `E3_robust_core.json`, `E3_degenerate_diagnostics.csv`, `E3_gate_verdict.json` | local |
+| §3.3 ESM-2 recurrence: Jaccard, score correlation, 49 vs 11.7 expected, top-50 overlap, overlap gene list | `analysis/E1_stage2_esm2.py --verify-shipped` | `outputs/E1_esm2_geometry.csv`, `data/Table_S1.csv` | `outputs/E1_esm2_comparison.csv`, `outputs/E1_stage2_verdict.json` | local |
+| §3.3 per-class scFM-only composition (52/74 ribosomal, 82/82 constrained, 79/82 disease, 2/10 mitochondrial) | `analysis/E6_class_association.py` | `data/Table_S1.csv`, `outputs/E1_esm2_geometry.csv` | `outputs/E6_scfm_only_by_class.csv` | local |
+| §3.3 ESM-2 geometry itself | `analysis/E1_stage2_esm2.py --all` | ESM-2 checkpoint | `outputs/E1_esm2_geometry.csv` | checkpoint |
+| §3.4 deletion contrast, gate statistic, null band, empirical *p* | `analysis/E2_downstream_ablation.py --evaluate` | `outputs/E2_ablation_<ds>.json`, `cache/E2_matched_controls_<ds>*.json` | `outputs/E2_verdict_<ds>.json` | checkpoint |
+| §3.4 sensitivity arm (36 genes against their own matched null) | as above, `no_ribo_mito` cache and `sensitivity` key | as above | as above | checkpoint |
+| §3.4 matching balance, the SMDs quoted in §3.4 and Limitations (expression 0.32 PBMC3k, 0.28 TS; length 0.11 TS; 0.40 sensitivity arm) | `analysis/E2_downstream_ablation.py --setup` | as §2.4 | `outputs/E2_matched_controls_pbmc3k_balance.csv`, `..._pbmc3k_no_ribo_mito_balance.csv`, `..._tabula_sapiens_balance.csv`, `..._tabula_sapiens_no_ribo_mito_balance.csv` | checkpoint |
+| §3.4 *k*-sweep at *k*=25 and *k*=100, run without *k*-specific nulls | `analysis/E2_downstream_ablation.py --ablation` | as above | `k_sensitivity` block in `outputs/E2_verdict_pbmc3k.json` | checkpoint |
+| §3.4 exclusion of clustering metrics on precision (band 43% of baseline against 0.7%) | `analysis/E7_cluster_metric_diagnostic.py` | `outputs/E2_ablation_<ds>.json`, `outputs/E2_baseline_<ds>.json` | `outputs/E7_cluster_metric_diagnostic.{csv,json}` | local |
+| §3.4 token-level exposure | `analysis/E9_token_occurrence_audit.py` | tokenised cells (**not shipped; generated by `E2_downstream_ablation.py --setup`**), `cache/E2_matched_controls_<ds>*.json`, `outputs/E2_treatment_genes.csv` | `outputs/E9_token_occurrence*.{csv,json}` | checkpoint |
+| §3.4 Tabula Sapiens replication | `analysis/E2_downstream_ablation.py --setup --baseline --ablation --evaluate --datasets tabula_sapiens --primary-only --subsample 4000 --n-bootstrap 100` | as §2.4 | `outputs/E2_{ablation,verdict,baseline}_tabula_sapiens.json` | checkpoint |
+| §3.5 adjusted ClinVar association over 18,911 complete cases, all three models plus the exploratory shared set | `analysis/E8_clinvar_adjusted.py` | `data/Table_S1.csv`, `data/ribosomal_panel.csv` | `outputs/E8_clinvar_adjusted.{csv,json}` | local |
+| §3.5 scheme dependence of class enrichment (3.59 against 0.385) | `analysis/E6_class_association.py` | as Table 2b | `outputs/E6_class_association.{csv,json}`, `outputs/E6_scfm_only_by_class.csv` | local |
+
+## Provenance of `data/Table_S1.csv`
+
+Several rows above read `data/Table_S1.csv`. It is a shipped input, not a
+generated output. It is assembled from the per-model geometry tables
+(`notebooks/P01_embedding_geometry.ipynb`) joined to external annotation
+columns — expression statistics, expression breadth, gene length, gnomAD
+constraint, ClinVar membership and the gene-class assignment.
+`notebooks/D02_external_databases.ipynb` downloads and version-checks three of
+those sources — gnomAD constraint, ClinVar and the Human Protein Atlas — and
+does not itself write `Table_S1.csv`. The `gene_length_bp` column derives from
+Ensembl BioMart gene spans; that construction is not part of the released
+package, and neither is the join that produces the shipped table.
+
+The shipped table's checksum is pinned in `data/CHECKSUMS.json` and echoed in the `provenance` block of every result file
+that reads it. Source versions are in `DATA_MANIFEST.md`.
+
+## Reproduction
+
+`./run_all.sh` regenerates every `local` row above from the shipped inputs in
+about a minute. Two paths are opt-in because they are expensive:
+
+- `REGENERATE_ESM2=1` recomputes the ESM-2 geometry from the checkpoint (~2 h).
+- `RUN_ABLATION=1` runs the **PBMC3k** matched deletion and its token audit
+  (~18 h). The Tabula Sapiens arm is not part of that path; reproduce it with
+  the explicit command in the §3.4 replication row above.
 
 ## Environment
 

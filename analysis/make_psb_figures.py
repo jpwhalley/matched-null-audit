@@ -221,69 +221,57 @@ def fig4_nullband():
 
 # ---------------------------------------------------------------- F1
 def fig1_designs():
-    """Three model designs, the shared geometry screen, and follow-up tests."""
+    """Three model designs, the shared geometry screen, and follow-up tests.
+
+    Monochrome schematic. The per-model counts are the observed values and are
+    the only numbers on the figure; everything else is layout. This is the
+    generator used for the manuscript figure (ported from the manuscript
+    source so figures/F1_designs.pdf and the paper agree).
+    """
     from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
-    width, height = 5.6, 2.85
+    width, height = 5.6, 2.71   # 2.85 x 0.95, matching the cropped y-range
     grey, edge = "0.35", "0.25"
-    fills = ["#EAEFF5", "#EAF2EA", "#F5EEE6"]
+    # One neutral fill for all three: the boxes are labelled, so colour would
+    # encode nothing, and three greys would imply an ordering.
+    fills = ["#F4F4F4", "#F4F4F4", "#F4F4F4"]
     models = [
         {
             "name": "Geneformer",
             "design": "BERT-style encoder",
-            "detail": [
-                "rank-ordered gene tokens",
-                "no expression values",
-                "20,271 genes",
-            ],
+            "detail": ["rank-ordered gene tokens",
+                       "no expression-value embedding",
+                       "20,271 genes"],
             "out": "410 outliers",
         },
         {
             "name": "scGPT",
             "design": "generative transformer",
-            "detail": [
-                "gene tokens $+$ expression",
-                "value embeddings",
-                "60,694 genes",
-            ],
+            "detail": ["gene tokens $+$ expression",
+                       "value embeddings",
+                       "60,694 genes"],
             "out": "188 outliers",
         },
         {
             "name": "scFoundation",
-            "design": "asymmetric encoder-decoder",
-            "detail": [
-                "continuous expression via",
-                "learned auto-discretisation",
-                "19,264 genes",
-            ],
+            "design": "asymmetric encoder--decoder".replace("--", "–"),
+            "detail": ["continuous expression via",
+                       "learned auto-discretisation",
+                       "19,264 genes"],
             "out": "164 outliers",
         },
     ]
 
     def box(ax, x, y, w, h, fc, lw=0.7, rounding=0.015):
         ax.add_patch(FancyBboxPatch(
-            (x, y),
-            w,
-            h,
+            (x, y), w, h,
             boxstyle=f"round,pad=0,rounding_size={rounding}",
-            linewidth=lw,
-            edgecolor=edge,
-            facecolor=fc,
-            zorder=2,
-        ))
+            linewidth=lw, edgecolor=edge, facecolor=fc, zorder=2))
 
     def arrow(ax, x0, y0, x1, y1, lw=0.7):
         ax.add_patch(FancyArrowPatch(
-            (x0, y0),
-            (x1, y1),
-            arrowstyle="-|>",
-            mutation_scale=6,
-            linewidth=lw,
-            color=edge,
-            zorder=3,
-            shrinkA=0,
-            shrinkB=0,
-        ))
+            (x0, y0), (x1, y1), arrowstyle="-|>", mutation_scale=6,
+            linewidth=lw, color=edge, zorder=3, shrinkA=0, shrinkB=0))
 
     with plt.rc_context({
         "font.size": 7,
@@ -291,145 +279,67 @@ def fig1_designs():
         "pdf.fonttype": 42,
         "axes.linewidth": 0.6,
         "savefig.bbox": None,
+        "savefig.pad_inches": 0.0,
     }):
         fig, ax = plt.subplots(figsize=(width, height))
         ax.set_xlim(0, 1)
-        ax.set_ylim(0, 1)
+        ax.set_ylim(0, 0.95)
         ax.axis("off")
 
-        # Three model designs.
+        # top row: the three model designs
         bw, bh, gap = 0.30, 0.34, 0.05
         y0 = 0.60
-        for i, model in enumerate(models):
+        for i, m in enumerate(models):
             x = i * (bw + gap)
             box(ax, x, y0, bw, bh, fills[i])
-            ax.text(
-                x + bw / 2,
-                y0 + bh - 0.055,
-                model["name"],
-                ha="center",
-                va="top",
-                fontsize=8,
-                fontweight="bold",
-                zorder=4,
-            )
-            ax.text(
-                x + bw / 2,
-                y0 + bh - 0.125,
-                model["design"],
-                ha="center",
-                va="top",
-                fontsize=6.6,
-                style="italic",
-                color=grey,
-                zorder=4,
-            )
-            for j, detail in enumerate(model["detail"]):
-                ax.text(
-                    x + bw / 2,
-                    y0 + bh - 0.185 - j * 0.052,
-                    detail,
-                    ha="center",
-                    va="top",
-                    fontsize=6.2,
-                    color=grey,
-                    zorder=4,
-                )
+            ax.text(x + bw / 2, y0 + bh - 0.055, m["name"], ha="center",
+                    va="top", fontsize=8, fontweight="bold", zorder=4)
+            ax.text(x + bw / 2, y0 + bh - 0.125, m["design"], ha="center",
+                    va="top", fontsize=6.6, style="italic", color=grey,
+                    zorder=4)
+            for j, d in enumerate(m["detail"]):
+                ax.text(x + bw / 2, y0 + bh - 0.185 - j * 0.052, d,
+                        ha="center", va="top", fontsize=6.2, color=grey,
+                        zorder=4)
             arrow(ax, x + bw / 2, y0 - 0.005, x + bw / 2, 0.505)
 
-        ax.text(
-            0.5,
-            0.985,
-            "Three influential models, three representational designs",
-            ha="center",
-            va="top",
-            fontsize=7.4,
-            color=grey,
-        )
-
-        # Identical geometry screen.
+        # middle: the shared screen
         box(ax, 0.0, 0.35, 1.0, 0.15, "#F2F2F2", lw=0.8)
-        ax.text(
-            0.5,
-            0.455,
-            "identical four-metric geometry screen on the gene-embedding matrix",
-            ha="center",
-            va="center",
-            fontsize=7.2,
-            fontweight="bold",
-        )
-        ax.text(
-            0.5,
-            0.395,
-            "norm  $\\cdot$  centroid distance  $\\cdot$  cosine to centroid  "
-            "$\\cdot$  isolation ($k=10$);   outlier if $|z|>3$ on any metric",
-            ha="center",
-            va="center",
-            fontsize=6.4,
-            color=grey,
-        )
+        ax.text(0.5, 0.455,
+                "identical four-metric geometry screen on the "
+                "gene-embedding matrix",
+                ha="center", va="center", fontsize=7.2, fontweight="bold")
+        ax.text(0.5, 0.395,
+                "norm  $\\cdot$  centroid distance  $\\cdot$  cosine to "
+                "centroid  $\\cdot$  isolation ($k=10$);   outlier if "
+                "$|z|>3$ on any metric",
+                ha="center", va="center", fontsize=6.4, color=grey)
 
-        for i, model in enumerate(models):
+        # outlier counts, per model
+        for i, m in enumerate(models):
             x = i * (bw + gap)
-            ax.text(
-                x + bw / 2,
-                0.305,
-                model["out"],
-                ha="center",
-                va="center",
-                fontsize=7.0,
-                fontweight="bold",
-            )
+            ax.text(x + bw / 2, 0.305, m["out"], ha="center", va="center",
+                    fontsize=7.0, fontweight="bold")
 
-        # Shared tests and the model-specific downstream follow-up.
+        # bottom: shared tests and the Geneformer-only follow-up
         box(ax, 0.0, 0.03, 0.665, 0.19, "#FFFFFF", lw=0.8)
         box(ax, 0.685, 0.03, 0.315, 0.19, "#FFFFFF", lw=0.8)
-        ax.text(
-            0.3325,
-            0.175,
-            "all three models",
-            ha="center",
-            va="center",
-            fontsize=7.2,
-            fontweight="bold",
-        )
-        ax.text(
-            0.8425,
-            0.175,
-            "Geneformer only",
-            ha="center",
-            va="center",
-            fontsize=7.2,
-            fontweight="bold",
-        )
-        shared_questions = [
-            "stable under\nre-calling?",
-            "recur in ESM-2\nsequence space?",
-            "associated with\nClinVar?",
-        ]
-        for i, question in enumerate(shared_questions):
-            ax.text(
-                0.115 + i * 0.222,
-                0.085,
-                question,
-                ha="center",
-                va="center",
-                fontsize=6.3,
-                color=grey,
-                linespacing=1.35,
-            )
-        ax.text(
-            0.8425,
-            0.085,
-            "costly to delete vs\nmatched controls?",
-            ha="center",
-            va="center",
-            fontsize=6.3,
-            color=grey,
-            linespacing=1.35,
-        )
+        ax.text(0.3325, 0.175, "all three models", ha="center", va="center",
+                fontsize=7.2, fontweight="bold")
+        ax.text(0.8425, 0.175, "Geneformer only", ha="center", va="center",
+                fontsize=7.2, fontweight="bold")
+        shared_qs = ["stable under\nre-calling?",
+                     "recur in ESM-2\nsequence space?",
+                     "associated with\nClinVar?"]
+        for i, q in enumerate(shared_qs):
+            ax.text(0.115 + i * 0.222, 0.085, q, ha="center", va="center",
+                    fontsize=6.3, color=grey, linespacing=1.35)
+        ax.text(0.8425, 0.085, "costly to delete vs\nmatched controls?",
+                ha="center", va="center", fontsize=6.3, color=grey,
+                linespacing=1.35)
         for xval in (0.2255, 0.4475):
-            ax.plot([xval, xval], [0.045, 0.135], lw=0.5, color="0.75", zorder=1)
+            ax.plot([xval, xval], [0.045, 0.135], lw=0.5, color="0.75",
+                    zorder=1)
 
         fig.subplots_adjust(left=0.005, right=0.995, top=0.995, bottom=0.005)
         fig.savefig(

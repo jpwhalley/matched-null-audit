@@ -55,6 +55,17 @@ else
   run E9_token_occurrence_audit.py --dataset pbmc3k
 fi
 
+# The Tabula Sapiens replication is NOT reachable from this script. It is a
+# separate run with its own settings, reported in the paper as the primary arm
+# only. Its outputs are committed; regenerate them with:
+#
+#   uv run python analysis/E2_downstream_ablation.py \
+#       --setup --baseline --ablation --evaluate \
+#       --datasets tabula_sapiens --primary-only --subsample 4000 --n-bootstrap 100
+#   uv run python analysis/E9_token_occurrence_audit.py --dataset tabula_sapiens
+#
+# See the Tabula Sapiens row in MANUSCRIPT_TRACEABILITY.md.
+
 # Reads only shipped outputs and takes seconds, so it runs on every invocation
 # and stays under the drift gate below.
 echo "### Clustering-metric diagnostic"

@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software or its results, please cite the preprint below."
-title: "Comparative geometry of gene embeddings in single-cell foundation models: model-specific outliers and matched validation in Geneformer"
+title: "Do Geometric Outliers Identify Important Genes in Single-Cell Foundation Models?"
 authors:
   - family-names: Whalley
     given-names: Justin P.
@@ -9,9 +9,11 @@ authors:
 repository-code: "https://github.com/jpwhalley/matched-null-audit"
 license: MIT
 type: software
+version: psb-2027-submission
+date-released: 2026-08-03
 preferred-citation:
   type: article
-  title: "Comparative geometry of gene embeddings in single-cell foundation models: model-specific outliers and matched validation in Geneformer"
+  title: "Do Geometric Outliers Identify Important Genes in Single-Cell Foundation Models?"
   authors:
     - family-names: Whalley
       given-names: Justin P.

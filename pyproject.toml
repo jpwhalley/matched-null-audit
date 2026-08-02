@@ -1,7 +1,7 @@
 [project]
 name = "scfm-embedding-audit"
 version = "1.0.0"
-description = "Comparative geometry of gene embeddings in single-cell foundation models"
+description = "Do Geometric Outliers Identify Important Genes in Single-Cell Foundation Models?"
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 license = { file = "LICENSE" }
