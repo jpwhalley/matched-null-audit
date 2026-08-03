@@ -26,9 +26,9 @@ Usage:
 Requirements:
   pip install torch fair-esm pandas scipy scikit-learn mygene
 
-Outputs (in revision/outputs/ unless noted):
+Outputs (in outputs/ unless noted):
   E1_canonical_proteins.csv — one-protein-per-gene mapping table
-  E1_protein_sequences.fasta — canonical sequences (revision/cache/)
+  E1_protein_sequences.fasta — canonical sequences (cache/)
   E1_esm2_embeddings.npy — mean-pooled ESM-2 vectors (n_genes × 1280)
   E1_esm2_gene_order.json — gene order matching the embedding matrix
   E1_esm2_geometry.csv — four-metric audit on ESM-2 space

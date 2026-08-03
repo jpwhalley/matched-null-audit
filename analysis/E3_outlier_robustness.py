@@ -22,10 +22,9 @@ Gate criteria:
     Geneformer (containment 10.5%) and ZERO for both scGPT and scFoundation
     (E3_calibrated_summary.csv). A caller returning the empty set on two of
     three models cannot distinguish stability from its own insensitivity.
-    NOTE: this caller was listed as viable in versions of this script before
-    The enrichment-stability claim holds under the
-    MAD family but NOT under IQR/Tukey, so this reclassification is
-    load-bearing rather than cosmetic.
+    The enrichment-stability claim holds under the MAD family but not under
+    IQR/Tukey, so excluding this caller is load-bearing rather than cosmetic
+    and the diagnostics supporting the exclusion are reported.
 
 DIRECTION WARNING: enrichment_test() below uses Fisher alternative="two-sided",
 so significant=True covers DEPLETION as well as enrichment. Geneformer's
@@ -40,14 +39,14 @@ For each viable method, reports:
   - Spearman rank correlation of anomaly scores
   - Fisher's exact enrichment tests for headline biological categories
 
-Gate criteria (three of six callers are degenerate
-diagnostic checks showed GMM, raw percentile AND IQR/Tukey were degenerate
-— see § Degenerate Method Diagnostics below):
+Gate criteria. Three of the six callers are degenerate — GMM, raw percentile
+and IQR/Tukey — and are reported as diagnostics rather than used for the
+stability assessment (see § Degenerate Method Diagnostics below):
   - Primary stability metric: containment + top-k overlap + rank correlation
   - Jaccard is reported but interpreted in context of set-size mismatch
   - Per-model verdict: STABLE / MIXED / UNSTABLE
 
-Outputs (all in revision/outputs/):
+Outputs (all in outputs/):
   - E3_calibrated_summary.csv — per-model containment, Jaccard, Spearman, top-50
   - E3_enrichment_full.csv — all enrichment tests across models × methods
   - E3_robust_core.json — per-model intersection of original ∩ MAD outlier sets

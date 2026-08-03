@@ -41,8 +41,9 @@ BASE = REPO  # legacy alias
 
 
 
-# Full-coverage annotation table. The root data/Table_S1.csv is length-sparse
-# (11,752/18,915) and must not be used for any length-adjusted analysis.
+# Full-coverage annotation table, checksum-pinned in data/CHECKSUMS.json.
+# Length-adjusted analyses require near-complete gene lengths; the
+# MIN_LENGTH_COVERAGE assert below refuses any table that falls short.
 TABLE_S1 = DATA / "Table_S1.csv"
 MIN_LENGTH_COVERAGE = 0.99
 

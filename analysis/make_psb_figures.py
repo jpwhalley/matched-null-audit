@@ -1,7 +1,7 @@
 """
 Build PSB 2027 figures F1-F4 from saved analysis outputs.
 
-Design constraints (12-page limit, four figures):
+Design constraints (12-page limit, five figures):
   * each figure must fit ~0.45-0.55 page => single-column width 4.6in,
     height 2.0-2.6in
   * greyscale-safe: distinguish by shape/hatch/position, not colour alone
@@ -65,9 +65,9 @@ def fig2_geometry():
     This is the evidence behind three statements in the text: that the three
     geometries differ qualitatively (Section 3.1); that Geneformer and scGPT
     each separate into two clouds along the norm axis, which is the structure
-    behind scGPT's caller sensitivity (Section 3.2); and that scFoundation is
-    close to isotropic. The cosine axis is shared so that last point is
-    legible as a flat band. The norm axis cannot be shared, because the three
+    behind scGPT's caller sensitivity (Section 3.2); and that scFoundation
+    instead forms a narrow band. The cosine axis is shared so that last
+    point is legible. The norm axis cannot be shared, because the three
     models differ in norm scale by more than an order of magnitude.
     """
     sources = [("Geneformer", "gene_embedding_geometry.csv"),

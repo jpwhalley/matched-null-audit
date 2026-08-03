@@ -24,14 +24,20 @@ uv sync
 ```
 
 About a minute. Needs only the shipped inputs: no model checkpoints, no GPU,
-no network. It rebuilds all four figures and regenerates every analysis except
-two, then checks the regenerated outputs against the committed ones and exits
-non-zero on any difference.
+no network. Starting from the checksum-pinned geometry tables, the ESM-2
+geometry table and the saved deletion outputs committed here, it regenerates
+the downstream analyses and all five manuscript figures, then checks the
+regenerated outputs against the committed ones and exits non-zero on any
+difference.
 
-The two it skips are the matched deletion test, which needs the Geneformer
-checkpoint and about 18 hours, and the token-exposure audit, which reads the
-tokenised cell matrices that are too large to ship. Their outputs are committed
-so the reported numbers can be checked against them.
+It is a reproduction from frozen analysis inputs, not a rebuild from raw
+checkpoints. By default it does not re-extract the gene-embedding matrices
+from the models, recompute the ESM-2 embeddings, or rerun the matched
+deletion test and the token-exposure audit. The deletion test needs the
+Geneformer checkpoint and about 18 hours; the token-exposure audit reads
+tokenised cell matrices too large to ship. The outputs of all of these are
+committed, so the reported numbers can be checked against them, and each
+stage can be re-run from source with the opt-in commands below.
 
 ## Reproduce the expensive stages
 
@@ -75,7 +81,7 @@ analysis/           analysis scripts, one per reported experiment
 data/               shipped inputs and checksums
 cache/              matched-control draws and their specification sidecars
 outputs/            saved results
-figures/            the four manuscript figures
+figures/            the five manuscript figures
 notebooks/          D01, D02 and D04 data acquisition; P01 the geometry screen
 run_all.sh          the pipeline above
 DATA_MANIFEST.md    provenance, versions, licences, reproduction cost

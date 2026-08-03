@@ -5,7 +5,11 @@ step costs.
 
 ## Shipped inputs
 
-Verified against `data/CHECKSUMS.json` by `E1_stage2_esm2.py --verify-shipped`.
+All shipped files are pinned in `data/CHECKSUMS.json`. The ESM-2 geometry
+artefact is verified against it directly by `E1_stage2_esm2.py
+--verify-shipped`; the remaining inputs are covered indirectly, in that every
+script that reads one regenerates outputs which `run_all.sh` then compares
+against the committed artefacts and fails on any difference.
 
 | File | SHA-256 (16) | Size | Contents |
 |---|---|---|---|

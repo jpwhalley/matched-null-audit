@@ -6,12 +6,12 @@ Maps each model's gene vocabulary to a canonical protein using mygene.info
 audit to determine whether the ESM-2 comparison (Stage 2) can proceed
 without structural bias.
 
-Gate criteria (from revision_action_plan.md):
+Gate criteria:
   PROCEED = ≥75% protein-coding outliers map, Fisher OR < 3.0
   SCOPE-RESTRICT = 50-75% mapping or OR 3.0-5.0
   STOP = <50% mapping or OR > 5.0
 
-Outputs (all in revision/outputs/):
+Outputs (all in outputs/):
   E1_feasibility_table.csv — one row per (model, gene)
   E1_bias_audit.csv — per-model mapping rates and bias statistics
   E1_mapping_cache.json — raw mygene results for reproducibility

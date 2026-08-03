@@ -1,18 +1,19 @@
 """
-E2 — Expression-matched downstream ablation (THE claim gate).
+E2 — Expression-matched downstream ablation.
 
 Tests whether removing geometric-outlier genes from Geneformer's input
 degrades cell-type annotation more than removing expression-matched,
 class-stratified control genes.
 
-Pre-registered parameters (locked before any ablation results inspected):
+Analysis parameters, fixed before any ablation results were inspected:
   - Model: Geneformer V2-104M (most stable outlier set per E3)
-  - top-k: 50 (sensitivity at k=25, k=100 reported but not gated)
+  - top-k: 50 (k=25 and k=100 were also run; neither is reported in the
+    manuscript, see MANUSCRIPT_TRACEABILITY.md)
   - Data: PBMC3k + Tabula Sapiens immune subset
   - Treatment: delete gene tokens from cell sequences
   - Controls: class-stratified matching on log1p(expression), breadth,
     log1p(gene_length) with pool-level z-scored distances.
-    200 bootstrap matched draws per treatment set.
+    200 matched-control draws per treatment set.
   - Primary metric: macro-averaged F1 (retrained linear probe, 5-fold CV)
   - Fixed-probe metric: train on baseline, predict on ablated (no recalibration)
   - Clustering metrics: k-means ARI and NMI vs true labels
@@ -30,7 +31,7 @@ Usage:
 Requirements (already in pyproject.toml except cellxgene-census):
   torch, transformers, anndata, scanpy, scikit-learn, scipy, pandas
 
-Outputs (all in revision/outputs/):
+Outputs (all in outputs/):
   E2_baseline_{dataset}.json           — baseline metrics
   E2_treatment_genes.csv               — treatment gene set with classes
   E2_ablation_{dataset}.json           — full ablation results
@@ -39,6 +40,8 @@ Outputs (all in revision/outputs/):
 """
 
 import argparse
+import collections
+import functools
 import hashlib
 import pathlib
 import json
@@ -71,13 +74,10 @@ from sklearn.metrics import (f1_score, adjusted_rand_score,
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
 
-# Paths resolve for BOTH trees this file lives in, so the two copies cannot
-# drift apart again:
-#   release  <repo>/analysis/E2_*.py          -> <repo>/{data,outputs,cache}
-#   compute  <root>/revision/notebooks/E2_*.py -> <root>/notebooks/data,
-#                                                 <root>/revision/{outputs,cache}
-# Geneformer weights are BASE/"Geneformer" in both layouts. Only the compute
-# tree has them, which is why the release clone cannot run the ablation.
+# Repository-relative paths: this script reads and writes only inside the
+# repository, under data/, outputs/ and cache/. The Geneformer checkpoint is
+# expected at BASE/"Geneformer" and is not shipped, which is why a fresh
+# clone cannot run the ablation without acquiring it first (DATA_MANIFEST.md).
 # Repository-relative paths. Scripts live in analysis/; everything they read
 # and write is inside this repository.
 REPO = Path(__file__).resolve().parent.parent
@@ -174,10 +174,10 @@ RANDOM_SEED = 42
 
 # ── Gene class assignment (same as E1/E3) ───────────────────────────────────
 
-# Full-coverage annotation table. The root data/Table_S1.csv carries gene
-# lengths for only 11,752/18,915 genes; a length-matched design built on it
-# median-imputes 38% of lengths and the resulting balance statistics are wrong
-# (true SMD 0.334 vs a reported 0.070 for the full treatment set).
+# Full-coverage annotation table, checksum-pinned in data/CHECKSUMS.json. The
+# length-matched design needs near-complete gene lengths: the coverage assert
+# below refuses any table below MIN_LENGTH_COVERAGE, because median-imputing a
+# large fraction of lengths silently corrupts the balance statistics.
 TABLE_S1_PATH = DATA / "Table_S1.csv"
 MIN_LENGTH_COVERAGE = 0.99
 
@@ -693,9 +693,9 @@ def setup(datasets=None):
                 f"Gene statistics and matched controls derived from it would "
                 f"not correspond to the cells being analysed.\n"
                 f"Delete the stale caches and re-run --setup:\n"
-                f"  rm -f revision/cache/E2_tabula_sapiens_tokenized.json \\\n"
-                f"        revision/cache/E2_tabula_sapiens_gene_stats.csv \\\n"
-                f"        revision/cache/E2_matched_controls_tabula_sapiens*.json\n"
+                f"  rm -f cache/E2_tabula_sapiens_tokenized.json \\\n"
+                f"        cache/E2_tabula_sapiens_gene_stats.csv \\\n"
+                f"        cache/E2_matched_controls_tabula_sapiens*.json\n"
                 f"(Keep E2_tabula_sapiens_immune.h5ad - no need to re-download.)"
             )
         print(f"    Already tokenized (cached, subsample_n={_cached_n}). "
@@ -716,7 +716,7 @@ def setup(datasets=None):
                 print("      2. Download manually from CellxGene Discover:")
                 print("         https://cellxgene.cziscience.com/collections/"
                       "e5f58829-1a66-40b5-a624-9046778e74f5")
-                print("         Save as: revision/cache/"
+                print("         Save as: cache/"
                       "tabula_sapiens_immune.h5ad")
                 print("    PBMC3k setup is complete. Re-run --setup after "
                       "downloading.\n")
@@ -802,7 +802,7 @@ def setup(datasets=None):
             raise RuntimeError(
                 f"Cached Tabula Sapiens controls hold {_n_draws} draws but "
                 f"N_BOOTSTRAP={N_BOOTSTRAP}. Delete "
-                f"revision/cache/E2_matched_controls_tabula_sapiens*.json "
+                f"cache/E2_matched_controls_tabula_sapiens*.json "
                 f"and re-run --setup.")
         print("    Matched controls (full) already built (cached).")
     else:
@@ -915,6 +915,27 @@ def _get_treatment_properties(treatment_df, gene_stats_df, s1, pool_stats):
     return treat_props
 
 
+@functools.lru_cache(maxsize=1)
+def _token_class_map():
+    """token_id -> mutually exclusive gene class over the GF vocabulary."""
+    geom = pd.read_csv(DATA / "gene_embedding_geometry.csv")
+    geom = geom[~geom["gene"].isin(["<pad>", "<mask>", "<cls>", "<eos>"])]
+    return {int(t): assign_gene_class(g)
+            for t, g in zip(geom["token_id"], geom["gene"])}
+
+
+@functools.lru_cache(maxsize=2)
+def _expected_draw_profile(sensitivity_arm):
+    """Size, class-count vector and treatment tokens a draw must match."""
+    treat = get_treatment_genes()
+    if sensitivity_arm:
+        treat = treat[~treat["gene_class"].isin(
+            ["ribosomal", "mitochondrial"])]
+    return (len(treat),
+            collections.Counter(treat["gene_class"]),
+            frozenset(treat["token_id"].astype(int)))
+
+
 def _controls_fingerprint(cache_path):
     """sha256[:16] of a matched-control cache, used to bind checkpoints."""
     return hashlib.sha256(pathlib.Path(cache_path).read_bytes()).hexdigest()[:16]
@@ -952,11 +973,40 @@ def _assert_control_spec(cache_path):
         raise RuntimeError(
             f"{cache_path.name} specification mismatch -- {detail}.\n"
             f"The eligible control pool or the null size differs.\n{hint}")
-    n_draws = len(json.loads(cache_path.read_text()))
-    if n_draws != N_BOOTSTRAP:
+    draws = json.loads(cache_path.read_text())
+    if len(draws) != N_BOOTSTRAP:
         raise RuntimeError(
-            f"{cache_path.name} holds {n_draws} draws but N_BOOTSTRAP="
+            f"{cache_path.name} holds {len(draws)} draws but N_BOOTSTRAP="
             f"{N_BOOTSTRAP}.\n{hint}")
+
+    # Every draw is checked structurally rather than trusted. The
+    # manuscript states that controls are matched exactly on mutually
+    # exclusive gene class and drawn without replacement from genes
+    # outside the treatment set, so a cache that violates any of those
+    # properties does not correspond to the reported null.
+    want_n, want_classes, treat_tokens = _expected_draw_profile(
+        cache_path.stem.endswith("_no_ribo_mito"))
+    tok_class = _token_class_map()
+    for i, draw in enumerate(draws):
+        if len(draw) != want_n:
+            raise RuntimeError(
+                f"{cache_path.name} draw {i} holds {len(draw)} genes, "
+                f"expected {want_n}.\n{hint}")
+        if len(set(draw)) != len(draw):
+            raise RuntimeError(
+                f"{cache_path.name} draw {i} repeats a gene.\n{hint}")
+        shared = treat_tokens.intersection(int(t) for t in draw)
+        if shared:
+            raise RuntimeError(
+                f"{cache_path.name} draw {i} contains {len(shared)} "
+                f"treatment gene(s).\n{hint}")
+        got = collections.Counter(
+            tok_class.get(int(t), "unmapped") for t in draw)
+        if got != want_classes:
+            raise RuntimeError(
+                f"{cache_path.name} draw {i} class composition "
+                f"{dict(got)} does not match the treatment "
+                f"{dict(want_classes)}.\n{hint}")
 
 
 def build_matched_controls(treatment_df, gene_stats_df, dataset_name,
@@ -965,7 +1015,7 @@ def build_matched_controls(treatment_df, gene_stats_df, dataset_name,
 
     Matching uses log1p(expr_mean), expr_breadth, log1p(gene_length)
     with pool-level z-scoring (stable distances across draws).
-    Each bootstrap draw is independent; within a draw, no gene is reused.
+    Each matched-control draw is independent; within a draw, no gene is reused.
     Saves control gene IDs and a balance table for diagnostics.
 
     Parameters
@@ -1018,10 +1068,18 @@ def build_matched_controls(treatment_df, gene_stats_df, dataset_name,
                 (~candidate_pool["token_id"].isin(used_in_draw))
             ].copy()
 
-            if len(candidates) < 3:
-                candidates = candidate_pool[
-                    ~candidate_pool["token_id"].isin(used_in_draw)
-                ].copy()
+            # Class matching is exact, as reported in the manuscript. An
+            # earlier version dropped the class restriction when fewer
+            # than three same-class candidates remained, which would have
+            # produced a null that silently did not match on class.
+            # nsmallest(5) is well defined for one to four candidates, so
+            # a thin stratum is not a reason to relax the constraint.
+            if candidates.empty:
+                raise RuntimeError(
+                    f"No unused same-class control candidate remains for "
+                    f"class {tc!r} at treatment position {ti}. The "
+                    f"eligible pool is too small for exact class "
+                    f"matching at this treatment size.")
 
             # Euclidean distance in z-scored space
             candidates["dist"] = np.sqrt(
@@ -1712,6 +1770,7 @@ def _run_control_null(model, tokenized, cell_types, ctrl_path,
                       pad_id, device, baseline_embs, baseline_f1,
                       dataset_name, null_label):
     """Run the control null band for a given set of matched controls."""
+    _assert_control_spec(ctrl_path)
     with open(ctrl_path) as f:
         controls = json.load(f)
 
@@ -2042,7 +2101,8 @@ if __name__ == "__main__":
              "tractable; record the value in the manuscript Methods.")
     parser.add_argument(
         "--n-bootstrap", type=int, default=None, metavar="N",
-        help=f"Override bootstrap draws (default {N_BOOTSTRAP}). "
+        help=f"Override the number of matched-control draws "
+             f"(default {N_BOOTSTRAP}). "
              "A floor of 100 applies; fewer widens the null band.")
     parser.add_argument(
         "--datasets", nargs="+", default=None,
