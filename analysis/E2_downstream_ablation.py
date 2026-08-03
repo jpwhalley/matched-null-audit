@@ -924,6 +924,17 @@ def _token_class_map():
             for t, g in zip(geom["token_id"], geom["gene"])}
 
 
+def _treatment_list_sha256(treatment_df):
+    """Stable identity of a treatment set: sha256 of its sorted Ensembl IDs.
+
+    Recorded in every control cache's sidecar and re-derived on reuse, so a
+    null drawn against a different treatment set cannot be picked up by a
+    later run under the same filename.
+    """
+    joined = "\n".join(sorted(treatment_df["ensembl_id"]))
+    return hashlib.sha256(joined.encode()).hexdigest()
+
+
 @functools.lru_cache(maxsize=2)
 def _expected_draw_profile(sensitivity_arm):
     """Size, class-count vector and treatment tokens a draw must match."""
@@ -964,15 +975,33 @@ def _assert_control_spec(cache_path):
             f"current ribosomal panel and was drawn under a different "
             f"panel.\n{hint}")
     spec = json.loads(spec_path.read_text())
+    sensitivity_arm = cache_path.stem.endswith("_no_ribo_mito")
+    treat = get_treatment_genes()
+    if sensitivity_arm:
+        treat = treat[~treat["gene_class"].isin(
+            ["ribosomal", "mitochondrial"])]
+    dataset_name = (cache_path.stem
+                    .replace("E2_matched_controls_", "")
+                    .replace("_no_ribo_mito", ""))
     expected = {"ribosomal_panel_sha256": RIBOSOMAL_PANEL_SHA256,
-                "n_bootstrap": N_BOOTSTRAP}
+                "n_bootstrap": N_BOOTSTRAP,
+                "dataset": dataset_name,
+                "arm": "sensitivity" if sensitivity_arm else "primary",
+                "n_draws": N_BOOTSTRAP,
+                "genes_per_draw": len(treat),
+                "treatment_gene_list_sha256":
+                    _treatment_list_sha256(treat),
+                "control_cache_sha256":
+                    hashlib.sha256(cache_path.read_bytes()).hexdigest()}
     bad = {k: (spec.get(k), v) for k, v in expected.items() if spec.get(k) != v}
     if bad:
         detail = "; ".join(f"{k}: cache={got!r} run={want!r}"
                            for k, (got, want) in bad.items())
         raise RuntimeError(
             f"{cache_path.name} specification mismatch -- {detail}.\n"
-            f"The eligible control pool or the null size differs.\n{hint}")
+            f"The cache does not correspond to the treatment set, arm, "
+            f"dataset, eligible pool or null size in force, or it has "
+            f"been modified since it was written.\n{hint}")
     draws = json.loads(cache_path.read_text())
     if len(draws) != N_BOOTSTRAP:
         raise RuntimeError(
@@ -1119,13 +1148,25 @@ def build_matched_controls(treatment_df, gene_stats_df, dataset_name,
     with open(CACHE / f"{fname_base}_detail.json", "w") as f:
         json.dump(controls_detail, f)
 
-    # Spec sidecar: the class definition these controls were drawn under.
-    # Checked on reuse so a cache built under a different ribosomal panel
-    # cannot be silently picked up by a later run.
+    # Spec sidecar: the full specification these controls were drawn under.
+    # Every field here is re-derived and compared by _assert_control_spec on
+    # reuse, so a cache built under a different ribosomal panel, treatment
+    # set, arm, dataset or draw count cannot be silently picked up by a
+    # later run, and a cache edited after the fact fails its own hash.
+    _cache_bytes = (CACHE / f"{fname_base}.json").read_bytes()
     with open(CACHE / f"{fname_base}_spec.json", "w") as f:
         json.dump({"ribosomal_panel_sha256": RIBOSOMAL_PANEL_SHA256,
                    "n_bootstrap": N_BOOTSTRAP,
-                   **panel_provenance()}, f, indent=2)
+                   **panel_provenance(),
+                   "dataset": dataset_name,
+                   "arm": "sensitivity" if label else "primary",
+                   "n_draws": len(controls_all),
+                   "genes_per_draw": len(treat_props),
+                   "treatment_gene_list_sha256":
+                       _treatment_list_sha256(treatment_df),
+                   "control_cache_sha256":
+                       hashlib.sha256(_cache_bytes).hexdigest()},
+                  f, indent=2)
 
     # ── Balance table (Fix 3) ────────────────────────────────────────────
     _write_balance_table(treat_props, controls_detail, fname_base)

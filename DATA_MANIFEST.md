@@ -35,9 +35,12 @@ which refuses to run if the file's hash disagrees with its provenance record.
 
 `cache/E2_matched_controls_<dataset>[_no_ribo_mito].json` hold the control gene
 sets behind the deletion nulls, with a `_spec.json` sidecar recording the panel
-hash, draw count, dataset, arm, genes per draw and treatment-list hash.
-`E2_downstream_ablation.py` refuses a cache whose sidecar disagrees with the
-specification in force.
+hash, draw count, dataset, arm, genes per draw, treatment-list hash and a hash
+of the cache itself. `E2_downstream_ablation.py` re-derives every one of those
+on reuse and refuses a cache that disagrees with the specification in force, or
+that has been modified since it was written. It then checks each draw
+individually for size, repeated genes, overlap with the treatment set and exact
+mutually exclusive class composition.
 
 These are shipped so the null bands can be recomputed without redrawing them.
 The tokenised cell matrices they index are not shipped; rebuild those with
