@@ -7,7 +7,8 @@ Design constraints (12-page limit, four figures):
   * greyscale-safe: distinguish by shape/hatch/position, not colour alone
   * no chartjunk; the null band in F4 must be unambiguous at a glance
 
-Outputs: figures/{F1_designs,F2_stability,F3_esm2,F4_nullband_*}.pdf
+Outputs: figures/{F1_designs,F2_geometry,F3_stability,F4_esm2,
+                  F5_nullband}.pdf  (numbering follows the manuscript)
 """
 
 import json
@@ -51,11 +52,54 @@ plt.rcParams.update({
 })
 
 W = 4.6  # single-column width, inches
+# Excluded from the geometry panels for the same reason the screen excludes
+# them: they are not genes. Matches analysis/E6_class_association.py.
+SPECIAL_TOKENS = ["<pad>", "<mask>", "<cls>", "<eos>"]
 GREY, DARK, ACC = "0.72", "0.25", "0.0"
 
 
 # ---------------------------------------------------------------- F2
-def fig2_stability():
+def fig2_geometry():
+    """Norm against cosine to centroid for every gene, one panel per model.
+
+    This is the evidence behind three statements in the text: that the three
+    geometries differ qualitatively (Section 3.1); that Geneformer and scGPT
+    each separate into two clouds along the norm axis, which is the structure
+    behind scGPT's caller sensitivity (Section 3.2); and that scFoundation is
+    close to isotropic. The cosine axis is shared so that last point is
+    legible as a flat band. The norm axis cannot be shared, because the three
+    models differ in norm scale by more than an order of magnitude.
+    """
+    sources = [("Geneformer", "gene_embedding_geometry.csv"),
+               ("scGPT", "scgpt_gene_embedding_geometry.csv"),
+               ("scFoundation", "sf_gene_embedding_geometry.csv")]
+
+    fig, axes = plt.subplots(1, 3, figsize=(W, 1.62), sharey=True)
+    for ax, (name, fname) in zip(axes, sources):
+        d = pd.read_csv(DATA / fname)
+        d = d[~d["gene"].isin(SPECIAL_TOKENS)]
+        out = d["is_outlier"].values
+        # Twenty to sixty thousand points per panel. Rasterise, or the PDF
+        # carries one vector path per gene; separate outliers by tone and
+        # size rather than by marker shape, which is illegible at this
+        # density. Greyscale-safe: the outliers are the only black ink.
+        ax.scatter(d["norm"][~out], d["cos_to_centroid"][~out],
+                   s=1.0, c=GREY, lw=0, alpha=0.35, rasterized=True)
+        ax.scatter(d["norm"][out], d["cos_to_centroid"][out],
+                   s=3.0, c=ACC, lw=0, alpha=0.9, rasterized=True)
+        ax.set_title(f"{name}\n{int(out.sum()):,}/{len(d):,}", fontsize=8)
+        ax.set_xlabel("embedding norm")
+        ax.tick_params(length=2)
+    axes[0].set_ylabel("cosine to centroid")
+    fig.tight_layout(pad=0.3, w_pad=0.9)
+    fig.savefig(REPO / "figures" / "F2_geometry.pdf",
+                metadata=DETERMINISTIC_PDF)
+    plt.close(fig)
+    print("  F2_geometry.pdf")
+
+
+# ---------------------------------------------------------------- F3
+def fig3_stability():
     """Caller robustness: containment / rho / top-50, viable vs degenerate."""
     df = pd.read_csv(OUT / "E3_calibrated_summary.csv")
     models = ["Geneformer", "scGPT", "scFoundation"]
@@ -91,13 +135,13 @@ def fig2_stability():
         ax.set_title(f"{m}\n$\\rho$ = {rho:.3f}", fontsize=7.5)
     axes[0].set_ylabel("containment of\noriginal outliers")
     fig.tight_layout(pad=0.3)
-    fig.savefig(REPO / "figures" / "F2_stability.pdf", metadata=DETERMINISTIC_PDF)
+    fig.savefig(REPO / "figures" / "F3_stability.pdf", metadata=DETERMINISTIC_PDF)
     plt.close(fig)
-    print("  F2_stability.pdf")
+    print("  F3_stability.pdf")
 
 
-# ---------------------------------------------------------------- F3
-def fig3_esm2():
+# ---------------------------------------------------------------- F4
+def fig4_esm2():
     """scFM-only fraction per class; mitochondrial is the informative exception."""
     d = pd.read_csv(OUT / "E6_scfm_only_by_class.csv")
     order = ["constrained", "disease", "ribosomal", "mitochondrial"]
@@ -120,13 +164,13 @@ def fig3_esm2():
     ax.set_xlabel("fraction of Geneformer outliers that are NOT ESM-2 outliers")
     ax.axvline(1.0, color="black", lw=0.5, ls=":")
     fig.tight_layout(pad=0.3)
-    fig.savefig(REPO / "figures" / "F3_esm2.pdf", metadata=DETERMINISTIC_PDF)
+    fig.savefig(REPO / "figures" / "F4_esm2.pdf", metadata=DETERMINISTIC_PDF)
     plt.close(fig)
-    print("  F3_esm2.pdf")
+    print("  F4_esm2.pdf")
 
 
-# ---------------------------------------------------------------- F4
-def fig4_nullband():
+# ---------------------------------------------------------------- F5
+def fig5_nullband():
     """THE figure. Treatment delta vs matched-control null. macro-F1 only.
 
     One float, three panels: PBMC3k primary, PBMC3k sensitivity, and the
@@ -213,10 +257,10 @@ def fig4_nullband():
                bbox_to_anchor=(0.5, -0.05), handlelength=1.5,
                columnspacing=1.3, handletextpad=0.5)
     fig.tight_layout(pad=0.3, w_pad=0.75, rect=(0, 0.05, 1, 1))
-    fig.savefig(REPO / "figures" / "F4_nullband.pdf",
+    fig.savefig(REPO / "figures" / "F5_nullband.pdf",
                 metadata=DETERMINISTIC_PDF)
     plt.close(fig)
-    print("  F4_nullband.pdf")
+    print("  F5_nullband.pdf")
 
 
 # ---------------------------------------------------------------- F1
@@ -353,7 +397,8 @@ def fig1_designs():
 if __name__ == "__main__":
     print("Building PSB figures ->", REPO / "figures")
     fig1_designs()
-    fig2_stability()
-    fig3_esm2()
-    fig4_nullband()
+    fig2_geometry()
+    fig3_stability()
+    fig4_esm2()
+    fig5_nullband()
     print("Done.")

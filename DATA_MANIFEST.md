@@ -73,7 +73,7 @@ Model weights are not redistributed here.
 | `outputs/E2_verdict_<dataset>.json` | `E2_downstream_ablation.py --evaluate` |
 | `outputs/E7_cluster_metric_diagnostic.{csv,json}` | `E7_cluster_metric_diagnostic.py` |
 | `outputs/E9_token_occurrence*.{csv,json}` | `E9_token_occurrence_audit.py` |
-| `figures/F1_designs.pdf` … `figures/F4_nullband.pdf` | `make_psb_figures.py` |
+| `figures/F1_designs.pdf` … `figures/F5_nullband.pdf` | `make_psb_figures.py` |
 
 Floats in `outputs/` are serialised at the fixed precision defined in
 `analysis/_precision.py`, so the drift check in `run_all.sh` is not tripped by

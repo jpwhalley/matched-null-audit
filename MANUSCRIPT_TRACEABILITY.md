@@ -16,19 +16,20 @@ row below is only meaningful together with the universe it uses.
 
 | Universe | Size | Outliers | Where used |
 |---|---|---|---|
-| Full model vocabulary, per model | 20,271 / 60,694 / 19,264 | 410 / 188 / 164 | §3.1 first paragraph (counts and vocabulary sizes), Figure 1, Figure 2 |
+| Full model vocabulary, per model | 20,271 / 60,694 / 19,264 | 410 / 188 / 164 | §3.1 first paragraph (counts and vocabulary sizes), Figures 1--3 |
 | Shared by all three vocabularies | 18,915 | 388 / 102 / 161 | Table 1, Table 2b, §3.1 class enrichment |
 | ClinVar complete cases | 18,911 | 388 / 102 / 161 | §3.5, Table 2a |
-| Shared with ESM-2 (Geneformer) | 19,017 | 389 | §3.3, Figure 3 |
+| Shared with ESM-2 (Geneformer) | 19,017 | 389 | §3.3, Figure 4 |
 
 ## Figures
 
 | Manuscript item | Script | Inputs | Outputs | Repro |
 |---|---|---|---|---|
 | Figure 1, model designs and shared screen | `analysis/make_psb_figures.py::fig1_designs` | none (schematic; the printed counts are the full-vocabulary values above) | `figures/F1_designs.pdf` | local |
-| Figure 2, caller robustness | `analysis/make_psb_figures.py::fig2_stability` | `outputs/E3_calibrated_summary.csv` | `figures/F2_stability.pdf` | local |
-| Figure 3, ESM-2 comparison | `analysis/make_psb_figures.py::fig3_esm2` | `outputs/E6_scfm_only_by_class.csv` | `figures/F3_esm2.pdf` | local |
-| Figure 4, matched deletion nulls (3 panels) | `analysis/make_psb_figures.py::fig4_nullband` | `outputs/E2_ablation_<ds>.json`, `outputs/E2_baseline_<ds>.json` | `figures/F4_nullband.pdf` | local from shipped E2 outputs |
+| Figure 2, per-gene embedding geometry (3 panels) | `analysis/make_psb_figures.py::fig2_geometry` | `data/gene_embedding_geometry.csv`, `data/scgpt_gene_embedding_geometry.csv`, `data/sf_gene_embedding_geometry.csv` | `figures/F2_geometry.pdf` | local |
+| Figure 3, caller robustness | `analysis/make_psb_figures.py::fig3_stability` | `outputs/E3_calibrated_summary.csv` | `figures/F3_stability.pdf` | local |
+| Figure 4, ESM-2 comparison | `analysis/make_psb_figures.py::fig4_esm2` | `outputs/E6_scfm_only_by_class.csv` | `figures/F4_esm2.pdf` | local |
+| Figure 5, matched deletion nulls (3 panels) | `analysis/make_psb_figures.py::fig5_nullband` | `outputs/E2_ablation_<ds>.json`, `outputs/E2_baseline_<ds>.json` | `figures/F5_nullband.pdf` | local from shipped E2 outputs |
 
 ## Tables
 

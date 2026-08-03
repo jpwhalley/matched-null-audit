@@ -27,10 +27,10 @@ run () {
 echo "### Cross-model agreement — Table 1"
 run E10_cross_model_agreement.py
 
-echo "### Caller robustness — Figure 2"
+echo "### Caller robustness — Figure 3"
 run E3_outlier_robustness.py
 
-echo "### Protein-sequence control — Figure 3"
+echo "### Protein-sequence control — Figure 4"
 # The ESM-2 geometry table is shipped, so the default verifies it against
 # data/CHECKSUMS.json and recomputes the comparison from it.
 if [[ "${REGENERATE_ESM2:-0}" == "1" ]]; then
@@ -44,7 +44,7 @@ echo "### Covariate-adjusted association — Table 2"
 run E8_clinvar_adjusted.py
 run E6_class_association.py
 
-echo "### Matched deletion test — Figure 4  (expensive)"
+echo "### Matched deletion test — Figure 5  (expensive)"
 if [[ "${RUN_ABLATION:-0}" != "1" ]]; then
   echo "  Skipped. Set RUN_ABLATION=1 to run the ablation and token audit."
 else
@@ -71,7 +71,7 @@ fi
 echo "### Clustering-metric diagnostic"
 run E7_cluster_metric_diagnostic.py
 
-echo "### Figures"
+echo "### Figures  (Figure 2 is built here from the shipped geometry tables)"
 run make_psb_figures.py
 
 echo; echo "Done. Outputs in outputs/, figures in figures/."
