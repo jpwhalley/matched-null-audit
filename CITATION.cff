@@ -9,8 +9,8 @@ authors:
 repository-code: "https://github.com/jpwhalley/matched-null-audit"
 license: MIT
 type: software
-version: psb-2027-submission
-date-released: 2026-08-03
+version: psb-2027-camera-ready
+date-released: 2026-09-29
 preferred-citation:
   type: article
   title: "Do Geometric Outliers Identify Important Genes in Single-Cell Foundation Models?"
@@ -19,4 +19,4 @@ preferred-citation:
       given-names: Justin P.
   year: 2026
   doi: 10.64898/2026.06.22.733850
-  notes: "bioRxiv preprint. A revised version is under consideration at Pacific Symposium on Biocomputing 2027; update this entry on acceptance."
+  notes: "bioRxiv preprint. Accepted for the Pacific Symposium on Biocomputing 2027 (proceedings and oral presentation; camera-ready tag psb-2027-camera-ready); replace with the proceedings citation on publication."

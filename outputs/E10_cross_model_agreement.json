@@ -20,6 +20,7 @@
       "spearman_rho": 0.1863132942,
       "spearman_p": 2.500228063e-147,
       "hypergeometric_p": 1.057917577e-99,
+      "hypergeometric_p_bonferroni": 3.173752731e-99,
       "n_scored_both": 18915
     },
     {
@@ -35,6 +36,7 @@
       "spearman_rho": 0.02588383261,
       "spearman_p": 0.00037055603,
       "hypergeometric_p": 0.01820119611,
+      "hypergeometric_p_bonferroni": 0.05460358834,
       "n_scored_both": 18915
     },
     {
@@ -50,11 +52,13 @@
       "spearman_rho": 0.006643678738,
       "spearman_p": 0.3608919074,
       "hypergeometric_p": 0.5828302999,
+      "hypergeometric_p_bonferroni": 1.0,
       "n_scored_both": 18915
     }
   ],
   "three_way_intersection": 1,
   "union_all_outliers": 571,
+  "multiple_testing": "hypergeometric_p_bonferroni = min(1, hypergeometric_p x 3), over the three pairwise overlap tests; Table 1 and Section 3.1 report the adjusted values",
   "note": "Jaccard and the score correlation answer different questions and can diverge: a pair may overlap far above chance and still have a low Jaccard. Both are reported.",
   "provenance": {
     "table": "data/Table_S1.csv",

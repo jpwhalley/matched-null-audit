@@ -26,7 +26,7 @@ uv sync
 About a minute. Needs only the shipped inputs: no model checkpoints, no GPU,
 no network. Starting from the checksum-pinned geometry tables, the ESM-2
 geometry table and the saved deletion outputs committed here, it regenerates
-the downstream analyses and all five manuscript figures, then checks the
+the downstream analyses and the four manuscript figures, then checks the
 regenerated outputs against the committed ones and exits non-zero on any
 difference.
 
@@ -81,7 +81,8 @@ analysis/           analysis scripts, one per reported experiment
 data/               shipped inputs and checksums
 cache/              matched-control draws and their specification sidecars
 outputs/            saved results
-figures/            the five manuscript figures
+figures/            the four manuscript figures (F1, F2, F3_stability_esm2, F5_nullband) and the two
+                    submitted single-panel figures that Figure 3 now combines (F3_stability, F4_esm2)
 notebooks/          D01, D02 and D04 data acquisition; P01 the geometry screen
 run_all.sh          the pipeline above
 DATA_MANIFEST.md    provenance, versions, licences, reproduction cost

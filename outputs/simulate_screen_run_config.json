@@ -1,0 +1,58 @@
+{
+  "n_genes": 20000,
+  "dims": [
+    256,
+    512,
+    768
+  ],
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "pilot_seed_excluded": 0,
+  "c_cos": 0.243,
+  "n_plant_per_mechanism": 100,
+  "paired_planted_set_per_seed": true,
+  "sizes": {
+    "norm": [
+      1.05,
+      1.1,
+      1.2
+    ],
+    "direction": [
+      5.0,
+      10.0,
+      20.0
+    ]
+  },
+  "k": 10,
+  "z_cut": 3.0,
+  "metrics": [
+    "norm",
+    "dist_centroid",
+    "cos_centroid",
+    "isolation"
+  ],
+  "isolation_metric": "mean cosine distance to k nearest neighbours",
+  "n_parts": 60,
+  "numpy": "2.2.6",
+  "python": "3.10.12"
+}

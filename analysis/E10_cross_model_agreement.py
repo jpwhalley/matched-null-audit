@@ -2,7 +2,9 @@
 
 On the vocabulary shared by all three models, reports for each model pair the
 observed and expected overlap, the Jaccard index, the Spearman correlation
-between the continuous anomaly scores, and a one-sided hypergeometric p.
+between the continuous anomaly scores, and a one-sided hypergeometric p,
+raw and Bonferroni-adjusted over the three pairwise tests (Table 1 and
+Section 3.1 report the adjusted values; camera-ready, 2026-09-22).
 
 Set membership is read from the committed `outlier_class` column of
 data/Table_S1.csv. Comparisons are restricted to the shared vocabulary, since
@@ -68,10 +70,12 @@ def main() -> None:
 
     rows = []
     print()
+    pairs = list(itertools.combinations(MEMBERSHIP, 2))
+    n_tests = len(pairs)  # Bonferroni family: the three pairwise overlap tests
     print(f"  {'pair':30s}{'obs':>6s}{'exp':>8s}{'Jaccard':>9s}"
-          f"{'rho':>8s}{'hyperg p':>12s}")
-    print("  " + "-" * 71)
-    for a, b in itertools.combinations(MEMBERSHIP, 2):
+          f"{'rho':>8s}{'hyperg p':>12s}{'Bonf. p':>10s}")
+    print("  " + "-" * 81)
+    for a, b in pairs:
         inter = int((sets[a] & sets[b]).sum())
         na, nb = int(sets[a].sum()), int(sets[b].sum())
         union = na + nb - inter
@@ -80,6 +84,7 @@ def main() -> None:
         rho, rho_p = stats.spearmanr(t.loc[ok, SCORE[a]], t.loc[ok, SCORE[b]])
         # one-sided: P(X >= inter) under the hypergeometric null
         hyp_p = float(stats.hypergeom.sf(inter - 1, n, na, nb))
+        hyp_p_bonf = min(1.0, hyp_p * n_tests)
         rows.append(dict(
             model_a=a, model_b=b, n_shared_vocabulary=n,
             n_outliers_a=na, n_outliers_b=nb,
@@ -87,10 +92,12 @@ def main() -> None:
             fold_enrichment=inter / expected if expected else float("nan"),
             jaccard=inter / union if union else float("nan"),
             spearman_rho=float(rho), spearman_p=float(rho_p),
-            hypergeometric_p=hyp_p, n_scored_both=int(ok.sum()),
+            hypergeometric_p=hyp_p,
+            hypergeometric_p_bonferroni=hyp_p_bonf,
+            n_scored_both=int(ok.sum()),
         ))
         print(f"  {a + ' vs ' + b:30s}{inter:6d}{expected:8.1f}"
-              f"{inter / union:9.3f}{rho:8.3f}{hyp_p:12.2e}")
+              f"{inter / union:9.3f}{rho:8.3f}{hyp_p:12.2e}{hyp_p_bonf:10.3g}")
 
     three = int((sets["Geneformer"] & sets["scGPT"]
                  & sets["scFoundation"]).sum())
@@ -100,7 +107,7 @@ def main() -> None:
     print(f"  Three-way intersection: {three}")
     print(f"  Union of all outlier sets: {union_all}")
 
-    df = pd.DataFrame(rows)
+    df = pd.DataFrame(clean(rows))  # same serialisation precision as the JSON
     df.to_csv(OUT / "E10_cross_model_agreement.csv", index=False)
 
     payload = {
@@ -115,6 +122,11 @@ def main() -> None:
         "pairs": clean(rows),
         "three_way_intersection": three,
         "union_all_outliers": union_all,
+        "multiple_testing": (
+            f"hypergeometric_p_bonferroni = min(1, hypergeometric_p x {n_tests}), "
+            "over the three pairwise overlap tests; Table 1 and Section 3.1 "
+            "report the adjusted values"
+        ),
         "note": (
             "Jaccard and the score correlation answer different questions "
             "and can diverge: a pair may overlap far above chance and still "

@@ -8,6 +8,7 @@
 #
 #   REGENERATE_ESM2=1   recompute ESM-2 embeddings from the checkpoint (~2 h)
 #   RUN_ABLATION=1      run the matched deletion test (~18 h)
+#   RUN_SIMULATION=1    rerun the screen-calibration simulation (~45 min)
 #
 # Data acquisition for those paths is in notebooks/D01, D02 and D04; see
 # DATA_MANIFEST.md.
@@ -27,10 +28,10 @@ run () {
 echo "### Cross-model agreement — Table 1"
 run E10_cross_model_agreement.py
 
-echo "### Caller robustness — Figure 3"
+echo "### Caller robustness — Figure 3a"
 run E3_outlier_robustness.py
 
-echo "### Protein-sequence control — Figure 4"
+echo "### Protein-sequence control — Figure 3b"
 # The ESM-2 geometry table is shipped, so the default verifies it against
 # data/CHECKSUMS.json and recomputes the comparison from it.
 if [[ "${REGENERATE_ESM2:-0}" == "1" ]]; then
@@ -44,7 +45,7 @@ echo "### Covariate-adjusted association — Table 2"
 run E8_clinvar_adjusted.py
 run E6_class_association.py
 
-echo "### Matched deletion test — Figure 5  (expensive)"
+echo "### Matched deletion test — Figure 4  (expensive)"
 if [[ "${RUN_ABLATION:-0}" != "1" ]]; then
   echo "  Skipped. Set RUN_ABLATION=1 to run the ablation and token audit."
 else
@@ -71,7 +72,15 @@ fi
 echo "### Clustering-metric diagnostic"
 run E7_cluster_metric_diagnostic.py
 
-echo "### Figures  (Figure 2 is built here from the shipped geometry tables)"
+echo "### Screen-calibration simulation — §2.1 / §3.2  (opt-in, ~45 min)"
+if [[ "${RUN_SIMULATION:-0}" != "1" ]]; then
+  echo "  Skipped. Set RUN_SIMULATION=1 to rerun it; the outputs are committed."
+else
+  run simulate_screen.py --dims 256 512 768 --seed-from 1 --seed-to 20
+  run simulate_screen.py --summarise
+fi
+
+echo "### Figures  (Figures 2, 3 and 4 are built here from the shipped tables and outputs)"
 run make_psb_figures.py
 
 echo; echo "Done. Outputs in outputs/, figures in figures/."

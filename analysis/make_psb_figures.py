@@ -1,15 +1,21 @@
 """
-Build PSB 2027 figures F1-F4 from saved analysis outputs.
+Build the PSB 2027 figures from saved analysis outputs.
 
-Design constraints (12-page limit, five figures):
-  * each figure must fit ~0.45-0.55 page => single-column width 4.6in,
-    height 2.0-2.6in
-  * greyscale-safe: distinguish by shape/hatch/position, not colour alone
-  * no chartjunk; the null band in F4 must be unambiguous at a glance
+Design constraints (12-page limit): greyscale-safe (shape/hatch/position, not
+colour alone); no chartjunk; the null band must be unambiguous at a glance.
 
-Outputs: figures/{F1_designs,F2_geometry,F3_stability,F4_esm2,
-                  F5_nullband}.pdf  (numbering follows the manuscript)
+Camera-ready numbering (tag psb-2027-camera-ready):
+  Figure 1  figures/F1_designs.pdf          fig1_designs
+  Figure 2  figures/F2_geometry.pdf         fig2_geometry
+  Figure 3  figures/F3_stability_esm2.pdf   fig3_stability_esm2  (a: robustness to outlier definitions;
+            robustness, b: ESM-2 recurrence by class; one two-panel figure at
+            full text width, 6.5 x 1.70 in)
+  Figure 4  figures/F5_nullband.pdf         fig5_nullband  (file name kept
+            from the submission, where it was Figure 5)
+The submitted Figures 3 and 4 (figures/F3_stability.pdf, F4_esm2.pdf; tag
+psb-2027-submission) remain reproducible from fig3_stability and fig4_esm2.
 """
+
 
 import json
 from pathlib import Path
@@ -17,6 +23,7 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.transforms import Bbox
 import numpy as np
 import pandas as pd
 
@@ -169,6 +176,118 @@ def fig4_esm2():
     print("  F4_esm2.pdf")
 
 
+
+# ---------------------------------------------------------------- F3 (camera-ready, two panels)
+W_FULL, H_FULL = 6.5, 1.70  # inches; the PSB text width is 6.6 in
+
+
+def _tight(artist, renderer):
+    bb = artist.get_tightbbox(renderer)
+    return Bbox.from_extents(bb.x0, bb.y0, bb.x1, bb.y1) if bb is not None else None
+
+
+def _check_layout(fig, left_axes, axb, letters):
+    """Refuse to save if panel (b) or a panel letter overlaps a left-hand panel."""
+    renderer = fig.canvas.get_renderer()
+    fig.canvas.draw()
+    left = [_tight(ax, renderer) for ax in left_axes]
+    right = _tight(axb, renderer)
+    problems = []
+    for i, bb in enumerate(left):
+        if bb.overlaps(right):
+            problems.append(f"panel (b) overlaps left panel {i}")
+    for name, t in letters.items():
+        tb = t.get_window_extent(renderer)
+        if name == "(b)" and any(tb.overlaps(bb) for bb in left):
+            problems.append("letter (b) overlaps a left panel")
+        if name == "(a)" and tb.overlaps(right):
+            problems.append("letter (a) overlaps panel (b)")
+    gap = (right.x0 - max(bb.x1 for bb in left)) / fig.dpi * 72
+    print(f"  layout check: gap between scFoundation panel and panel (b) = {gap:.1f} pt")
+    if problems:
+        raise SystemExit("LAYOUT CHECK FAILED: " + "; ".join(problems))
+
+
+def fig3_stability_esm2():
+    """Camera-ready Figure 3: (a) caller robustness, (b) scFM-only fraction per class."""
+    df = pd.read_csv(OUT / "E3_calibrated_summary.csv")
+    d = pd.read_csv(OUT / "E6_scfm_only_by_class.csv")
+
+    fig = plt.figure(figsize=(W_FULL, H_FULL))
+    outer = fig.add_gridspec(1, 2, width_ratios=[3.25, 1.5], wspace=0.34,
+                             left=0.075, right=0.995, top=0.79, bottom=0.32)
+    inner_a = outer[0, 0].subgridspec(1, 3, wspace=0.12)
+    inner_b = outer[0, 1].subgridspec(1, 1)
+    axes = [fig.add_subplot(inner_a[0, i]) for i in range(3)]
+    for ax in axes[1:]:
+        ax.sharey(axes[0])
+        ax.tick_params(labelleft=False)
+
+    # (a) caller robustness, one panel per model (as fig3_stability)
+    models = ["Geneformer", "scGPT", "scFoundation"]
+    viable = ["MAD z>3", "MAD z>3.5", "Top-n by MAD score"]
+    degen = ["IQR k=3 (Tukey extreme)"]
+    for ax, m in zip(axes, models):
+        sub = df[df.model == m].set_index("method")
+        methods = viable + degen
+        n_orig = sub.loc["|z|>3 (original)", "n_outliers"]
+        vals = [sub.loc[k, "containment"] if k in sub.index else np.nan for k in methods]
+        caps = [min(sub.loc[k, "n_outliers"], n_orig) / n_orig if k in sub.index else np.nan
+                for k in methods]
+        xs = np.arange(len(methods))
+        colors = [DARK] * len(viable) + [GREY] * len(degen)
+        hatches = [""] * len(viable) + ["///"] * len(degen)
+        for x, v, c, h in zip(xs, vals, colors, hatches):
+            ax.bar(x, v, color=c, hatch=h, edgecolor="black", linewidth=0.5, width=0.72)
+        ax.scatter(xs, caps, marker="_", s=80, color="black", linewidth=1.1, zorder=5)
+        ax.set_xticks(xs)
+        ax.set_xticklabels(["MAD\n>3", "MAD\n>3.5", "rank\nMAD", "IQR\n(deg.)"], fontsize=6.3)
+        ax.set_ylim(0, 1.08)
+        ax.axhline(1.0, color="black", lw=0.5, ls=":")
+        rho = sub["spearman_rho"].iloc[0]
+        ax.set_title(f"{m}\n$\\rho$ = {rho:.3f}", fontsize=7.5)
+    axes[0].set_ylabel("containment of\noriginal outliers")
+
+    # (b) scFM-only fraction per class (as fig4_esm2)
+    axb = fig.add_subplot(inner_b[0, 0])
+    order = ["constrained", "disease", "ribosomal", "mitochondrial"]
+    d = d.set_index("cls").loc[order].reset_index()
+    frac = d.n_scfm_only / d.n_scfm_outliers
+    ys = np.arange(len(d))[::-1]
+    for y, f, row in zip(ys, frac, d.itertuples()):
+        is_mito = row.cls == "mitochondrial"
+        axb.barh(y, f, color=GREY if is_mito else DARK, hatch="///" if is_mito else "",
+                 edgecolor="black", linewidth=0.5, height=0.62)
+        axb.text(f + 0.015, y, f"{row.n_scfm_only}/{row.n_scfm_outliers}", va="center", fontsize=6.5)
+    axb.set_yticks(ys)
+    axb.set_yticklabels(["constrained", "disease\n(ClinVar)", "ribosomal", "mitochondrial"], fontsize=6.5)
+    axb.tick_params(axis="y", pad=2, length=2)
+    axb.tick_params(axis="x", labelsize=6.5)
+    axb.set_xlim(0, 1.18)
+    axb.set_xlabel("fraction of Geneformer outliers\nthat are not ESM-2 outliers", fontsize=6.8)
+    axb.axvline(1.0, color="black", lw=0.5, ls=":")
+
+    # Widen the outer gap only if the measured gap is under 4 pt (font metrics
+    # differ slightly between machines), then place the letters from the boxes.
+    renderer = fig.canvas.get_renderer()
+    for ws in (0.34, 0.38, 0.42, 0.46, 0.50):
+        outer.update(wspace=ws)
+        fig.canvas.draw()
+        left_x1 = max(_tight(ax, renderer).x1 for ax in axes)
+        right_x0 = _tight(axb, renderer).x0
+        if (right_x0 - left_x1) / fig.dpi * 72 >= 4.0:
+            break
+    fw = fig.get_figwidth() * fig.dpi
+    letters = {
+        "(a)": fig.text(0.005, 0.965, "(a)", fontsize=9, fontweight="bold", va="top"),
+        "(b)": fig.text(right_x0 / fw, 0.965, "(b)", fontsize=9, fontweight="bold", va="top", ha="left"),
+    }
+    _check_layout(fig, axes, axb, letters)
+    fig.savefig(REPO / "figures" / "F3_stability_esm2.pdf", metadata=DETERMINISTIC_PDF)
+    plt.close(fig)
+    print("  F3_stability_esm2.pdf")
+
+
 # ---------------------------------------------------------------- F5
 def fig5_nullband():
     """THE figure. Treatment delta vs matched-control null. macro-F1 only.
@@ -178,7 +297,8 @@ def fig5_nullband():
     datasets have different baselines (0.924 against 0.635) and different
     control counts (200 against 100), so a common x-axis would invite reading
     the three histograms as one null distribution. Each panel therefore states
-    its own baseline and n.
+    its own baseline and n. Panel labels give z and the one-sided empirical p
+    (camera-ready: the earlier INSIDE/OUTSIDE verdict is replaced by p).
 
     Values are plotted in units of 1e-3 so the tick labels fit a narrow panel.
     """
@@ -232,7 +352,13 @@ def fig5_nullband():
 
         ax.set_ylim(0, ax.get_ylim()[1] * 1.72)   # headroom for the annotation
 
-        lines = [f"$z$ = {z:+.2f}  INSIDE"]
+        # one-sided empirical p = (b + 1) / (m + 1), b = controls at least as
+        # damaging as the treatment (Methods 2.4); shown as in the text (0.065, 0.73, 0.149)
+        cf = np.array([c["retrained_f1"] for c in ctrls])
+        b = int((cf <= res[tk]["retrained_f1"]).sum())
+        pval = (b + 1) / (len(ctrls) + 1)
+        ptxt = f"{pval:.2f}" if pval > 0.5 else f"{pval:.3f}"
+        lines = [f"$z$ = {z:+.2f}, $p$ = {ptxt}"]
         if note:
             lines.append(note)
         lines += [f"{ngenes} genes, $n$ = {len(ctrls)}",
@@ -372,7 +498,7 @@ def fig1_designs():
                 fontsize=7.2, fontweight="bold")
         ax.text(0.8425, 0.175, "Geneformer only", ha="center", va="center",
                 fontsize=7.2, fontweight="bold")
-        shared_qs = ["stable under\nre-calling?",
+        shared_qs = ["stable under alternative\noutlier definitions?",
                      "recur in ESM-2\nsequence space?",
                      "associated with\nClinVar?"]
         for i, q in enumerate(shared_qs):
@@ -398,7 +524,8 @@ if __name__ == "__main__":
     print("Building PSB figures ->", REPO / "figures")
     fig1_designs()
     fig2_geometry()
-    fig3_stability()
-    fig4_esm2()
-    fig5_nullband()
+    fig3_stability()        # submitted Figure 3 (kept for the record)
+    fig4_esm2()             # submitted Figure 4 (kept for the record)
+    fig3_stability_esm2()   # camera-ready Figure 3
+    fig5_nullband()         # camera-ready Figure 4
     print("Done.")

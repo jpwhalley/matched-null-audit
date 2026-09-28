@@ -19,7 +19,9 @@ row below is only meaningful together with the universe it uses.
 | Full model vocabulary, per model | 20,271 / 60,694 / 19,264 | 410 / 188 / 164 | §3.1 first paragraph (counts and vocabulary sizes), Figures 1--3 |
 | Shared by all three vocabularies | 18,915 | 388 / 102 / 161 | Table 1, Table 2b, §3.1 class enrichment |
 | ClinVar complete cases | 18,911 | 388 / 102 / 161 | §3.5, Table 2a |
-| Shared with ESM-2 (Geneformer) | 19,017 | 389 | §3.3, Figure 4 |
+| Shared with ESM-2 (Geneformer) | 19,017 | 389 | §3.3, Figure 3b |
+
+Special tokens (Geneformer: `<pad>`, `<mask>`, `<cls>`, `<eos>`) are scored with the matrix and excluded from the reported set; removing them before scoring returns the same 410 outliers and top 50 (`analysis/check_special_tokens.py`, §2.1). The gene called in all three models on the shared universe is HSP90AA1 (§3.1): the intersection of `is_outlier` across the three `data/*gene_embedding_geometry.csv` files on the shared vocabulary; `outputs/E10_cross_model_agreement.json` records the count (`three_way_intersection: 1`).
 
 ## Figures
 
@@ -27,15 +29,15 @@ row below is only meaningful together with the universe it uses.
 |---|---|---|---|---|
 | Figure 1, model designs and shared screen | `analysis/make_psb_figures.py::fig1_designs` | none (schematic; the printed counts are the full-vocabulary values above) | `figures/F1_designs.pdf` | local |
 | Figure 2, per-gene embedding geometry (3 panels) | `analysis/make_psb_figures.py::fig2_geometry` | `data/gene_embedding_geometry.csv`, `data/scgpt_gene_embedding_geometry.csv`, `data/sf_gene_embedding_geometry.csv` | `figures/F2_geometry.pdf` | local |
-| Figure 3, caller robustness | `analysis/make_psb_figures.py::fig3_stability` | `outputs/E3_calibrated_summary.csv` | `figures/F3_stability.pdf` | local |
-| Figure 4, ESM-2 comparison | `analysis/make_psb_figures.py::fig4_esm2` | `outputs/E6_scfm_only_by_class.csv` | `figures/F4_esm2.pdf` | local |
-| Figure 5, matched deletion nulls (3 panels) | `analysis/make_psb_figures.py::fig5_nullband` | `outputs/E2_ablation_<ds>.json`, `outputs/E2_baseline_<ds>.json` | `figures/F5_nullband.pdf` | local from shipped E2 outputs |
+| Figure 3a, caller robustness | `analysis/make_psb_figures.py::fig3_stability_esm2` (panel a; the submitted single-panel version is `fig3_stability`) | `outputs/E3_calibrated_summary.csv` | `figures/F3_stability_esm2.pdf` | local |
+| Figure 3b, ESM-2 comparison | `analysis/make_psb_figures.py::fig3_stability_esm2` (panel b; the submitted single-panel version is `fig4_esm2`) | `outputs/E6_scfm_only_by_class.csv` | `figures/F3_stability_esm2.pdf` | local |
+| Figure 4, matched deletion nulls (3 panels; Figure 5 in the submission; panel labels give z and the one-sided empirical p computed from the same draws) | `analysis/make_psb_figures.py::fig5_nullband` | `outputs/E2_ablation_<ds>.json`, `outputs/E2_baseline_<ds>.json` | `figures/F5_nullband.pdf` (file name kept from the submission) | local from shipped E2 outputs |
 
 ## Tables
 
 | Manuscript item | Script | Inputs | Outputs | Repro |
 |---|---|---|---|---|
-| Table 1, cross-model agreement | `analysis/E10_cross_model_agreement.py` | `data/Table_S1.csv` | `outputs/E10_cross_model_agreement.{csv,json}` | local |
+| Table 1, cross-model agreement (overlap p values are `hypergeometric_p_bonferroni`, the one-sided hypergeometric p times the three pairwise tests, capped at 1; the raw `hypergeometric_p` is also written) | `analysis/E10_cross_model_agreement.py` | `data/Table_S1.csv` | `outputs/E10_cross_model_agreement.{csv,json}` | local |
 | Table 2a, covariate-adjusted ClinVar (18,911 complete cases; Firth primary, unpenalised non-mitochondrial sensitivity, mis-specified diagnostic) | `analysis/E8_clinvar_adjusted.py` | `data/Table_S1.csv`, `data/ribosomal_panel.csv` | `outputs/E8_clinvar_adjusted.{csv,json}` | local |
 | Table 2b, unadjusted class association under both schemes | `analysis/E6_class_association.py` | `data/Table_S1.csv`, `data/gene_embedding_geometry.csv`, `data/ribosomal_panel.csv` | `outputs/E6_class_association.{csv,json}` | local |
 
@@ -44,6 +46,7 @@ row below is only meaningful together with the universe it uses.
 | Manuscript item | Script | Inputs | Outputs | Repro |
 |---|---|---|---|---|
 | §2.1 geometry screen, four metrics | `notebooks/P01_embedding_geometry.ipynb` | static gene-embedding matrices and gene identifiers extracted from model checkpoints | `data/gene_embedding_geometry.csv`, `data/scgpt_gene_embedding_geometry.csv`, `data/sf_gene_embedding_geometry.csv` | checkpoint |
+| §2.1 screen calibration on simulated matrices (design: 20,000 genes at d = 256, 512, 768; isotropic and anisotropic Gaussian nulls, cone from the median model mean cosine 0.243; 100 genes per planted matrix with norm x1.05/1.10/1.20 or rotation 5/10/20 degrees; seeds 1--20, pilot seed 0 excluded; paired planted sets; isolation as mean cosine distance to the 10 nearest neighbours, as in `notebooks/P01_embedding_geometry.ipynb`; the 2026-09-10 Euclidean-isolation run is superseded) | `analysis/simulate_screen.py --dims 256 512 768 --seed-from 1 --seed-to 20`, then `--summarise` | none (simulated); `c = 0.243` derived from the three geometry CSVs, special tokens excluded | `outputs/simulate_screen_run_results.csv`, `outputs/simulate_screen_run_summary.csv`, `outputs/simulate_screen_run_config.json` | local (about 45 min; opt-in `RUN_SIMULATION=1` in `run_all.sh`) |
 | §2.2 three robust callers and three degenerate exclusions | `analysis/E3_outlier_robustness.py` | the three geometry CSVs | `outputs/E3_calibrated_summary.csv`, `E3_enrichment_full.csv`, `E3_degenerate_diagnostics.csv`, `E3_gate_verdict.json` | local |
 | §2.2 GMM minority-component sizes (24.2--49.2%) | as above | as above | `outputs/E3_degenerate_diagnostics.csv` | local |
 | §2.2 percentile 1/99 union rates (4.96 / 5.92 / 6.77%) | as above | as above | recorded in `outputs/E3_gate_verdict.json` (`criteria_note`); this caller produces no separate table | local |
@@ -71,9 +74,10 @@ row below is only meaningful together with the universe it uses.
 | Manuscript item | Script | Inputs | Outputs | Repro |
 |---|---|---|---|---|
 | §3.1 outlier counts and vocabulary sizes per model (410/188/164 over 20,271/60,694/19,264) | `analysis/E3_outlier_robustness.py` | the three geometry CSVs | `outputs/E3_calibrated_summary.csv` (`n_outliers`, rows `\|z\|>3 (original)`), `outputs/E3_degenerate_diagnostics.csv` (`total_n`) | local |
-| §3.1 pairwise overlap, expected overlap, Jaccard, score correlation, three-way intersection | `analysis/E10_cross_model_agreement.py` | `data/Table_S1.csv` | `outputs/E10_cross_model_agreement.{csv,json}` | local |
-| §3.1 class enrichment, all three models (mitochondrial 163 / 455 / none; ribosomal 44.8 / 18.9 / 4.4; Geneformer constrained 1.46) | `analysis/E6_class_association.py` | `data/Table_S1.csv`, `data/ribosomal_panel.csv` | `outputs/E6_class_association.csv`, rows with `source=table_s1` — the per-model `overlapping` rows for ribosomal and mitochondrial, and `all_GF_outliers` / `constrained` / `mutually_exclusive` for the constraint OR. All in the 18,915-gene shared universe, matching Tables 1 and 2 | local |
+| §3.1 pairwise overlap, expected overlap, Jaccard, score correlation, three-way intersection; the adjusted overlap p (`hypergeometric_p_bonferroni`) is quoted, with the raw value once for the Geneformer–scFoundation pair | `analysis/E10_cross_model_agreement.py` | `data/Table_S1.csv` | `outputs/E10_cross_model_agreement.{csv,json}` | local |
+| §3.1 class enrichment, all three models, reported as Fisher odds ratios (mitochondrial OR 163 / 455 / none; ribosomal OR 44.8 / 18.9 / 4.4; Geneformer constrained 1.46; the observed/expected ratios are different quantities, e.g. 37.5 and 128 for the mitochondrial class) | `analysis/E6_class_association.py` | `data/Table_S1.csv`, `data/ribosomal_panel.csv` | `outputs/E6_class_association.csv`, rows with `source=table_s1` — the per-model `overlapping` rows for ribosomal and mitochondrial, and `all_GF_outliers` / `constrained` / `mutually_exclusive` for the constraint OR. All in the 18,915-gene shared universe, matching Tables 1 and 2 | local |
 | §3.1 expression comparisons: outliers against non-outliers per model (19x / 12x / 0.8x of the non-outlier median) and the Geneformer top 50 against the whole vocabulary (1,813 against 42 nTPM) | no released script; computed directly from the shipped files | `data/Table_S1.csv`, grouping `max_tpm` by the `outlier_class` column for the per-model comparison; `outputs/E2_treatment_genes.csv` joined to `data/Table_S1.csv` on `ensembl_id` for the top-50 comparison | none — recomputable in a few lines from the shipped inputs | local |
+| §3.2 simulated null call rates (union 0.8--0.9%; 0.25--0.35% per metric), recovery crossing 50% near targeted-metric mean \|z\| = 3, unplanted call rates 0.4--0.8% (all seed-level means, ranges across dimensions and nulls) | `analysis/simulate_screen.py` (as §2.1) | as §2.1 | `outputs/simulate_screen_run_summary.csv` (`call_*_mean` and `mean_z_*_mean` by `d`, `matrix`, `group`) | local |
 | §3.2 caller stability, containment against ceiling, robust cores | `analysis/E3_outlier_robustness.py` | the three geometry CSVs, `data/Table_S1.csv` | `outputs/E3_calibrated_summary.csv`, `E3_enrichment_full.csv`, `E3_robust_core.json`, `E3_degenerate_diagnostics.csv`, `E3_gate_verdict.json` | local |
 | §3.3 ESM-2 recurrence: Jaccard, score correlation, 49 vs 11.7 expected, top-50 overlap, overlap gene list | `analysis/E1_stage2_esm2.py --verify-shipped` | `outputs/E1_esm2_geometry.csv`, `data/Table_S1.csv` | `outputs/E1_esm2_comparison.csv`, `outputs/E1_stage2_verdict.json` | local |
 | §3.3 per-class scFM-only composition (52/74 ribosomal, 82/82 constrained, 79/82 disease, 2/10 mitochondrial) | `analysis/E6_class_association.py` | `data/Table_S1.csv`, `outputs/E1_esm2_geometry.csv` | `outputs/E6_scfm_only_by_class.csv` | local |
@@ -112,6 +116,8 @@ about a minute. Two paths are opt-in because they are expensive:
 - `RUN_ABLATION=1` runs the **PBMC3k** matched deletion and its token audit
   (~18 h). The Tabula Sapiens arm is not part of that path; reproduce it with
   the explicit command in the §3.4 replication row above.
+- `RUN_SIMULATION=1` reruns the screen-calibration simulation of §2.1/§3.2
+  (~45 min, numpy only); its outputs are committed and gated like the others.
 
 ## Environment
 
